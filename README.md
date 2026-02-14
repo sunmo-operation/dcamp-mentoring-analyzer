@@ -4,6 +4,24 @@
 
 비개발자를 위한 Claude Code 7일 집중 캠프. 2026-02-14 ~ 2026-02-21 (일요일 휴식), Naver D2SF.
 
+## 설치
+
+```bash
+npx skills add ai-native-camp/camp-1
+```
+
+이 한 줄이면 모든 커리큘럼 스킬이 설치됩니다. 특정 Day만 설치하려면:
+
+```bash
+# Day 1만 설치
+npx skills add ai-native-camp/camp-1 --skill day1-onboarding
+
+# Day 2만 설치
+npx skills add ai-native-camp/camp-1 --skill day2-mcp-skills
+```
+
+> 설치 후 Claude Code에서 `/day1-onboarding` 또는 `/day2-mcp-skills`로 시작하세요.
+
 ## Skills as Curriculum
 
 이 캠프의 커리큘럼은 **Claude Code Skills 그 자체**다.
@@ -13,7 +31,7 @@
 ```
 .claude/skills/
 ├── day1-onboarding/    # 설치 + 7개 핵심 기능
-├── day2-sync/          # 정보 수집 자동화
+├── day2-mcp-skills/    # MCP 연결 + 정보 수집 스킬 만들기
 ├── day3-clarify/       # 요구사항 명확화
 ├── day4-wrap/          # 마무리 + subagent
 ├── ...
@@ -21,6 +39,17 @@
 ```
 
 Skill을 만드는 법을 Skill로 배운다. 이것이 이 캠프의 방식이다.
+
+## 커리큘럼
+
+| Day | Skill | 주제 |
+|-----|-------|------|
+| 1 | `day1-onboarding` | Claude Code 설치 + 7개 핵심 기능 (CLAUDE.md, Skill, MCP, Subagent, Agent Teams, Hook, Plugin) |
+| 2 | `day2-mcp-skills` | MCP로 세상과 연결하기 — Slack, Gmail, Calendar, Notion, Linear을 연결하고 정보를 모으는 스킬 만들기 |
+| 3 | *coming soon* | 요구사항 명확화 |
+| 4 | *coming soon* | 마무리 + subagent |
+| ... | | |
+| 7 | *coming soon* | 졸업 |
 
 ## 캠프가 끝나면
 
