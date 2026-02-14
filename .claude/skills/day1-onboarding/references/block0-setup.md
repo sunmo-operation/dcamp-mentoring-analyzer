@@ -23,6 +23,34 @@ Node.js 불필요. 한 줄이면 끝. 자동 업데이트 내장.
 | 설치 후 claude 명령 안 됨 | 터미널을 껐다 다시 열기 |
 | Windows에서 실행 정책 에러 | `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` 실행 후 재시도 |
 
+### 에디터 (선택사항)
+
+Claude Code는 터미널에서 `claude`만 치면 된다. 하지만 파일을 눈으로 보면서 작업하고 싶다면 에디터를 설치할 수 있다:
+
+| 에디터 | 특징 | 추천 대상 | 공식 사이트 |
+|--------|------|-----------|-------------|
+| [Antigravity](https://antigravity.google/) | 무료, AI 내장, 가장 간단 | 처음 시작하는 분 | antigravity.google |
+| [Cursor](https://www.cursor.com/) | AI 내장, CC 시너지 | 코드 편집도 할 분 | cursor.com |
+| [VSCode](https://code.visualstudio.com/) | 범용적, 확장 풍부 | 이미 쓰고 계신 분 | code.visualstudio.com |
+
+> "이 캠프에서는 에디터 없이 터미널에서 `claude`만 쳐도 충분합니다. 에디터는 나중에 필요할 때 설치해도 됩니다."
+
+### Mac 꿀팁: 숨겨진 폴더 보기
+
+Mac에서는 `.`으로 시작하는 폴더(`.claude`, `.git` 등)가 기본적으로 안 보인다. Claude Code에게 시키면 된다:
+
+```
+Finder에서 .claude, .git 처럼 숨겨진 폴더도 볼 수 있게 설정해줘
+```
+
+설정이 끝나면 Finder로 직접 확인해보자:
+
+```
+open ./
+```
+
+> `.claude/skills/` 폴더 안에 지금 배우고 있는 교안이 들어있다! Finder에서 직접 눈으로 확인해보자.
+
 ### 첫 실행
 
 터미널에 `claude` 한 글자를 입력하라고 안내한다. Anthropic 계정 로그인 + Claude 구독(Pro, Max, Teams, Enterprise) 연결을 확인시킨다.
