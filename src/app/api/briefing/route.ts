@@ -15,6 +15,10 @@ import {
   getOkrValues,
 } from "@/lib/data";
 import type { CompanyBriefing } from "@/types";
+import {
+  briefingResponseSchema,
+  transformBriefingResponse,
+} from "@/lib/schemas";
 
 interface BriefingRequest {
   companyId: string;
@@ -113,7 +117,16 @@ export async function POST(request: Request) {
       jsonStr = jsonStr.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
     }
 
-    const parsed = JSON.parse(jsonStr);
+    const rawParsed = JSON.parse(jsonStr);
+
+    // Zod 스키마로 Claude 응답 검증 + 내부 타입 변환
+    const validated = briefingResponseSchema.safeParse(rawParsed);
+    if (!validated.success) {
+      console.error("Claude 브리핑 응답 스키마 검증 실패:", validated.error.format());
+      throw new Error(`AI 응답 형식 오류: ${validated.error.issues[0]?.message || "알 수 없는 형식"}`);
+    }
+
+    const transformedSections = transformBriefingResponse(validated.data);
 
     // 브리핑 저장
     const briefing: CompanyBriefing = {
@@ -121,13 +134,7 @@ export async function POST(request: Request) {
       companyId,
       createdAt: new Date().toISOString(),
       status: "completed",
-      executiveSummary: parsed.executiveSummary || null,
-      okrDiagnosis: parsed.okrDiagnosis || null,
-      repeatPatterns: parsed.repeatPatterns || [],
-      unspokenSignals: parsed.unspokenSignals || [],
-      mentorInsights: parsed.mentorInsights || null,
-      meetingStrategy: parsed.meetingStrategy || null,
-      pmActions: parsed.pmActions || [],
+      ...transformedSections,
       dataFingerprint,
     };
 

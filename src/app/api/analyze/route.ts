@@ -9,6 +9,10 @@ import {
   getExpertRequests,
 } from "@/lib/data";
 import type { AnalyzeRequest, AnalysisResult } from "@/types";
+import {
+  analysisResponseSchema,
+  transformAnalysisResponse,
+} from "@/lib/schemas";
 
 export async function POST(request: Request) {
   let analysis: AnalysisResult | null = null;
@@ -101,42 +105,17 @@ export async function POST(request: Request) {
       jsonStr = jsonStr.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
     }
 
-    const parsed = JSON.parse(jsonStr);
+    const rawParsed = JSON.parse(jsonStr);
 
-    // Claude 응답을 새 타입 구조로 매핑 (STEP 7에서 프롬프트 자체를 개선 예정)
+    // Zod 스키마로 Claude 응답 검증 + 내부 타입 변환
+    const validated = analysisResponseSchema.safeParse(rawParsed);
+    if (!validated.success) {
+      console.error("Claude 응답 스키마 검증 실패:", validated.error.format());
+      throw new Error(`AI 응답 형식 오류: ${validated.error.issues[0]?.message || "알 수 없는 형식"}`);
+    }
+
     analysis.status = "completed";
-    analysis.sections = {
-      summary: parsed.summary
-        ? {
-            oneLiner: parsed.summary.oneLiner,
-            keywords: parsed.summary.keyTopics || parsed.summary.keywords || [],
-          }
-        : null,
-      surfaceIssues: parsed.surfaceIssues?.map(
-        (s: { statement?: string; title?: string; context?: string; description?: string }) => ({
-          title: s.statement || s.title || "",
-          description: s.context || s.description || "",
-        })
-      ) ?? null,
-      rootChallenges: parsed.rootCauses?.map(
-        (r: { title: string; description: string; severity: string; category: string; evidence?: string; structuralCause?: string }) => ({
-          title: r.title,
-          description: r.description,
-          severity: r.severity,
-          category: r.category,
-          structuralCause: r.evidence || r.structuralCause || "",
-        })
-      ) ?? null,
-      recommendedActions: parsed.recommendedActions ?? null,
-      riskSignals: parsed.riskSignals?.map(
-        (r: { signal?: string; title?: string; type?: string; description?: string; severity?: string; mitigation?: string; response?: string; pattern?: string }) => ({
-          title: r.signal || r.title || "",
-          description: r.type ? `[${r.type}] ${r.severity || ""}` : (r.description || ""),
-          pattern: r.pattern,
-          response: r.mitigation || r.response || "",
-        })
-      ) ?? null,
-    };
+    analysis.sections = transformAnalysisResponse(validated.data);
 
     await saveAnalysis(analysis);
 
