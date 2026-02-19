@@ -21,9 +21,12 @@ npx skills add ai-native-camp/camp-1 --skill day2-create-context-sync-skill --ag
 
 # Day 4만 설치
 npx skills add ai-native-camp/camp-1 --skill day4-wrap-and-analyze --agent claude-code --yes
+
+# Day 5만 설치
+npx skills add ai-native-camp/camp-1 --skill day5-fetch-and-digest --agent claude-code --yes
 ```
 
-> 설치 후 Claude Code에서 `/day1-onboarding`, `/day2-create-context-sync-skill`, `/day4-wrap-and-analyze` 등으로 시작하세요.
+> 설치 후 Claude Code에서 `/day1-onboarding`, `/day2-create-context-sync-skill`, `/day4-wrap-and-analyze`, `/day5-fetch-and-digest` 등으로 시작하세요.
 
 ## Skills as Curriculum
 
@@ -38,6 +41,7 @@ npx skills add ai-native-camp/camp-1 --skill day4-wrap-and-analyze --agent claud
 ├── day2-create-context-sync-skill/   # 나만의 Context Sync 스킬 만들기
 ├── day3-clarify/                      # 요구사항 명확화
 ├── day4-wrap-and-analyze/             # session-wrap 스킬 만들기 + 세션 분석
+├── day5-fetch-and-digest/             # fetch-tweet, fetch-youtube, content-digest 스킬 만들기
 ├── ...
 └── day7-graduation/
 ```
@@ -53,6 +57,7 @@ Skill을 만드는 법을 Skill로 배운다. 이것이 이 캠프의 방식이�
 | 2 | `day2-create-context-sync-skill` | 나만의 Context Sync 스킬 만들기 — 도구 선택 → MCP/API 연결 → 병렬 수집 → 완성 |
 | 3 | *coming soon* | 요구사항 명확화 |
 | 4 | `day4-wrap-and-analyze` | session-wrap 스킬 직접 만들기 + history-insight + session-analyzer |
+| 5 | `day5-fetch-and-digest` | fetch-tweet, fetch-youtube, content-digest 스킬 만들기 — 콘텐츠 가져오기 + 번역 + Quiz-First 학습 |
 | ... | | |
 | 7 | *coming soon* | 졸업 |
 
