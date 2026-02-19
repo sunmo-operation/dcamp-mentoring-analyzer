@@ -52,7 +52,8 @@ export function BriefingPanel({
         } else {
           setError(data.error || "브리핑 생성에 실패했습니다");
         }
-      } catch {
+      } catch (error) {
+        console.warn("[BriefingPanel] 브리핑 생성 실패:", error);
         setError("네트워크 오류가 발생했습니다");
       } finally {
         setLoading(false);

@@ -201,12 +201,13 @@ export async function getCompanyAllData(
       notionGetSessions(companyNotionPageId),
       notionGetExpertRequests(companyNotionPageId),
     ]);
-  } catch {
+  } catch (error) {
+    console.warn("[data] 세션+전문가 요청 병렬 조회 실패, 세션만 재시도:", error);
     // 전문가 요청 DB 접근 불가 시 세션만 사용
     try {
       sessions = await notionGetSessions(companyNotionPageId);
-    } catch {
-      // 전체 실패
+    } catch (retryError) {
+      console.warn("[data] 세션 단독 조회도 실패:", retryError);
     }
   }
 

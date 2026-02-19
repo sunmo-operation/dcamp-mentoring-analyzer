@@ -186,7 +186,8 @@ export function AnalysisForm({
         otherMentors: mentorData.otherMentors || [],
         sessions: Array.isArray(sessionData) ? sessionData : [],
       });
-    } catch {
+    } catch (error) {
+      console.warn("[AnalysisForm] 멘토/세션 로드 실패:", error);
       dispatch({ type: "LOAD_COMPANY_FAILED", notice: "멘토/세션 정보를 불러오지 못했습니다. 직접 입력해주세요." });
     }
   }, []);
@@ -250,7 +251,8 @@ export function AnalysisForm({
         transcript,
         notice,
       });
-    } catch {
+    } catch (error) {
+      console.warn("[AnalysisForm] 세션 본문 로드 실패:", error);
       dispatch({ type: "SET_NOTICE", notice: "세션 본문을 불러오는데 실패했습니다" });
       dispatch({ type: "SET_LOADING", key: "transcript", value: false });
     }
