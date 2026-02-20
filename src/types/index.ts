@@ -274,6 +274,30 @@ export interface CompanyBriefing {
     deadline: string;
     why: string;
   }[];
+  // ── 업계 동향 / 경쟁서비스 / 법령·정책 ──────────────
+  industryContext: {
+    competitors: {
+      name: string;
+      description: string;
+      stage: string;
+      similarity: string;
+      differentiation: string;
+      recentMove: string;
+      threatLevel: "high" | "medium" | "low";
+    }[];
+    industryTrends: {
+      trend: string;
+      impact: string;
+      source: string;
+    }[];
+    regulatoryAndPolicy: {
+      title: string;
+      type: string; // "법령" | "지원사업" | "정책" | "업계소식"
+      impact: string;
+      actionRequired: string;
+    }[];
+    marketInsight: string;
+  } | null;
   dataFingerprint: {
     lastSessionDate: string | null;
     sessionCount: number;

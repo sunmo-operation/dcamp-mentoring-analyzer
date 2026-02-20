@@ -166,7 +166,8 @@ export const briefingResponseSchema = z.object({
 
   repeatPatterns: z.array(z.object({
     issue: z.string().default(""),
-    issueCategory: z.enum(["전략", "조직", "실행", "시장", "제품", "재무", "멘토링"]).default("실행"),
+    // 9개 카테고리 + 이전 호환용 (조직, 실행, 시장)
+    issueCategory: z.string().default("운영"),
     firstSeen: z.string().default(""),
     occurrences: z.number().default(1),
     structuralCause: z.string().default(""),
@@ -201,6 +202,31 @@ export const briefingResponseSchema = z.object({
     deadline: z.string().default(""),
     why: z.string().default(""),
   })).default([]),
+
+  // 업계 동향 / 경쟁서비스 / 법령·정책
+  industryContext: z.object({
+    competitors: z.array(z.object({
+      name: z.string().default(""),
+      description: z.string().default(""),
+      stage: z.string().default(""),
+      similarity: z.string().default(""),
+      differentiation: z.string().default(""),
+      recentMove: z.string().default(""),
+      threatLevel: z.enum(["high", "medium", "low"]).default("medium"),
+    })).default([]),
+    industryTrends: z.array(z.object({
+      trend: z.string().default(""),
+      impact: z.string().default(""),
+      source: z.string().default(""),
+    })).default([]),
+    regulatoryAndPolicy: z.array(z.object({
+      title: z.string().default(""),
+      type: z.string().default("업계소식"),
+      impact: z.string().default(""),
+      actionRequired: z.string().default(""),
+    })).default([]),
+    marketInsight: z.string().default(""),
+  }).nullable().optional(),
 });
 
 export type BriefingResponse = z.infer<typeof briefingResponseSchema>;
@@ -219,6 +245,7 @@ export function transformBriefingResponse(
   | "mentorInsights"
   | "meetingStrategy"
   | "pmActions"
+  | "industryContext"
 > {
   return {
     executiveSummary: parsed.executiveSummary ?? null,
@@ -235,5 +262,6 @@ export function transformBriefingResponse(
     mentorInsights: parsed.mentorInsights ?? null,
     meetingStrategy: parsed.meetingStrategy ?? null,
     pmActions: parsed.pmActions,
+    industryContext: parsed.industryContext ?? null,
   };
 }

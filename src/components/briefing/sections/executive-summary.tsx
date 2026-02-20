@@ -10,7 +10,7 @@ interface ExecutiveSummaryProps {
   keyNumbers: string[];
 }
 
-// ── ① 경영진 요약 ────────────────────────────────
+// ── ① Executive Summary ────────────────────────────────
 export function ExecutiveSummary({
   oneLiner,
   currentPhase,
@@ -22,7 +22,7 @@ export function ExecutiveSummary({
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-base">경영진 요약</CardTitle>
+          <CardTitle className="text-base">Executive Summary</CardTitle>
           <div className="flex items-center gap-2">
             <Badge className={momentumStyle[momentum]?.bg || momentumStyle.neutral.bg}>
               {momentumStyle[momentum]?.label || "보합"}

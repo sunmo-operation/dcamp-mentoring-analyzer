@@ -13,6 +13,7 @@ import { MentorInsights } from "./sections/mentor-insights";
 import { ResourceDiagnosis } from "./sections/resource-diagnosis";
 import { MeetingStrategy } from "./sections/meeting-strategy";
 import { PmActions } from "./sections/pm-actions";
+import { IndustryContext } from "./sections/industry-context";
 import type { CompanyBriefing } from "@/types";
 
 interface BriefingPanelProps {
@@ -206,6 +207,7 @@ export function BriefingPanel({
     mentorInsights,
     meetingStrategy,
     pmActions,
+    industryContext,
   } = briefing;
 
   // 개조식 파싱
@@ -298,6 +300,16 @@ export function BriefingPanel({
         {/* ⑧ PM 액션 */}
         {pmActions && pmActions.length > 0 && (
           <PmActions actions={pmActions} />
+        )}
+
+        {/* ⑨ 업계 동향 & 경쟁 환경 */}
+        {industryContext && (
+          <IndustryContext
+            competitors={industryContext.competitors}
+            industryTrends={industryContext.industryTrends}
+            regulatoryAndPolicy={industryContext.regulatoryAndPolicy}
+            marketInsight={industryContext.marketInsight}
+          />
         )}
 
       {/* ── 갱신 중 오버레이 닫기 ─────────────────── */}

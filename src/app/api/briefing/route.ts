@@ -122,12 +122,14 @@ export async function POST(request: Request) {
             fullText += event.delta.text;
 
             // 500자마다 진행률 업데이트 전송
+            // 예상 전체 길이 약 5000자 기준, 최대 95%까지만 표시
             if (fullText.length - lastProgressSent > 500) {
               lastProgressSent = fullText.length;
+              const pct = Math.min(Math.round((fullText.length / 5000) * 95), 95);
               controller.enqueue(encode({
                 type: "progress",
                 step: 3,
-                message: `AI 분석 중... (${Math.round(fullText.length / 50)}% 예상)`,
+                message: `AI 분석 중... (${pct}%)`,
                 length: fullText.length,
               }));
             }
