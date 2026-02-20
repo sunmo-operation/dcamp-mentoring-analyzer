@@ -26,6 +26,9 @@ interface BriefingRequest {
   force?: boolean;
 }
 
+// Vercel Hobby 플랜 최대 실행 시간 설정 (60초)
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as BriefingRequest;
