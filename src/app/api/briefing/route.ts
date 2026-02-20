@@ -142,6 +142,7 @@ export async function POST(request: Request) {
         let lastProgressSent = 0;
 
         // AI 응답 수신 중 (실시간 진행률 전송)
+        let stopReason = "";
         for await (const event of response) {
           if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
             fullText += event.delta.text;
@@ -160,6 +161,18 @@ export async function POST(request: Request) {
               }));
             }
           }
+          // 응답 종료 이유 추적 (max_tokens = 잘림 감지용)
+          if (event.type === "message_stop") {
+            stopReason = (event as unknown as { message?: { stop_reason?: string } }).message?.stop_reason || "";
+          }
+          if (event.type === "message_delta") {
+            stopReason = (event as unknown as { delta?: { stop_reason?: string } }).delta?.stop_reason || stopReason;
+          }
+        }
+
+        // 토큰 부족으로 응답 잘림 감지
+        if (stopReason === "max_tokens") {
+          console.warn(`[브리핑] Claude 응답이 max_tokens(8192)에서 잘림! 텍스트 길이: ${fullText.length}자`);
         }
 
         // 3단계: 결과 처리
@@ -193,9 +206,34 @@ export async function POST(request: Request) {
         let rawParsed: unknown;
         try {
           rawParsed = JSON.parse(jsonStr);
-        } catch (parseErr) {
-          console.error("[브리핑] JSON 파싱 실패. 응답 마지막 200자:", jsonStr.slice(-200));
-          throw new Error("AI 응답 JSON 파싱 실패 (토큰 부족으로 응답이 잘렸을 수 있습니다)");
+        } catch {
+          // JSON 잘림 복구 시도: 열린 괄호/대괄호를 닫아줌
+          console.warn("[브리핑] JSON 파싱 실패, 잘린 JSON 복구 시도...");
+          let repaired = jsonStr;
+          // 마지막 완전한 값 뒤에서 자르고 괄호 닫기
+          const lastComma = repaired.lastIndexOf(",");
+          const lastColon = repaired.lastIndexOf(":");
+          if (lastComma > lastColon) {
+            repaired = repaired.slice(0, lastComma);
+          }
+          // 열린 괄호 카운트해서 닫기
+          let openBraces = 0, openBrackets = 0;
+          for (const ch of repaired) {
+            if (ch === "{") openBraces++;
+            if (ch === "}") openBraces--;
+            if (ch === "[") openBrackets++;
+            if (ch === "]") openBrackets--;
+          }
+          repaired += "]".repeat(Math.max(0, openBrackets));
+          repaired += "}".repeat(Math.max(0, openBraces));
+
+          try {
+            rawParsed = JSON.parse(repaired);
+            console.log("[브리핑] 잘린 JSON 복구 성공!");
+          } catch {
+            console.error("[브리핑] JSON 복구도 실패. 마지막 200자:", jsonStr.slice(-200));
+            throw new Error("AI 응답 JSON 파싱 실패 (응답이 잘렸을 수 있습니다. 다시 시도해주세요)");
+          }
         }
 
         const validated = briefingResponseSchema.safeParse(nullsToUndefined(rawParsed));
