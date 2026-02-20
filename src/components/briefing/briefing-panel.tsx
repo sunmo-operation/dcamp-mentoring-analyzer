@@ -95,6 +95,8 @@ export function BriefingPanel({
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
+        let receivedComplete = false;
+        let receivedError = false;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -119,14 +121,21 @@ export function BriefingPanel({
               }
               if (data.type === "complete") {
                 setBriefing(data.briefing);
+                receivedComplete = true;
               }
               if (data.type === "error") {
                 setError(data.message);
+                receivedError = true;
               }
             } catch {
               // 파싱 실패 무시
             }
           }
+        }
+
+        // 스트림이 complete/error 없이 끊긴 경우 (Vercel 타임아웃 등)
+        if (!receivedComplete && !receivedError) {
+          setError("브리핑 생성이 중단되었습니다. 서버 시간 초과일 수 있습니다. 다시 시도해주세요.");
         }
       } catch (err) {
         console.warn("[BriefingPanel] 브리핑 생성 실패:", err);

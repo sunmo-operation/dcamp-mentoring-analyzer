@@ -105,7 +105,7 @@ export async function POST(request: Request) {
           type: "status", step: 2, totalSteps: 4,
           message: "AI가 브리핑을 생성하고 있습니다...",
           elapsed: elapsed2,
-          detail: `멘토링 ${sessions.length}건 · 전문가 요청 ${expertRequests.length}건 분석`,
+          detail: "Notion 데이터 분석 중",
         }));
 
         const dataFingerprint: CompanyBriefing["dataFingerprint"] = {
@@ -200,8 +200,24 @@ export async function POST(request: Request) {
         controller.enqueue(encode({ type: "complete", briefing, cached: false, elapsed: totalElapsed }));
       } catch (error) {
         const msg = error instanceof Error ? error.message : "알 수 없는 오류";
-        console.error("브리핑 스트리밍 오류:", error);
-        controller.enqueue(encode({ type: "error", message: `브리핑 생성 실패: ${msg}` }));
+        const stack = error instanceof Error ? error.stack : "";
+        console.error("브리핑 스트리밍 오류:", msg, stack);
+
+        // 사용자에게 디버그 가능한 에러 메시지 전송
+        let userMsg = `브리핑 생성 실패: ${msg}`;
+        if (msg.includes("API key") || msg.includes("apiKey") || msg.includes("authentication")) {
+          userMsg = "ANTHROPIC_API_KEY가 설정되지 않았거나 유효하지 않습니다.";
+        } else if (msg.includes("JSON") || msg.includes("parse")) {
+          userMsg = "AI 응답을 파싱하지 못했습니다. 다시 시도해주세요.";
+        } else if (msg.includes("timeout") || msg.includes("ETIMEDOUT")) {
+          userMsg = "AI 서버 응답 시간 초과. 다시 시도해주세요.";
+        }
+
+        try {
+          controller.enqueue(encode({ type: "error", message: userMsg }));
+        } catch {
+          // 스트림 이미 닫힌 경우 무시
+        }
       } finally {
         clearInterval(heartbeat);
         controller.close();
