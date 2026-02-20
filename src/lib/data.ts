@@ -42,7 +42,12 @@ import {
 } from "@/lib/notion";
 
 // ── 분석 결과 JSON 저장소 ─────────────────────────
-const DATA_DIR = path.join(process.cwd(), "src", "data");
+// Vercel은 읽기 전용 파일 시스템이므로 /tmp에 저장
+// 로컬 개발 시에는 기존 src/data 사용
+const isVercel = !!process.env.VERCEL;
+const DATA_DIR = isVercel
+  ? "/tmp"
+  : path.join(process.cwd(), "src", "data");
 
 function filePath(name: string) {
   return path.join(DATA_DIR, name);
