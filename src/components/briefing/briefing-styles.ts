@@ -48,10 +48,16 @@ export const urgencyLabel: Record<string, string> = {
 };
 
 // ── 개조식 텍스트를 라인 배열로 파싱 ─────────────────
+// Claude가 다양한 불릿 기호를 사용하므로 모두 제거
 export function parseBulletLines(text: string | undefined | null): string[] {
   if (!text) return [];
   return text
     .split("\n")
-    .map((line) => line.replace(/^[•\-\*]\s*/, "").trim())
+    .map((line) =>
+      line
+        .replace(/^[\s]*[•▪▸►·‣⁃\-\*]\s*/, "")  // 불릿 기호 제거
+        .replace(/^\d+[.)]\s*/, "")                 // 번호 목록 제거 (1. 2) 등)
+        .trim()
+    )
     .filter(Boolean);
 }
