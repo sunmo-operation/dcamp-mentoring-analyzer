@@ -46,6 +46,16 @@ export function BriefingPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ companyId, force }),
         });
+        if (!res.ok) {
+          const text = await res.text();
+          try {
+            const data = JSON.parse(text);
+            setError(data.error || `서버 오류 (${res.status})`);
+          } catch {
+            setError(`서버 오류가 발생했습니다 (${res.status})`);
+          }
+          return;
+        }
         const data = await res.json();
         if (data.success) {
           setBriefing(data.briefing);
@@ -54,7 +64,7 @@ export function BriefingPanel({
         }
       } catch (error) {
         console.warn("[BriefingPanel] 브리핑 생성 실패:", error);
-        setError("네트워크 오류가 발생했습니다");
+        setError("서버에 연결할 수 없습니다. 개발 서버가 실행 중인지 확인하세요.");
       } finally {
         setLoading(false);
       }

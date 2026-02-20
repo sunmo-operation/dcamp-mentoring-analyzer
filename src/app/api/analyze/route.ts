@@ -12,6 +12,7 @@ import type { AnalyzeRequest, AnalysisResult } from "@/types";
 import {
   analysisResponseSchema,
   transformAnalysisResponse,
+  nullsToUndefined,
 } from "@/lib/schemas";
 
 export async function POST(request: Request) {
@@ -87,8 +88,8 @@ export async function POST(request: Request) {
     );
 
     const message = await claude.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
+      model: process.env.ANALYSIS_MODEL || "claude-haiku-4-5-20251001",
+      max_tokens: 8192,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     });
@@ -99,6 +100,11 @@ export async function POST(request: Request) {
       throw new Error("Claude 응답에서 텍스트를 찾을 수 없습니다");
     }
 
+    // 응답이 토큰 한도에 의해 잘렸는지 확인
+    if (message.stop_reason === "max_tokens") {
+      throw new Error("AI 응답이 너무 길어 잘렸습니다. 다시 시도해주세요.");
+    }
+
     // JSON 파싱 (마크다운 코드블록 제거 대응)
     let jsonStr = textBlock.text.trim();
     if (jsonStr.startsWith("```")) {
@@ -107,8 +113,8 @@ export async function POST(request: Request) {
 
     const rawParsed = JSON.parse(jsonStr);
 
-    // Zod 스키마로 Claude 응답 검증 + 내부 타입 변환
-    const validated = analysisResponseSchema.safeParse(rawParsed);
+    // null → undefined 전처리 후 Zod 검증
+    const validated = analysisResponseSchema.safeParse(nullsToUndefined(rawParsed));
     if (!validated.success) {
       console.error("Claude 응답 스키마 검증 실패:", validated.error.format());
       throw new Error(`AI 응답 형식 오류: ${validated.error.issues[0]?.message || "알 수 없는 형식"}`);

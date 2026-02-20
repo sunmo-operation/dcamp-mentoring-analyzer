@@ -1,5 +1,6 @@
 // ══════════════════════════════════════════════════
-// data.ts — Notion 연동 래퍼 + 분석 결과 로컬 JSON 저장
+// data.ts — Notion 연동 래퍼 + 분석/브리핑 저장
+// POSTGRES_URL 있으면 Vercel Postgres, 없으면 로컬 JSON
 // ══════════════════════════════════════════════════
 import { promises as fs } from "fs";
 import path from "path";
@@ -11,6 +12,17 @@ import type {
   AnalysisResult,
   CompanyBriefing,
 } from "@/types";
+import {
+  dbGetAnalyses,
+  dbGetAnalysis,
+  dbGetAnalysesByCompany,
+  dbSaveAnalysis,
+  dbGetBriefings,
+  dbGetBriefingByCompany,
+  dbSaveBriefing,
+} from "@/lib/db";
+
+const useDB = !!process.env.POSTGRES_URL;
 import {
   getCompanies as notionGetCompanies,
   getCompaniesBasic as notionGetCompaniesBasic,
@@ -111,12 +123,14 @@ export async function getMentoringSessionsByCompany(
 // ══════════════════════════════════════════════════
 
 export async function getAnalyses(): Promise<AnalysisResult[]> {
+  if (useDB) return dbGetAnalyses();
   return readJSON<AnalysisResult>("analyses.json");
 }
 
 export async function getAnalysis(
   id: string
 ): Promise<AnalysisResult | undefined> {
+  if (useDB) return dbGetAnalysis(id);
   const analyses = await getAnalyses();
   return analyses.find((a) => a.id === id);
 }
@@ -124,6 +138,7 @@ export async function getAnalysis(
 export async function getAnalysesByCompany(
   companyId: string
 ): Promise<AnalysisResult[]> {
+  if (useDB) return dbGetAnalysesByCompany(companyId);
   const analyses = await getAnalyses();
   return analyses
     .filter((a) => a.companyId === companyId)
@@ -136,8 +151,9 @@ export async function getAnalysesByCompany(
 export async function saveAnalysis(
   analysis: AnalysisResult
 ): Promise<void> {
+  if (useDB) return dbSaveAnalysis(analysis);
   await withFileLock("analyses.json", async () => {
-    const analyses = await getAnalyses();
+    const analyses = await readJSON<AnalysisResult>("analyses.json");
     const idx = analyses.findIndex((a) => a.id === analysis.id);
     if (idx >= 0) {
       analyses[idx] = analysis;
@@ -190,26 +206,20 @@ export async function getCompanyAllData(
     return cached.data;
   }
 
-  const company = await notionGetCompany(companyNotionPageId);
-  if (!company) return null;
+  // 기업 정보 + 세션 + 전문가 요청을 모두 병렬 호출 (직렬 대기 제거)
+  const [company, sessions, expertRequests] = await Promise.all([
+    notionGetCompany(companyNotionPageId),
+    notionGetSessions(companyNotionPageId).catch((error) => {
+      console.warn("[data] 세션 조회 실패:", error);
+      return [] as MentoringSession[];
+    }),
+    notionGetExpertRequests(companyNotionPageId).catch((error) => {
+      console.warn("[data] 전문가 요청 조회 실패:", error);
+      return [] as ExpertRequest[];
+    }),
+  ]);
 
-  // Notion API 2회만 호출 (내부 캐시도 적용)
-  let sessions: MentoringSession[] = [];
-  let expertRequests: ExpertRequest[] = [];
-  try {
-    [sessions, expertRequests] = await Promise.all([
-      notionGetSessions(companyNotionPageId),
-      notionGetExpertRequests(companyNotionPageId),
-    ]);
-  } catch (error) {
-    console.warn("[data] 세션+전문가 요청 병렬 조회 실패, 세션만 재시도:", error);
-    // 전문가 요청 DB 접근 불가 시 세션만 사용
-    try {
-      sessions = await notionGetSessions(companyNotionPageId);
-    } catch (retryError) {
-      console.warn("[data] 세션 단독 조회도 실패:", retryError);
-    }
-  }
+  if (!company) return null;
 
   // 타임라인을 로컬에서 조립 (getTimeline 내부 재호출 제거)
   const timeline: TimelineEvent[] = [];
@@ -266,12 +276,14 @@ export async function getCompanyAllData(
 // ══════════════════════════════════════════════════
 
 export async function getBriefings(): Promise<CompanyBriefing[]> {
+  if (useDB) return dbGetBriefings();
   return readJSON<CompanyBriefing>("briefings.json");
 }
 
 export async function getBriefingByCompany(
   companyId: string
 ): Promise<CompanyBriefing | undefined> {
+  if (useDB) return dbGetBriefingByCompany(companyId);
   const briefings = await getBriefings();
   return briefings
     .filter((b) => b.companyId === companyId && b.status === "completed")
@@ -284,8 +296,9 @@ export async function getBriefingByCompany(
 export async function saveBriefing(
   briefing: CompanyBriefing
 ): Promise<void> {
+  if (useDB) return dbSaveBriefing(briefing);
   await withFileLock("briefings.json", async () => {
-    const briefings = await getBriefings();
+    const briefings = await readJSON<CompanyBriefing>("briefings.json");
     const idx = briefings.findIndex((b) => b.id === briefing.id);
     if (idx >= 0) {
       briefings[idx] = briefing;

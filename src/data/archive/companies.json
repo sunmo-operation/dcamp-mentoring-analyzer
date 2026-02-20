@@ -1,0 +1,50 @@
+[
+  {
+    "id": "farm-it",
+    "name": "팜잇",
+    "description": "AI 기반 스마트팜 작물 관리 SaaS. 센서 데이터와 위성 영상을 결합해 작물 생육 상태를 실시간 모니터링하고, 병충해 예측 및 최적 수확 시기를 알려주는 서비스.",
+    "industry": "애그리테크",
+    "batch": "2025-2기",
+    "investmentStage": "Seed",
+    "teamSize": 5,
+    "keyMetrics": {
+      "MAU": "1,200",
+      "MRR": "₩8.5M",
+      "계약 농가": "45곳",
+      "데이터 정확도": "92%"
+    },
+    "logoEmoji": "🌾"
+  },
+  {
+    "id": "care-bridge",
+    "name": "케어브릿지",
+    "description": "노인 돌봄 매칭 플랫폼. 돌봄이 필요한 어르신과 검증된 케어기버를 AI로 매칭하고, 실시간 돌봄 일지와 가족 알림 기능을 제공하는 서비스.",
+    "industry": "헬스케어",
+    "batch": "2025-1기",
+    "investmentStage": "Pre-Seed",
+    "teamSize": 4,
+    "keyMetrics": {
+      "MAU": "350",
+      "매칭 건수": "월 120건",
+      "케어기버 풀": "280명",
+      "재이용률": "78%"
+    },
+    "logoEmoji": "🤝"
+  },
+  {
+    "id": "stock-pick",
+    "name": "스톡픽",
+    "description": "MZ세대 대상 소수점 주식 투자 교육 앱. 가상 포트폴리오로 투자를 연습하고, AI 튜터가 투자 원리를 쉽게 설명해주는 에듀테크 서비스.",
+    "industry": "핀테크",
+    "batch": "2026-1기",
+    "investmentStage": "Pre-Seed",
+    "teamSize": 3,
+    "keyMetrics": {
+      "DAU": "2,800",
+      "가입자": "15,000명",
+      "평균 학습 시간": "일 12분",
+      "NPS": "72"
+    },
+    "logoEmoji": "📈"
+  }
+]

@@ -3,6 +3,24 @@
 // 프롬프트가 요구하는 형식과 실제 응답의 변동성을 모두 수용
 // ══════════════════════════════════════════════════
 import { z } from "zod";
+
+/**
+ * Claude 응답의 null 값을 undefined로 변환 (재귀)
+ * Zod의 .default()는 undefined만 처리하므로, null → undefined 전처리 필요
+ */
+export function nullsToUndefined(data: unknown): unknown {
+  if (data === null) return undefined;
+  if (Array.isArray(data)) return data.map(nullsToUndefined);
+  if (typeof data === "object") {
+    return Object.fromEntries(
+      Object.entries(data as Record<string, unknown>).map(([k, v]) => [
+        k,
+        nullsToUndefined(v),
+      ])
+    );
+  }
+  return data;
+}
 import type {
   AnalysisSummary,
   SurfaceIssue,
@@ -148,7 +166,7 @@ export const briefingResponseSchema = z.object({
 
   repeatPatterns: z.array(z.object({
     issue: z.string().default(""),
-    issueCategory: z.string().default(""),
+    issueCategory: z.enum(["전략", "조직", "실행", "시장", "제품", "재무", "멘토링"]).default("실행"),
     firstSeen: z.string().default(""),
     occurrences: z.number().default(1),
     structuralCause: z.string().default(""),

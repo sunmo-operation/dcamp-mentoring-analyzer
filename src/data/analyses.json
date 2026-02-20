@@ -1,0 +1,251 @@
+[
+  {
+    "id": "analysis-001",
+    "companyId": "farm-it",
+    "mentoringRecordId": "mr-001",
+    "createdAt": "2025-11-16T09:00:00Z",
+    "status": "completed",
+    "summary": {
+      "oneLiner": "가격 체계 미스매치로 인한 소규모 농가 이탈 문제와 ARPU 개선 전략 논의",
+      "keyTopics": ["가격 전략", "고객 세분화", "이탈률", "Upsell"],
+      "duration": "약 40분"
+    },
+    "surfaceIssues": [
+      {
+        "statement": "소규모 농가와 대규모 농가가 같은 가격을 내고 있어 소규모 농가 이탈이 심하다",
+        "context": "정액제(월 15만원) 모델에서 고객 규모별 가치 인식 차이가 발생"
+      },
+      {
+        "statement": "기존 고객 반발이 걱정돼 가격 변경을 미루고 있다",
+        "context": "변화 관리에 대한 경험 부족으로 의사결정이 지연됨"
+      },
+      {
+        "statement": "MRR 850만원에서 정체 중이며 신규 영업에만 의존하고 있다",
+        "context": "가격 최적화 없이 양적 성장에만 집중하는 상황"
+      }
+    ],
+    "rootCauses": [
+      {
+        "title": "가치 기반 가격 책정 부재",
+        "description": "고객 세그먼트별 지불 의향(WTP)을 분석하지 않고 단일 가격을 적용함. 가격이 제공 가치를 반영하지 못해 소규모 고객은 이탈하고 대규모 고객에서는 수익을 놓치고 있음.",
+        "severity": "high",
+        "category": "GTM",
+        "evidence": "소규모 농가 3개월 내 이탈률 40%, 대규모 농가는 거의 이탈 없음"
+      },
+      {
+        "title": "프리미엄 기능의 무분별한 제공",
+        "description": "병충해 예측 리포트와 같은 고부가가치 기능을 모든 요금제에 포함시켜 upsell 기회를 자체적으로 차단하고 있음.",
+        "severity": "medium",
+        "category": "Product",
+        "evidence": "멘토 지적: '핵심 기능은 기본에 두고, 고급 분석은 상위 티어로 분리하세요'"
+      }
+    ],
+    "recommendedActions": [
+      {
+        "action": "면적 기반 3단계 티어 요금제 설계 및 도입",
+        "owner": "대표 + 비즈니스",
+        "priority": "urgent",
+        "timeline": "2주 내",
+        "expectedOutcome": "소규모 농가 이탈률 50% 감소, ARPU 30% 상승 기대"
+      },
+      {
+        "action": "기존 고객 6개월 그랜드파더링 정책 수립",
+        "owner": "대표",
+        "priority": "high",
+        "timeline": "1주 내",
+        "expectedOutcome": "기존 고객 반발 최소화하면서 신규 가격 정책 적용 가능"
+      },
+      {
+        "action": "병충해 예측 리포트를 프리미엄 전용으로 이동",
+        "owner": "프로덕트",
+        "priority": "high",
+        "timeline": "1개월 내",
+        "expectedOutcome": "자연스러운 upsell 경로 확보, ARPU 추가 개선"
+      }
+    ],
+    "riskSignals": [
+      {
+        "signal": "소규모 농가 이탈률 40%로 고객 기반 침식 중",
+        "type": "시장",
+        "severity": "critical",
+        "mitigation": "즉각적인 가격 티어링 도입으로 가격 장벽 해소"
+      },
+      {
+        "signal": "MRR 성장이 신규 영업에만 의존",
+        "type": "재무",
+        "severity": "warning",
+        "mitigation": "기존 고객 upsell/cross-sell 전략 병행 필요"
+      }
+    ],
+    "inputTranscript": "",
+    "mentorName": "김재호 멘토",
+    "topic": "B2B SaaS 가격 전략",
+    "mentoringDate": "2025-11-15"
+  },
+  {
+    "id": "analysis-002",
+    "companyId": "care-bridge",
+    "mentoringRecordId": "mr-003",
+    "createdAt": "2025-10-06T10:30:00Z",
+    "status": "completed",
+    "summary": {
+      "oneLiner": "사용자 획득 비용 과다와 첫 매칭까지의 지연으로 PMF 검증이 지연되고 있음",
+      "keyTopics": ["PMF 검증", "리텐션", "CPA 최적화", "온보딩 속도"],
+      "duration": "약 35분"
+    },
+    "surfaceIssues": [
+      {
+        "statement": "MAU 350으로 목표(1,000) 대비 크게 부족",
+        "context": "론칭 3개월차 기준, 사용자 성장이 기대에 못 미치는 상황"
+      },
+      {
+        "statement": "온라인 광고 CPA가 건당 8만원으로 높음",
+        "context": "LTV가 측정되지 않아 CPA 적정성을 판단할 수 없는 상황"
+      },
+      {
+        "statement": "가입 후 첫 매칭까지 평균 5일 소요",
+        "context": "돌봄 서비스의 긴급성 대비 매칭 속도가 현저히 느림"
+      }
+    ],
+    "rootCauses": [
+      {
+        "title": "핵심 지표(LTV, 코호트 리텐션) 미측정",
+        "description": "PMF 검증에 필수적인 유닛 이코노믹스 지표를 수집하지 않고 있어 사업 의사결정이 감에 의존하고 있음.",
+        "severity": "high",
+        "category": "Product",
+        "evidence": "대표 답변: 'LTV를 아직 정확히 못 구했어요'"
+      },
+      {
+        "title": "공급측(케어기버) 온보딩 병목",
+        "description": "5일의 매칭 소요 시간은 케어기버 공급이 수요를 따라가지 못하는 것을 의미. 돌봄 서비스 특성상 24시간 내 매칭이 필수적.",
+        "severity": "high",
+        "category": "Product",
+        "evidence": "멘토 지적: '5일을 기다리면 다른 방법을 찾게 되죠'"
+      }
+    ],
+    "recommendedActions": [
+      {
+        "action": "코호트별 리텐션 + LTV 측정 시스템 구축",
+        "owner": "프로덕트 + 데이터",
+        "priority": "urgent",
+        "timeline": "2주 내",
+        "expectedOutcome": "데이터 기반 의사결정 가능, 투자 유치 시 지표 제시 가능"
+      },
+      {
+        "action": "케어기버 온보딩 프로세스 개선 (24시간 매칭 목표)",
+        "owner": "운영팀",
+        "priority": "urgent",
+        "timeline": "1개월 내",
+        "expectedOutcome": "첫 매칭 전환율 개선, 이탈률 감소"
+      },
+      {
+        "action": "CPA 8만원 채널 대비 복지관 제휴 채널 성과 비교 분석",
+        "owner": "마케팅",
+        "priority": "high",
+        "timeline": "2주 내",
+        "expectedOutcome": "효율적인 채널 집중으로 마케팅 ROI 개선"
+      }
+    ],
+    "riskSignals": [
+      {
+        "signal": "핵심 지표 없이 마케팅 비용을 집행하고 있음",
+        "type": "재무",
+        "severity": "critical",
+        "mitigation": "즉각적인 LTV/CAC 측정 및 채널별 ROI 분석"
+      },
+      {
+        "signal": "매칭 지연으로 사용자 이탈 발생 가능성 높음",
+        "type": "시장",
+        "severity": "warning",
+        "mitigation": "케어기버 공급 확대 및 긴급 매칭 시스템 도입"
+      }
+    ],
+    "inputTranscript": "",
+    "mentorName": "이수진 멘토",
+    "topic": "PMF 검증과 사용자 리텐션",
+    "mentoringDate": "2025-10-05"
+  },
+  {
+    "id": "analysis-003",
+    "companyId": "stock-pick",
+    "mentoringRecordId": "mr-005",
+    "createdAt": "2026-01-11T14:00:00Z",
+    "status": "completed",
+    "summary": {
+      "oneLiner": "유튜브 의존적 사용자 획득 구조와 수익화 모델 부재가 핵심 과제",
+      "keyTopics": ["사용자 획득", "리퍼럴", "수익화", "유닛 이코노믹스"],
+      "duration": "약 30분"
+    },
+    "surfaceIssues": [
+      {
+        "statement": "사용자 유입의 80%가 유튜브 숏폼에 의존",
+        "context": "단일 채널 의존으로 알고리즘 변경 시 성장 엔진 붕괴 위험"
+      },
+      {
+        "statement": "리퍼럴 프로그램 전환율이 5%에 불과",
+        "context": "프리미엄 1주 무료라는 인센티브가 공유 동기를 유발하기에 불충분"
+      },
+      {
+        "statement": "아직 수익화를 시작하지 못함",
+        "context": "Pre-Seed 단계지만 시리즈 A 전 유닛 이코노믹스 증명이 필요"
+      }
+    ],
+    "rootCauses": [
+      {
+        "title": "오가닉 성장 엔진 부재",
+        "description": "콘텐츠 마케팅(유튜브)에 지나치게 의존하고 있으며, 제품 내 바이럴 메커니즘이 약함. 사용자가 자발적으로 앱을 공유할 동기가 설계되어 있지 않음.",
+        "severity": "high",
+        "category": "GTM",
+        "evidence": "리퍼럴 전환율 5%, 인센티브가 공유 동기와 미스매치"
+      },
+      {
+        "title": "소셜/경쟁 요소의 부족",
+        "description": "투자 교육 앱의 핵심 동기인 '다른 사람과의 비교'와 '성과 과시' 기능이 부재. 이는 리텐션과 바이럴 모두에 부정적 영향.",
+        "severity": "medium",
+        "category": "Product",
+        "evidence": "멘토 제안: '리더보드 + 주간 투자 챌린지'로 경쟁 요소 추가"
+      }
+    ],
+    "recommendedActions": [
+      {
+        "action": "포트폴리오 성과 공유 + 리더보드 기능 개발",
+        "owner": "프로덕트 + 개발",
+        "priority": "urgent",
+        "timeline": "1개월 내",
+        "expectedOutcome": "오가닉 공유율 증가, 리퍼럴 전환율 15%+ 목표"
+      },
+      {
+        "action": "주간 투자 챌린지 기획 및 론칭",
+        "owner": "프로덕트",
+        "priority": "high",
+        "timeline": "3주 내",
+        "expectedOutcome": "DAU 리텐션 개선, 주간 활성 사용자 비율 증가"
+      },
+      {
+        "action": "프리미엄 구독 모델 설계 (무료/유료 기능 분리)",
+        "owner": "대표 + 비즈니스",
+        "priority": "high",
+        "timeline": "2개월 내",
+        "expectedOutcome": "유닛 이코노믹스 데이터 확보, 시리즈 A 준비"
+      }
+    ],
+    "riskSignals": [
+      {
+        "signal": "유튜브 알고리즘 의존도 80%",
+        "type": "시장",
+        "severity": "critical",
+        "mitigation": "오가닉 + 리퍼럴 채널 비중을 50% 이상으로 확대"
+      },
+      {
+        "signal": "Pre-Seed 단계에서 수익화 모델 미확정",
+        "type": "재무",
+        "severity": "warning",
+        "mitigation": "프리미엄 구독 빠르게 테스트, 전환율 데이터 축적"
+      }
+    ],
+    "inputTranscript": "",
+    "mentorName": "정민석 멘토",
+    "topic": "사용자 획득과 성장 전략",
+    "mentoringDate": "2026-01-10"
+  }
+]
