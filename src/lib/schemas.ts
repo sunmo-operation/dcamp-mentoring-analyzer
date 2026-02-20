@@ -151,6 +151,8 @@ export const briefingResponseSchema = z.object({
     momentum: z.enum(["positive", "neutral", "negative", "critical"]).default("neutral"),
     momentumReason: z.string().default(""),
     reportBody: z.string().default(""),
+    pmfStage: z.string().optional(),
+    vocStrength: z.string().optional(),
   }).nullable().optional(),
 
   okrDiagnosis: z.object({

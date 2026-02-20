@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { StaleIndicator } from "./stale-indicator";
 import { RefreshBar } from "./refresh-bar";
@@ -24,12 +24,12 @@ interface BriefingPanelProps {
   staleReason?: string;
 }
 
-// 진행 단계별 표시 메시지
-const STEP_LABELS: Record<number, string> = {
-  1: "Notion에서 데이터를 수집하고 있습니다...",
-  2: "AI가 브리핑을 생성하고 있습니다...",
-  3: "AI 분석 중...",
-  4: "결과를 정리하고 있습니다...",
+// 진행 단계별 표시 설명
+const STEP_DESCRIPTIONS: Record<number, string> = {
+  1: "데이터 수집",
+  2: "AI 분석 준비",
+  3: "AI 분석",
+  4: "결과 정리",
 };
 
 export function BriefingPanel({
@@ -44,9 +44,25 @@ export function BriefingPanel({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // 스트리밍 진행 상황 표시용
   const [progress, setProgress] = useState<string>("");
   const [step, setStep] = useState<number>(0);
+  const [detail, setDetail] = useState<string>("");
+  const [elapsed, setElapsed] = useState<number>(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 로딩 중 경과 시간 자동 카운트
+  useEffect(() => {
+    if (loading) {
+      const start = Date.now();
+      timerRef.current = setInterval(() => {
+        setElapsed(Math.round((Date.now() - start) / 1000));
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setElapsed(0);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [loading]);
 
   // SSE 스트리밍으로 브리핑 생성
   const generateBriefing = useCallback(
@@ -55,6 +71,7 @@ export function BriefingPanel({
       setError(null);
       setProgress("연결 중...");
       setStep(0);
+      setDetail("");
 
       try {
         const res = await fetch("/api/briefing", {
@@ -92,9 +109,13 @@ export function BriefingPanel({
             try {
               const data = JSON.parse(line.slice(6));
 
+              // heartbeat는 연결 유지용이므로 무시
+              if (data.type === "heartbeat") continue;
+
               if (data.type === "status" || data.type === "progress") {
                 setProgress(data.message);
                 if (data.step) setStep(data.step);
+                if (data.detail) setDetail(data.detail);
               }
               if (data.type === "complete") {
                 setBriefing(data.briefing);
@@ -109,11 +130,12 @@ export function BriefingPanel({
         }
       } catch (err) {
         console.warn("[BriefingPanel] 브리핑 생성 실패:", err);
-        setError("서버에 연결할 수 없습니다.");
+        setError("서버에 연결할 수 없습니다. 다시 시도해주세요.");
       } finally {
         setLoading(false);
         setProgress("");
         setStep(0);
+        setDetail("");
       }
     },
     [companyId]
@@ -121,43 +143,82 @@ export function BriefingPanel({
 
   // ── 첫 생성 로딩 (스트리밍 진행 상황 표시) ────────
   if (loading && !briefing) {
+    // 경과 시간 포맷 (0:00)
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    const elapsedStr = `${mins}:${secs.toString().padStart(2, "0")}`;
+
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-bold">AI 컨텍스트 브리핑</h2>
         <div className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/50 p-6">
-          <div className="flex flex-col items-center gap-3">
-            <svg className="h-8 w-8 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
+          <div className="flex flex-col items-center gap-4">
+            {/* 스피너 + 경과 시간 */}
+            <div className="relative">
+              <svg className="h-12 w-12 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-blue-600 dark:text-blue-400">
+                {elapsedStr}
+              </span>
+            </div>
+
             <p className="text-sm font-medium text-blue-800 dark:text-blue-200" role="status">
-              {companyName}의 브리핑을 생성하고 있습니다
+              {companyName} 브리핑 생성 중
             </p>
-            {/* 실시간 진행 상황 */}
-            <p className="text-xs text-blue-600 dark:text-blue-400">
-              {progress || "준비 중..."}
-            </p>
-            {/* 진행 바 */}
+
+            {/* 단계별 진행 표시 */}
             {step > 0 && (
-              <div className="w-full max-w-xs">
-                <div className="flex justify-between text-[10px] text-blue-400 mb-1">
-                  <span>단계 {step}/4</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-blue-200 dark:bg-blue-800 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-blue-500 transition-all duration-500"
-                    style={{ width: `${Math.min(step * 25, 100)}%` }}
-                  />
+              <div className="w-full max-w-sm space-y-2">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4].map((s) => (
+                    <div key={s} className="flex-1 flex flex-col items-center gap-1">
+                      <div
+                        className={`h-1.5 w-full rounded-full transition-all duration-500 ${
+                          s < step ? "bg-blue-500" :
+                          s === step ? "bg-blue-400 animate-pulse" :
+                          "bg-blue-200 dark:bg-blue-800"
+                        }`}
+                      />
+                      <span className={`text-[9px] ${
+                        s <= step ? "text-blue-600 dark:text-blue-400 font-medium" : "text-blue-300 dark:text-blue-700"
+                      }`}>
+                        {STEP_DESCRIPTIONS[s]}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
+
+            {/* 현재 상태 메시지 */}
+            <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
+              {progress || "준비 중..."}
+            </p>
+
+            {/* 분석 데이터 규모 */}
+            {detail && (
+              <p className="text-[10px] text-blue-400 dark:text-blue-500">
+                {detail}
+              </p>
+            )}
+
+            {/* 오래 걸릴 때 안내 */}
+            {elapsed > 15 && (
+              <p className="text-[10px] text-blue-400/70 dark:text-blue-500/70 text-center">
+                데이터가 많을수록 분석이 더 정확해집니다. 잠시만 기다려주세요.
+              </p>
+            )}
           </div>
         </div>
+
+        {/* 스켈레톤 */}
         <div className="animate-pulse space-y-3">
-          <div className="h-24 rounded-lg bg-muted" />
+          <div className="h-20 rounded-lg bg-muted" />
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="h-20 rounded-lg bg-muted" />
-            <div className="h-20 rounded-lg bg-muted" />
+            <div className="h-16 rounded-lg bg-muted" />
+            <div className="h-16 rounded-lg bg-muted" />
           </div>
         </div>
       </div>
@@ -238,7 +299,7 @@ export function BriefingPanel({
       {/* ── 갱신 중 오버레이 ────────────────────── */}
       <div className={`space-y-6 transition-opacity duration-300 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`} aria-busy={loading}>
 
-        {/* ① 경영진 요약 */}
+        {/* ① Executive Summary */}
         {executiveSummary && (
           <ExecutiveSummary
             oneLiner={executiveSummary.oneLiner}
@@ -246,6 +307,8 @@ export function BriefingPanel({
             momentum={executiveSummary.momentum}
             momentumReason={executiveSummary.momentumReason}
             keyNumbers={keyNumbers}
+            pmfStage={executiveSummary.pmfStage}
+            vocStrength={executiveSummary.vocStrength}
           />
         )}
 

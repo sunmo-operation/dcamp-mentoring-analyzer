@@ -230,6 +230,8 @@ export interface CompanyBriefing {
     momentum: "positive" | "neutral" | "negative" | "critical";
     momentumReason: string;
     reportBody: string;
+    pmfStage?: string;    // "pre-pmf" | "approaching" | "achieved" | "scaling"
+    vocStrength?: string; // "strong" | "moderate" | "weak"
   } | null;
   okrDiagnosis: {
     overallRate: number | null;

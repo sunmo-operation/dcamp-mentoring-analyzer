@@ -50,9 +50,24 @@ export async function POST(request: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
+      // heartbeat: 8초마다 ping 전송 → 연결 유지 (Vercel/브라우저 타임아웃 방지)
+      const heartbeat = setInterval(() => {
+        try {
+          controller.enqueue(encode({ type: "heartbeat" }));
+        } catch {
+          // 스트림이 이미 닫혔으면 무시
+        }
+      }, 8000);
+
+      const startTime = Date.now();
+
       try {
         // 1단계: 데이터 수집
-        controller.enqueue(encode({ type: "status", step: 1, message: "Notion에서 데이터 수집 중..." }));
+        controller.enqueue(encode({
+          type: "status", step: 1, totalSteps: 4,
+          message: "Notion에서 데이터 수집 중...",
+          elapsed: 0,
+        }));
 
         const [allData, kptReviews, okrItems, okrValues] = await Promise.all([
           getCompanyAllData(companyId),
@@ -63,7 +78,6 @@ export async function POST(request: Request) {
 
         if (!allData) {
           controller.enqueue(encode({ type: "error", message: "존재하지 않는 기업입니다" }));
-          controller.close();
           return;
         }
 
@@ -80,14 +94,19 @@ export async function POST(request: Request) {
             });
             if (!stale) {
               controller.enqueue(encode({ type: "complete", briefing: existing, cached: true }));
-              controller.close();
               return;
             }
           }
         }
 
         // 2단계: AI 분석 시작
-        controller.enqueue(encode({ type: "status", step: 2, message: "AI가 브리핑을 생성하고 있습니다..." }));
+        const elapsed2 = Math.round((Date.now() - startTime) / 1000);
+        controller.enqueue(encode({
+          type: "status", step: 2, totalSteps: 4,
+          message: "AI가 브리핑을 생성하고 있습니다...",
+          elapsed: elapsed2,
+          detail: `멘토링 ${sessions.length}건 · 전문가 요청 ${expertRequests.length}건 분석`,
+        }));
 
         const dataFingerprint: CompanyBriefing["dataFingerprint"] = {
           lastSessionDate: sessions[0]?.date || null,
@@ -122,14 +141,16 @@ export async function POST(request: Request) {
             fullText += event.delta.text;
 
             // 500자마다 진행률 업데이트 전송
-            // 예상 전체 길이 약 5000자 기준, 최대 95%까지만 표시
             if (fullText.length - lastProgressSent > 500) {
               lastProgressSent = fullText.length;
-              const pct = Math.min(Math.round((fullText.length / 5000) * 95), 95);
+              const pct = Math.min(Math.round((fullText.length / 6000) * 90), 90);
+              const elapsed3 = Math.round((Date.now() - startTime) / 1000);
               controller.enqueue(encode({
                 type: "progress",
-                step: 3,
+                step: 3, totalSteps: 4,
                 message: `AI 분석 중... (${pct}%)`,
+                pct,
+                elapsed: elapsed3,
                 length: fullText.length,
               }));
             }
@@ -137,7 +158,12 @@ export async function POST(request: Request) {
         }
 
         // 4단계: 결과 처리
-        controller.enqueue(encode({ type: "status", step: 4, message: "결과를 정리하고 있습니다..." }));
+        const elapsed4 = Math.round((Date.now() - startTime) / 1000);
+        controller.enqueue(encode({
+          type: "status", step: 4, totalSteps: 4,
+          message: "결과를 정리하고 있습니다...",
+          elapsed: elapsed4,
+        }));
 
         // JSON 파싱
         let jsonStr = fullText.trim();
@@ -170,12 +196,14 @@ export async function POST(request: Request) {
         }
 
         // 완료
-        controller.enqueue(encode({ type: "complete", briefing, cached: false }));
+        const totalElapsed = Math.round((Date.now() - startTime) / 1000);
+        controller.enqueue(encode({ type: "complete", briefing, cached: false, elapsed: totalElapsed }));
       } catch (error) {
         const msg = error instanceof Error ? error.message : "알 수 없는 오류";
         console.error("브리핑 스트리밍 오류:", error);
         controller.enqueue(encode({ type: "error", message: `브리핑 생성 실패: ${msg}` }));
       } finally {
+        clearInterval(heartbeat);
         controller.close();
       }
     },
