@@ -178,9 +178,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: isDev
-          ? `브리핑 생성 실패: ${errorMessage}`
-          : "브리핑 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+        error: `브리핑 생성 실패: ${errorMessage}`,
       },
       { status: 500 }
     );
