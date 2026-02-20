@@ -24,13 +24,17 @@ interface BriefingPanelProps {
   staleReason?: string;
 }
 
-// 진행 단계별 표시 설명
-const STEP_DESCRIPTIONS: Record<number, string> = {
-  1: "데이터 수집",
-  2: "AI 분석 준비",
-  3: "AI 분석",
-  4: "결과 정리",
-};
+// 토스 스타일 로딩 메시지 (3초마다 순환)
+const FUN_MESSAGES = [
+  "Notion에서 데이터를 가져오고 있어요",
+  "회의록을 꼼꼼히 읽는 중이에요",
+  "멘토링 히스토리를 분석하고 있어요",
+  "숨겨진 인사이트를 찾고 있어요",
+  "AI가 브리핑을 작성하고 있어요",
+  "데이터를 종합하고 있어요",
+  "좋은 브리핑을 만들고 있어요",
+  "거의 다 됐어요, 조금만 기다려주세요",
+];
 
 export function BriefingPanel({
   companyId,
@@ -48,7 +52,10 @@ export function BriefingPanel({
   const [step, setStep] = useState<number>(0);
   const [detail, setDetail] = useState<string>("");
   const [elapsed, setElapsed] = useState<number>(0);
+  // 토스 스타일 메시지 인덱스
+  const [funMsgIdx, setFunMsgIdx] = useState<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const msgTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // 로딩 중 경과 시간 자동 카운트
   useEffect(() => {
@@ -57,11 +64,21 @@ export function BriefingPanel({
       timerRef.current = setInterval(() => {
         setElapsed(Math.round((Date.now() - start) / 1000));
       }, 1000);
+      // 3초마다 재미있는 메시지 순환
+      setFunMsgIdx(0);
+      msgTimerRef.current = setInterval(() => {
+        setFunMsgIdx((prev) => (prev + 1) % FUN_MESSAGES.length);
+      }, 3000);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (msgTimerRef.current) clearInterval(msgTimerRef.current);
       setElapsed(0);
+      setFunMsgIdx(0);
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (msgTimerRef.current) clearInterval(msgTimerRef.current);
+    };
   }, [loading]);
 
   // SSE 스트리밍으로 브리핑 생성
@@ -150,75 +167,67 @@ export function BriefingPanel({
     [companyId]
   );
 
-  // ── 첫 생성 로딩 (스트리밍 진행 상황 표시) ────────
+  // ── 첫 생성 로딩 (토스 스타일 로딩 UX) ────────
   if (loading && !briefing) {
-    // 경과 시간 포맷 (0:00)
-    const mins = Math.floor(elapsed / 60);
-    const secs = elapsed % 60;
-    const elapsedStr = `${mins}:${secs.toString().padStart(2, "0")}`;
-
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-bold">AI 컨텍스트 브리핑</h2>
-        <div className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/50 p-6">
-          <div className="flex flex-col items-center gap-4">
-            {/* 스피너 + 경과 시간 */}
-            <div className="relative">
-              <svg className="h-12 w-12 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-blue-600 dark:text-blue-400">
-                {elapsedStr}
-              </span>
+        <div className="rounded-2xl border border-blue-100 bg-gradient-to-b from-blue-50 to-white dark:border-blue-900 dark:from-blue-950/60 dark:to-gray-950 p-8">
+          <div className="flex flex-col items-center gap-5">
+
+            {/* 부드러운 펄스 아이콘 */}
+            <div className="relative flex items-center justify-center">
+              <div className="absolute h-16 w-16 rounded-full bg-blue-400/20 animate-ping" />
+              <div className="relative h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              </div>
             </div>
 
-            <p className="text-sm font-medium text-blue-800 dark:text-blue-200" role="status">
-              {companyName} 브리핑 생성 중
-            </p>
+            {/* 회사명 + 메인 타이틀 */}
+            <div className="text-center">
+              <p className="text-base font-semibold text-gray-900 dark:text-gray-100" role="status">
+                {companyName}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                브리핑을 준비하고 있어요
+              </p>
+            </div>
 
-            {/* 단계별 진행 표시 */}
+            {/* 토스 스타일: 순환하는 재미있는 메시지 */}
+            <div className="h-5 flex items-center">
+              <p
+                className="text-sm text-blue-600 dark:text-blue-400 text-center transition-opacity duration-500"
+                key={funMsgIdx}
+                style={{ animation: "fadeInUp 0.5s ease-out" }}
+              >
+                {FUN_MESSAGES[funMsgIdx]}
+              </p>
+            </div>
+
+            {/* 심플한 3단계 진행바 */}
             {step > 0 && (
-              <div className="w-full max-w-sm space-y-2">
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4].map((s) => (
-                    <div key={s} className="flex-1 flex flex-col items-center gap-1">
-                      <div
-                        className={`h-1.5 w-full rounded-full transition-all duration-500 ${
-                          s < step ? "bg-blue-500" :
-                          s === step ? "bg-blue-400 animate-pulse" :
-                          "bg-blue-200 dark:bg-blue-800"
-                        }`}
-                      />
-                      <span className={`text-[9px] ${
-                        s <= step ? "text-blue-600 dark:text-blue-400 font-medium" : "text-blue-300 dark:text-blue-700"
-                      }`}>
-                        {STEP_DESCRIPTIONS[s]}
-                      </span>
-                    </div>
+              <div className="w-full max-w-xs">
+                <div className="flex gap-1.5">
+                  {[1, 2, 3].map((s) => (
+                    <div
+                      key={s}
+                      className={`h-1 flex-1 rounded-full transition-all duration-700 ${
+                        s < step ? "bg-blue-500" :
+                        s === step ? "bg-blue-400 animate-pulse" :
+                        "bg-gray-200 dark:bg-gray-700"
+                      }`}
+                    />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* 현재 상태 메시지 */}
-            <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
-              {progress || "준비 중..."}
+            {/* 경과 시간 (작게) */}
+            <p className="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
+              {elapsed}초 경과
             </p>
-
-            {/* 분석 데이터 규모 */}
-            {detail && (
-              <p className="text-[10px] text-blue-400 dark:text-blue-500">
-                {detail}
-              </p>
-            )}
-
-            {/* 오래 걸릴 때 안내 */}
-            {elapsed > 15 && (
-              <p className="text-[10px] text-blue-400/70 dark:text-blue-500/70 text-center">
-                데이터가 많을수록 분석이 더 정확해집니다. 잠시만 기다려주세요.
-              </p>
-            )}
           </div>
         </div>
 

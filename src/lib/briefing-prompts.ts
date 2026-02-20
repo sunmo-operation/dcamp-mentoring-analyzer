@@ -128,7 +128,7 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
         "description": "무엇을 하는지 1문장",
         "stage": "시드/시리즈A 등",
         "similarity": "어떤 점에서 직접 경쟁하는지 (구체적으로)",
-        "differentiation": "우리의 차별점 또는 약점",
+        "implications": "이 경쟁사의 존재가 우리에게 주는 시사점과 고민해야 할 사안 (단순 차별점이 아닌 전략적 함의)",
         "recentMove": "최근 동향 1문장",
         "threatLevel": "high | medium | low"
       }
@@ -137,7 +137,8 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
       {
         "trend": "핵심 트렌드 1문장",
         "impact": "이 기업에 미치는 영향 1문장",
-        "source": "출처"
+        "source": "출처",
+        "url": "참고 링크 URL (있으면)"
       }
     ],
     "regulatoryAndPolicy": [
@@ -145,7 +146,8 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
         "title": "법령/지원사업/정책명",
         "type": "법령 | 지원사업 | 정책 | 업계소식",
         "impact": "이 기업에 미치는 영향 1문장",
-        "actionRequired": "대응 방법 1문장"
+        "actionRequired": "대응 방법 1문장",
+        "url": "참고 링크 URL (있으면)"
       }
     ],
     "marketInsight": "시장 핵심 인사이트 1문장"
@@ -162,14 +164,24 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
 - 같은 고객을 놓고 경쟁하는가? 같은 문제를 다른 방식으로 푸는가? — 이 질문으로 판단.
 - 투자 단계가 비슷한 스타트업 + 시장 선도 기업(벤치마크) 포함.
 - 해외 유사 서비스 포함 (국내 직접 경쟁사가 없으면 특히 중요).
+- implications 필드는 단순 "차별점"이 아니라 "이 경쟁사의 존재가 우리에게 주는 시사점, 고민해야 할 전략적 사안"을 기술할 것.
 - 확실하지 않으면 빼라. 억지로 채우지 말 것.
 
-[법령·정책·지원사업]
+[법령·정책·지원사업·업계동향]
 - 이 기업의 산업/제품에 직접 영향 + 임팩트가 큰 것만.
 - 스타트업 지원사업은 실제 신청 가능한 것만.
+- 가능한 경우 url 필드에 관련 기사/공고/정부 사이트 링크를 포함. 세부 내용 파악이 가능하도록.
+- url이 확실하지 않거나 유효하지 않을 수 있으면 생략. 억지로 넣지 말 것.
 
 [OKR] OKR 데이터 있으면 채우고, 없으면 null.
-[업계 동향] 판단 어려우면 industryContext를 null로.`;
+[업계 동향] 판단 어려우면 industryContext를 null로.
+
+[디캠프 리소스 판단 — 주의사항]
+- 전문가 투입, 실무진 지원 등 dcamp 리소스의 현재 상태에 대해 확정적 판단을 내리지 말 것.
+- "종료되었다", "내재화 완료" 등 확정적 표현 금지. 기록에 없을 뿐 아직 진행 중일 수 있음.
+- 대신 "데이터 기준 ~로 보임", "확인 필요" 등 유보적 표현 사용.
+- gapAnalysis, currentExpertRequests는 가능성과 방향성을 제시하되, 단정하지 않도록.`;
+
 }
 
 // ── 데이터 포맷팅 헬퍼 ──────────────────────────────
@@ -212,10 +224,11 @@ function formatRecentSessionsGrouped(sessions: MentoringSession[]): string {
     const groupSessions = groups[groupName];
     if (!groupSessions || groupSessions.length === 0) continue;
 
-    sections.push(`\n### [${groupName}] (${groupSessions.length}건)`);
-    for (const s of groupSessions) {
-      const summary = s.summary ? truncate(s.summary, 400) : "요약 없음";
-      const followUp = s.followUp ? `\n  후속조치: ${truncate(s.followUp, 200)}` : "";
+    sections.push(`\n### [${groupName}]`);
+    // 그룹별 최대 2건만 (프롬프트 축소 → 응답 속도 개선)
+    for (const s of groupSessions.slice(0, 2)) {
+      const summary = s.summary ? truncate(s.summary, 250) : "요약 없음";
+      const followUp = s.followUp ? `\n  후속조치: ${truncate(s.followUp, 150)}` : "";
       const mentors = s.mentorNames?.join(", ") || "멘토 미기재";
       sections.push(`- [${s.date}] ${s.title} / 멘토: ${mentors}\n  요약: ${summary}${followUp}`);
     }
@@ -230,8 +243,9 @@ function formatRecentSessionsGrouped(sessions: MentoringSession[]): string {
 function formatOlderSessionsBrief(sessions: MentoringSession[]): string {
   if (sessions.length === 0) return "이전 기록 없음";
 
+  // 최대 8건만 (프롬프트 축소)
   return sessions
-    .slice(0, 15)
+    .slice(0, 8)
     .map((s) => {
       const types = s.sessionTypes.join("/");
       return `- [${s.date}] [${types}] ${s.title}`;
@@ -242,7 +256,9 @@ function formatOlderSessionsBrief(sessions: MentoringSession[]): string {
 function formatExpertRequests(requests: ExpertRequest[]): string {
   if (requests.length === 0) return "전문가 요청 없음";
 
+  // 최대 5건만 (프롬프트 축소)
   return requests
+    .slice(0, 5)
     .map((r) => {
       const date = r.requestedAt?.split("T")[0] || "날짜 미상";
       const status = r.status || "접수";
@@ -271,7 +287,9 @@ function formatAnalyses(analyses: AnalysisResult[]): string {
 function formatKptReviews(reviews: KptReview[]): string {
   if (reviews.length === 0) return "데이터 없음";
 
+  // 최대 3건만 (프롬프트 축소)
   return reviews
+    .slice(0, 3)
     .map((r) => {
       const date = r.reviewDate || "날짜 미상";
       const keep = r.keep ? truncate(r.keep, 200) : "없음";
@@ -286,9 +304,10 @@ function formatOkrItems(items: OkrItem[]): string {
   if (items.length === 0) return "데이터 없음";
 
   const order: Record<string, number> = { "오브젝티브": 0, "마일스톤": 1, "액션아이템": 2 };
+  // 최대 8건만 (프롬프트 축소)
   const sorted = [...items].sort(
     (a, b) => (order[a.level] ?? 9) - (order[b.level] ?? 9)
-  );
+  ).slice(0, 8);
 
   return sorted
     .map((item) => {
@@ -304,7 +323,9 @@ function formatOkrItems(items: OkrItem[]): string {
 function formatOkrValues(values: OkrValue[]): string {
   if (values.length === 0) return "데이터 없음";
 
+  // 최대 8건만 (프롬프트 축소)
   return values
+    .slice(0, 8)
     .map((v) => {
       const period = v.periodMonth || v.period || "기간 미상";
       const current = v.currentValue !== undefined ? v.currentValue : "없음";
@@ -339,16 +360,31 @@ export function buildBriefingUserPrompt(
 
   // 날짜 내림차순 정렬
   const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
-  const recentSessions = sorted.filter((s) => s.date >= cutoffStr);
+  // 최근 세션 최대 5건, 이전 세션은 맥락 참고용 (프롬프트 축소 → 응답 속도 개선)
+  const recentSessions = sorted.filter((s) => s.date >= cutoffStr).slice(0, 5);
   const olderSessions = sorted.filter((s) => s.date < cutoffStr);
 
-  return `## 기업 기본 정보
-- 기업명: ${company.name}
-- 배치: ${company.batchLabel || "정보 없음"} (기간: ${batchPeriod})
-- 투자 단계: ${company.investmentStage || "정보 없음"}
-- 제품 성숙도: ${company.productMaturity || "정보 없음"} / 기술 성숙도: ${company.techMaturity || "정보 없음"}
-- 산업 분야: ${company.industryNames?.join(", ") || "정보 없음"}
-- 팀 규모: ${company.teamSize || "정보 없음"}명
+  // 기업 정보 항목 (값이 있는 것만 포함)
+  const companyFields: string[] = [
+    `- 기업명: ${company.name}`,
+    `- 배치: ${company.batchLabel || "정보 없음"} (기간: ${batchPeriod})`,
+  ];
+  if (company.description) companyFields.push(`- 기업 소개: ${truncate(company.description, 300)}`);
+  companyFields.push(`- 투자 단계: ${company.investmentStage || "정보 없음"}`);
+  if (company.dealType?.length) companyFields.push(`- 거래 유형: ${company.dealType.join(", ")}`);
+  if (company.serviceType?.length) companyFields.push(`- 서비스/제품 유형: ${company.serviceType.join(", ")}`);
+  companyFields.push(`- 제품 성숙도: ${company.productMaturity || "정보 없음"} / 기술 성숙도: ${company.techMaturity || "정보 없음"}`);
+  companyFields.push(`- 산업 분야: ${company.industryNames?.join(", ") || "정보 없음"}`);
+  companyFields.push(`- 팀 규모: ${company.teamSize || "정보 없음"}명`);
+  if (company.foundedDate) companyFields.push(`- 설립일: ${company.foundedDate}`);
+  if (company.customerScaleRaw) companyFields.push(`- 고객 규모: ${company.customerScaleRaw}`);
+  if (company.growthStageRaw) companyFields.push(`- 성장 단계: ${company.growthStageRaw}`);
+  if (company.marketSize) companyFields.push(`- 시장 규모: ${company.marketSize}`);
+  if (company.website) companyFields.push(`- 웹사이트: ${company.website}`);
+  if (company.achievementRate !== undefined) companyFields.push(`- OKR 달성율: ${company.achievementRate}%`);
+
+  return `## 기업 기본 정보 (Notion DB 최신 데이터)
+${companyFields.join("\n")}
 
 ## OKR 현황
 ### 성과지표 항목 (${okrItems.length}건)

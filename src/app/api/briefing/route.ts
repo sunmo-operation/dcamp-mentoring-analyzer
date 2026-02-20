@@ -20,7 +20,9 @@ import {
   nullsToUndefined,
 } from "@/lib/schemas";
 
-// Vercel 함수 실행 시간 제한 (60초)
+// Vercel 함수 실행 시간 제한
+// Hobby 플랜: 최대 10초 (스트리밍 시 최대 60초)
+// Pro 플랜: 최대 300초
 export const maxDuration = 60;
 
 interface BriefingRequest {
@@ -50,22 +52,25 @@ export async function POST(request: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      // heartbeat: 8초마다 ping 전송 → 연결 유지 (Vercel/브라우저 타임아웃 방지)
+      // heartbeat: 3초마다 ping 전송 → 연결 유지 (Vercel 스트리밍 타임아웃 방지)
       const heartbeat = setInterval(() => {
         try {
           controller.enqueue(encode({ type: "heartbeat" }));
         } catch {
           // 스트림이 이미 닫혔으면 무시
         }
-      }, 8000);
+      }, 3000);
 
       const startTime = Date.now();
 
       try {
+        // 즉시 첫 이벤트 전송 (Vercel이 스트리밍 함수로 인식하도록)
+        controller.enqueue(encode({ type: "heartbeat" }));
+
         // 1단계: 데이터 수집
         controller.enqueue(encode({
-          type: "status", step: 1, totalSteps: 4,
-          message: "Notion에서 데이터 수집 중...",
+          type: "status", step: 1, totalSteps: 3,
+          message: "Notion에서 데이터를 가져오고 있어요",
           elapsed: 0,
         }));
 
@@ -102,10 +107,9 @@ export async function POST(request: Request) {
         // 2단계: AI 분석 시작
         const elapsed2 = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({
-          type: "status", step: 2, totalSteps: 4,
-          message: "AI가 브리핑을 생성하고 있습니다...",
+          type: "status", step: 2, totalSteps: 3,
+          message: "AI가 브리핑을 작성하고 있어요",
           elapsed: elapsed2,
-          detail: "Notion 데이터 분석 중",
         }));
 
         const dataFingerprint: CompanyBriefing["dataFingerprint"] = {
@@ -124,10 +128,10 @@ export async function POST(request: Request) {
           kptReviews, okrItems, okrValues
         );
 
-        // Claude 스트리밍 API 호출
+        // Claude 스트리밍 API 호출 (max_tokens 축소 → 응답 속도 개선)
         const response = await claude.messages.stream({
           model: process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001",
-          max_tokens: 8192,
+          max_tokens: 4096,
           system: systemPrompt,
           messages: [{ role: "user", content: userPrompt }],
         });
@@ -135,7 +139,7 @@ export async function POST(request: Request) {
         let fullText = "";
         let lastProgressSent = 0;
 
-        // 3단계: AI 응답 수신 중 (실시간 진행률 전송)
+        // AI 응답 수신 중 (실시간 진행률 전송)
         for await (const event of response) {
           if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
             fullText += event.delta.text;
@@ -143,25 +147,24 @@ export async function POST(request: Request) {
             // 500자마다 진행률 업데이트 전송
             if (fullText.length - lastProgressSent > 500) {
               lastProgressSent = fullText.length;
-              const pct = Math.min(Math.round((fullText.length / 6000) * 90), 90);
+              const pct = Math.min(Math.round((fullText.length / 3500) * 90), 90);
               const elapsed3 = Math.round((Date.now() - startTime) / 1000);
               controller.enqueue(encode({
                 type: "progress",
-                step: 3, totalSteps: 4,
-                message: `AI 분석 중... (${pct}%)`,
+                step: 2, totalSteps: 3,
+                message: `AI가 브리핑을 작성하고 있어요`,
                 pct,
                 elapsed: elapsed3,
-                length: fullText.length,
               }));
             }
           }
         }
 
-        // 4단계: 결과 처리
+        // 3단계: 결과 처리
         const elapsed4 = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({
-          type: "status", step: 4, totalSteps: 4,
-          message: "결과를 정리하고 있습니다...",
+          type: "status", step: 3, totalSteps: 3,
+          message: "거의 다 됐어요!",
           elapsed: elapsed4,
         }));
 

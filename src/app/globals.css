@@ -124,3 +124,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 토스 스타일 로딩 메시지 애니메이션 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
