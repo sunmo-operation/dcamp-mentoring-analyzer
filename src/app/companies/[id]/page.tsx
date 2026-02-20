@@ -16,8 +16,10 @@ import { TimelineTab } from "@/components/timeline/timeline-tab";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ScrollToTop } from "@/components/scroll-to-top";
 
-export const revalidate = 60;
+// 항상 최신 데이터를 가져오도록 동적 렌더링
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -200,6 +202,8 @@ export default async function CompanyPage({ params, searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      {/* 페이지 진입 시 최상단으로 스크롤 */}
+      <ScrollToTop />
       {/* 뒤로가기 */}
       <Link
         href="/"

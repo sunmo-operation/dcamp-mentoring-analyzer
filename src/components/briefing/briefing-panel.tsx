@@ -23,6 +23,14 @@ interface BriefingPanelProps {
   staleReason?: string;
 }
 
+// 진행 단계별 표시 메시지
+const STEP_LABELS: Record<number, string> = {
+  1: "Notion에서 데이터를 수집하고 있습니다...",
+  2: "AI가 브리핑을 생성하고 있습니다...",
+  3: "AI 분석 중...",
+  4: "결과를 정리하고 있습니다...",
+};
+
 export function BriefingPanel({
   companyId,
   companyName,
@@ -35,18 +43,26 @@ export function BriefingPanel({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 스트리밍 진행 상황 표시용
+  const [progress, setProgress] = useState<string>("");
+  const [step, setStep] = useState<number>(0);
 
+  // SSE 스트리밍으로 브리핑 생성
   const generateBriefing = useCallback(
     async (force: boolean = false) => {
       setLoading(true);
       setError(null);
+      setProgress("연결 중...");
+      setStep(0);
+
       try {
         const res = await fetch("/api/briefing", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ companyId, force }),
         });
-        if (!res.ok) {
+
+        if (!res.ok || !res.body) {
           const text = await res.text();
           try {
             const data = JSON.parse(text);
@@ -56,23 +72,53 @@ export function BriefingPanel({
           }
           return;
         }
-        const data = await res.json();
-        if (data.success) {
-          setBriefing(data.briefing);
-        } else {
-          setError(data.error || "브리핑 생성에 실패했습니다");
+
+        // SSE 스트림 읽기
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === "status" || data.type === "progress") {
+                setProgress(data.message);
+                if (data.step) setStep(data.step);
+              }
+              if (data.type === "complete") {
+                setBriefing(data.briefing);
+              }
+              if (data.type === "error") {
+                setError(data.message);
+              }
+            } catch {
+              // 파싱 실패 무시
+            }
+          }
         }
-      } catch (error) {
-        console.warn("[BriefingPanel] 브리핑 생성 실패:", error);
-        setError("서버에 연결할 수 없습니다. 개발 서버가 실행 중인지 확인하세요.");
+      } catch (err) {
+        console.warn("[BriefingPanel] 브리핑 생성 실패:", err);
+        setError("서버에 연결할 수 없습니다.");
       } finally {
         setLoading(false);
+        setProgress("");
+        setStep(0);
       }
     },
     [companyId]
   );
 
-  // ── 첫 생성 로딩 (브리핑 없이 생성 중) ────────────
+  // ── 첫 생성 로딩 (스트리밍 진행 상황 표시) ────────
   if (loading && !briefing) {
     return (
       <div className="space-y-4">
@@ -86,9 +132,24 @@ export function BriefingPanel({
             <p className="text-sm font-medium text-blue-800 dark:text-blue-200" role="status">
               {companyName}의 브리핑을 생성하고 있습니다
             </p>
+            {/* 실시간 진행 상황 */}
             <p className="text-xs text-blue-600 dark:text-blue-400">
-              최근 멘토링 기록을 분석 중...
+              {progress || "준비 중..."}
             </p>
+            {/* 진행 바 */}
+            {step > 0 && (
+              <div className="w-full max-w-xs">
+                <div className="flex justify-between text-[10px] text-blue-400 mb-1">
+                  <span>단계 {step}/4</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-blue-200 dark:bg-blue-800 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                    style={{ width: `${Math.min(step * 25, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="animate-pulse space-y-3">
