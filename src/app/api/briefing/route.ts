@@ -128,10 +128,12 @@ export async function POST(request: Request) {
           kptReviews, okrItems, okrValues
         );
 
-        // Claude 스트리밍 API 호출 (max_tokens 축소 → 응답 속도 개선)
+        // Claude 스트리밍 API 호출
+        // 8192: 한국어 JSON 브리핑 전체 생성에 필요 (4096/6144는 잘림 발생 확인됨)
+        // Vercel(US 서버)에서는 로컬(한국)보다 2~3배 빠름 → 60초 스트리밍 제한 내 충분
         const response = await claude.messages.stream({
           model: process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001",
-          max_tokens: 4096,
+          max_tokens: 8192,
           system: systemPrompt,
           messages: [{ role: "user", content: userPrompt }],
         });
@@ -147,7 +149,7 @@ export async function POST(request: Request) {
             // 500자마다 진행률 업데이트 전송
             if (fullText.length - lastProgressSent > 500) {
               lastProgressSent = fullText.length;
-              const pct = Math.min(Math.round((fullText.length / 3500) * 90), 90);
+              const pct = Math.min(Math.round((fullText.length / 6000) * 90), 90);
               const elapsed3 = Math.round((Date.now() - startTime) / 1000);
               controller.enqueue(encode({
                 type: "progress",
@@ -168,13 +170,34 @@ export async function POST(request: Request) {
           elapsed: elapsed4,
         }));
 
-        // JSON 파싱
+        // JSON 파싱 (다양한 Claude 응답 형식 처리)
         let jsonStr = fullText.trim();
+
+        // 마크다운 코드블록 제거
         if (jsonStr.startsWith("```")) {
           jsonStr = jsonStr.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
         }
 
-        const rawParsed = JSON.parse(jsonStr);
+        // JSON 앞뒤에 텍스트가 있는 경우 최외곽 {} 추출
+        const firstBrace = jsonStr.indexOf("{");
+        const lastBrace = jsonStr.lastIndexOf("}");
+        if (firstBrace >= 0 && lastBrace > firstBrace) {
+          jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
+        }
+
+        // 디버그: 응답 길이와 앞뒤 100자 로그
+        console.log(`[브리핑] Claude 응답 길이: ${fullText.length}자, JSON 추출: ${jsonStr.length}자`);
+        console.log(`[브리핑] 앞 100자: ${jsonStr.slice(0, 100)}`);
+        console.log(`[브리핑] 뒤 100자: ${jsonStr.slice(-100)}`);
+
+        let rawParsed: unknown;
+        try {
+          rawParsed = JSON.parse(jsonStr);
+        } catch (parseErr) {
+          console.error("[브리핑] JSON 파싱 실패. 응답 마지막 200자:", jsonStr.slice(-200));
+          throw new Error("AI 응답 JSON 파싱 실패 (토큰 부족으로 응답이 잘렸을 수 있습니다)");
+        }
+
         const validated = briefingResponseSchema.safeParse(nullsToUndefined(rawParsed));
         if (!validated.success) {
           console.error("Claude 브리핑 응답 스키마 검증 실패:", validated.error.format());
