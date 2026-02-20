@@ -129,12 +129,12 @@ export async function POST(request: Request) {
         );
 
         // Claude 스트리밍 API 호출
-        // 8192: 한국어 JSON 브리핑 전체 생성에 필요 (4096/6144는 잘림 발생 확인됨)
-        // Vercel(US 서버)에서는 로컬(한국)보다 2~3배 빠름 → 60초 스트리밍 제한 내 충분
+        // 5000: industryContext 제거 후 핵심 섹션만 생성 → 충분한 여유
+        // cache_control: 시스템 프롬프트 캐싱으로 반복 호출 시 TTFT 단축
         const response = await claude.messages.stream({
           model: process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001",
-          max_tokens: 8192,
-          system: systemPrompt,
+          max_tokens: 5000,
+          system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
           messages: [{ role: "user", content: userPrompt }],
         });
 

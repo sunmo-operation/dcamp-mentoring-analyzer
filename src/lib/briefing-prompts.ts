@@ -30,10 +30,11 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
 - 모든 텍스트는 한국어.
 
 [데이터 가치 우선순위 — 높은 순]
-1. KPT 회고·대시보드 데이터: 팀이 직접 작성한 1차 데이터. 가장 높은 신뢰도. 팀의 자기 인식과 실제 고민이 담겨있음.
+1. KPT 회고·N기 대시보드 데이터: 팀이 직접 작성한 1차 데이터. 가장 높은 신뢰도. 팀의 자기 인식과 실제 고민이 담겨있음.
 2. 멘토링 세션 회의록: PM/멘토가 기록한 현장 데이터. 맥락과 뉘앙스가 풍부.
 3. 전문가 요청/결과보고: 리소스 니즈와 실행력을 파악하는 핵심 소스.
-4. OKR 성과지표: 정량적 진척도. KPT와 교차 검증하여 "말 vs 실제" 갭을 찾을 것.
+4. OKR·KPI 성과지표: 정량적 진척도. KPT와 교차 검증하여 "말 vs 실제" 갭을 찾을 것.
+- 노션에 기록된 수치 데이터(매출, MAU, 전환율, 달성율 등)는 반드시 원본 숫자를 직접 인용할 것. 추정하지 말 것.
 - KPT의 Problem과 멘토링 회의록의 반복 이슈가 겹치면 → 구조적 문제로 격상하여 repeatPatterns에 반영.
 
 [분석 프레임워크 — 모든 섹션에 이 관점을 적용]
@@ -58,6 +59,7 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
 - 개조식 항목은 줄바꿈(\\n)으로만 구분.
 - 각 항목은 "키워드: 설명" 형식으로 간결하게 (예: "MAU 37% 증가: 콘텐츠 마케팅 SEO 효과").
 - 한 항목이 2문장을 넘지 않도록.
+- 날짜 언급 시 반드시 연도(YYYY년)를 포함할 것 (예: "2025년 3월", "2026년 1월"). "3월" 같은 연도 없는 표기 금지.
 
 [간결성 규칙 — 속도와 집중력을 위해 반드시 준수]
 - repeatPatterns: 가장 임팩트 큰 2~3건만
@@ -84,9 +86,9 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
     "vocStrength": "strong | moderate | weak (고객 데이터 기반 의사결정 강도)"
   },
   "okrDiagnosis": {
-    "overallRate": "0~100 숫자, OKR 없으면 null",
-    "objectives": [{ "name": "명칭", "achievementRate": 0, "achieved": false }],
-    "trendAnalysis": "추이 분석 1~2문장",
+    "overallRate": "0~100 숫자. N기 대시보드의 정량 데이터 우선 반영. 없으면 null",
+    "objectives": [{ "name": "핵심목표/KPI 명칭", "achievementRate": 0, "achieved": false }],
+    "trendAnalysis": "N기 대시보드 수치 변화 기반 추이 분석 1~2문장. 노션에 기록된 숫자를 직접 인용할 것",
     "metricVsNarrative": "말 vs 실제가 다른 점. 없으면 null"
   },
   "repeatPatterns": [
@@ -128,60 +130,14 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
       "why": "왜 지금 (1문장)"
     }
   ],
-  "industryContext": {
-    "competitors": [
-      {
-        "name": "경쟁사명",
-        "description": "무엇을 하는지 1문장",
-        "stage": "시드/시리즈A 등",
-        "similarity": "어떤 점에서 직접 경쟁하는지 (구체적으로)",
-        "implications": "이 경쟁사의 존재가 우리에게 주는 시사점과 고민해야 할 사안 (단순 차별점이 아닌 전략적 함의)",
-        "recentMove": "최근 동향 1문장",
-        "threatLevel": "high | medium | low"
-      }
-    ],
-    "industryTrends": [
-      {
-        "trend": "핵심 트렌드 1문장",
-        "impact": "이 기업에 미치는 영향 1문장",
-        "source": "출처",
-        "url": "참고 링크 URL (있으면)"
-      }
-    ],
-    "regulatoryAndPolicy": [
-      {
-        "title": "법령/지원사업/정책명",
-        "type": "법령 | 지원사업 | 정책 | 업계소식",
-        "impact": "이 기업에 미치는 영향 1문장",
-        "actionRequired": "대응 방법 1문장",
-        "url": "참고 링크 URL (있으면)"
-      }
-    ],
-    "marketInsight": "시장 핵심 인사이트 1문장"
-  }
+  "industryContext": null
 }
 
 [인사이트 분류 기준 — 9개 중 하나만 사용]
 전략 / 마케팅 / 영업 / 제품 / 기술 / HR·조직 / 재무 / 운영 / 멘토링
 (채용·팀빌딩 → HR·조직, GTM·브랜딩 → 마케팅, 고객 확보·매출 → 영업, 기술 부채 → 기술, 프로세스 → 운영)
 
-[경쟁서비스 분석 — PRD 수준으로 구체적으로 정의]
-- "로봇 업계" 같은 뭉뚱그린 분류 절대 금지.
-- 기업의 구체적인 제품/서비스, 타겟 고객 세그먼트, 기술 접근법, 비즈니스 모델을 기준으로 직접 경쟁하는 서비스를 식별.
-- 같은 고객을 놓고 경쟁하는가? 같은 문제를 다른 방식으로 푸는가? — 이 질문으로 판단.
-- 투자 단계가 비슷한 스타트업 + 시장 선도 기업(벤치마크) 포함.
-- 해외 유사 서비스 포함 (국내 직접 경쟁사가 없으면 특히 중요).
-- implications 필드는 단순 "차별점"이 아니라 "이 경쟁사의 존재가 우리에게 주는 시사점, 고민해야 할 전략적 사안"을 기술할 것.
-- 확실하지 않으면 빼라. 억지로 채우지 말 것.
-
-[법령·정책·지원사업·업계동향]
-- 이 기업의 산업/제품에 직접 영향 + 임팩트가 큰 것만.
-- 스타트업 지원사업은 실제 신청 가능한 것만.
-- 가능한 경우 url 필드에 관련 기사/공고/정부 사이트 링크를 포함. 세부 내용 파악이 가능하도록.
-- url이 확실하지 않거나 유효하지 않을 수 있으면 생략. 억지로 넣지 말 것.
-
 [OKR] OKR 데이터 있으면 채우고, 없으면 null.
-[업계 동향] 판단 어려우면 industryContext를 null로.
 
 [디캠프 리소스 판단 — 주의사항]
 - 전문가 투입, 실무진 지원 등 dcamp 리소스의 현재 상태에 대해 확정적 판단을 내리지 말 것.
@@ -214,7 +170,7 @@ function categorizeSessionType(sessionTypes: string[]): string {
  * 최근 세션을 유형별로 그룹화하여 포맷
  */
 function formatRecentSessionsGrouped(sessions: MentoringSession[]): string {
-  if (sessions.length === 0) return "최근 60일간 멘토링 기록 없음";
+  if (sessions.length === 0) return "최근 3개월간 멘토링 기록 없음";
 
   // 유형별 그룹화
   const groups: Record<string, MentoringSession[]> = {};
@@ -360,16 +316,21 @@ export function buildBriefingUserPrompt(
       ? `${company.batchStartDate} ~ ${company.batchEndDate}`
       : "정보 없음";
 
-  // 60일 기준으로 세션 분리
+  // 90일(약 3개월) 기준으로 세션 분리
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 60);
+  cutoffDate.setDate(cutoffDate.getDate() - 90);
   const cutoffStr = cutoffDate.toISOString().split("T")[0];
 
   // 날짜 내림차순 정렬
   const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
-  // 최근 세션 최대 5건, 이전 세션은 맥락 참고용 (프롬프트 축소 → 응답 속도 개선)
-  const recentSessions = sorted.filter((s) => s.date >= cutoffStr).slice(0, 5);
-  const olderSessions = sorted.filter((s) => s.date < cutoffStr);
+  // 최근 3개월 세션을 주요 분석 대상으로 사용
+  // 3개월 내 데이터가 부족하면 최소 5건까지 보충
+  const within3mo = sorted.filter((s) => s.date >= cutoffStr);
+  const recentSessions = within3mo.length >= 5
+    ? within3mo
+    : sorted.slice(0, Math.max(within3mo.length, 5));
+  const recentIds = new Set(recentSessions.map((s) => s.notionPageId));
+  const olderSessions = sorted.filter((s) => !recentIds.has(s.notionPageId));
 
   // 기업 정보 항목 (값이 있는 것만 포함)
   const companyFields: string[] = [
@@ -403,7 +364,7 @@ ${formatOkrValues(okrValues)}
 ## KPT 회고 (${kptReviews.length}건)
 ${formatKptReviews(kptReviews)}
 
-## 최근 60일 멘토링 세션 (${recentSessions.length}건) — 분석 주요 근거
+## 주요 멘토링 세션 (${recentSessions.length}건, 최근 3개월 우선) — 분석 핵심 근거
 ${formatRecentSessionsGrouped(recentSessions)}
 
 ## 이전 세션 타임라인 (${olderSessions.length}건) — 맥락 참고용
@@ -417,8 +378,11 @@ ${formatAnalyses(analyses)}
 
 [지시사항]
 위 데이터를 종합하여 JSON 형식의 심층 브리핑을 생성해주세요.
-- 최근 60일 세션이 핵심 근거. 이전 세션은 맥락/추세 파악용으로만 참고.
-- OKR 데이터가 있으면 okrDiagnosis를 채우고, 없으면 null.
+- 가장 최근 3회 미팅(세션)에 가장 높은 가중치를 두고 분석할 것. 그 외 세션은 맥락/추세 파악용.
+- 모든 날짜에 반드시 연도를 포함할 것 (예: 2025년 3월, 2026년 1월).
+- OKR·KPI 데이터가 있으면 okrDiagnosis를 채우고, 없으면 null.
+- 노션 데이터의 정량적 수치(매출, DAU, 전환율 등)는 원본 그대로 인용.
 - 전문가 요청과 멘토링 내용을 교차 분석하여 인사이트 도출.
-- KPT Problem과 멘토링 행간에서 unspokenSignals를 추론.`;
+- KPT Problem과 멘토링 행간에서 unspokenSignals를 추론.
+- 최근 데이터가 부족한 경우, 그 사실을 명시하고 가용 데이터 범위를 언급할 것.`;
 }

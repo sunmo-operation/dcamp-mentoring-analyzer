@@ -23,7 +23,7 @@ export function OkrDiagnosis({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">OKR 진단</CardTitle>
+        <CardTitle className="text-base">핵심목표 (Objective & KPI) 진단</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {overallRate !== null && (
