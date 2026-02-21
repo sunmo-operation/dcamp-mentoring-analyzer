@@ -271,12 +271,21 @@ export async function POST(request: Request) {
           new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
         ]).catch(() => null);
 
+        // 데이터 수집 결과 요약 (detail에 포함)
+        const detailParts: string[] = [];
+        if (sessions.length > 0) detailParts.push(`회의록 ${sessions.length}건`);
+        if (kptReviews.length > 0) detailParts.push(`KPT ${kptReviews.length}건`);
+        if (okrItems.length > 0) detailParts.push(`OKR ${okrItems.length}건`);
+        if (expertRequests.length > 0) detailParts.push(`전문가요청 ${expertRequests.length}건`);
+        if (analyses.length > 0) detailParts.push(`분석 ${analyses.length}건`);
+        if (batchData) detailParts.push(`배치 데이터 ${batchData.okrEntries.length + batchData.growthEntries.length}건`);
+        const collectionDetail = detailParts.join(" · ") || "데이터 수집 완료";
+
         // 2단계: AI 분석
-        const elapsed2 = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({
           type: "status", step: 2, totalSteps: 3,
           message: "AI가 브리핑을 작성하고 있어요",
-          elapsed: elapsed2,
+          detail: collectionDetail,
         }));
 
         const dataFingerprint: CompanyBriefing["dataFingerprint"] = {

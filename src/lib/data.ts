@@ -425,5 +425,23 @@ export async function getCompanyBatchDashboardData(
   // 데이터가 하나도 없으면 null 반환
   if (okrEntries.length === 0 && growthEntries.length === 0) return null;
 
+  // 블록 콘텐츠 병렬 조회 (각 OKR 페이지의 본문 텍스트)
+  // 기존 8초 타임아웃 내에서 처리해야 하므로 개별 3초 타임아웃 적용
+  await Promise.all(
+    okrEntries
+      .filter((e) => e.notionPageId)
+      .map(async (entry) => {
+        try {
+          const text = await Promise.race([
+            notionExtractPageText(entry.notionPageId!),
+            new Promise<string>((_, reject) => setTimeout(() => reject(new Error("timeout")), 3000)),
+          ]);
+          if (text) entry.blockContent = text;
+        } catch {
+          // 개별 블록 조회 실패 시 무시 (속성 데이터만으로도 동작)
+        }
+      })
+  );
+
   return { batchLabel, okrEntries, growthEntries };
 }

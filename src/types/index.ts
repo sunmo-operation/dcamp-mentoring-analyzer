@@ -224,6 +224,8 @@ export interface BatchOkrEntry {
   objective: string;
   currentValue: number | null;
   targetValue: number | null;
+  notionPageId?: string; // 블록 콘텐츠 조회용 페이지 ID
+  blockContent?: string; // 페이지 본문 텍스트 (상세 목표, KPI 설명)
 }
 
 // ── 배치 대시보드 전월 대비 성장률 (3기 등) ─────────────

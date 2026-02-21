@@ -56,32 +56,23 @@ export function BriefingPanel({
   const [progress, setProgress] = useState<string>("");
   const [step, setStep] = useState<number>(0);
   const [detail, setDetail] = useState<string>("");
-  const [elapsed, setElapsed] = useState<number>(0);
+  const [pct, setPct] = useState<number>(0);
   // 토스 스타일 메시지 인덱스
   const [funMsgIdx, setFunMsgIdx] = useState<number>(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const msgTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // 로딩 중 경과 시간 자동 카운트
+  // 로딩 중 메시지 순환 (3초마다)
   useEffect(() => {
     if (loading) {
-      const start = Date.now();
-      timerRef.current = setInterval(() => {
-        setElapsed(Math.round((Date.now() - start) / 1000));
-      }, 1000);
-      // 3초마다 재미있는 메시지 순환
       setFunMsgIdx(0);
       msgTimerRef.current = setInterval(() => {
         setFunMsgIdx((prev) => (prev + 1) % FUN_MESSAGES.length);
       }, 3000);
     } else {
-      if (timerRef.current) clearInterval(timerRef.current);
       if (msgTimerRef.current) clearInterval(msgTimerRef.current);
-      setElapsed(0);
       setFunMsgIdx(0);
     }
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
       if (msgTimerRef.current) clearInterval(msgTimerRef.current);
     };
   }, [loading]);
@@ -101,6 +92,7 @@ export function BriefingPanel({
       setProgress("연결 중...");
       setStep(0);
       setDetail("");
+      setPct(0);
 
       try {
         const res = await fetch("/api/briefing", {
@@ -147,8 +139,19 @@ export function BriefingPanel({
 
                 if (data.type === "status" || data.type === "progress") {
                   setProgress(data.message);
-                  if (data.step) setStep(data.step);
+                  if (data.step) {
+                    setStep(data.step);
+                    // step 기반 퍼센트 매핑
+                    if (data.step === 1) setPct(15);
+                    else if (data.step === 3) setPct(95);
+                  }
                   if (data.detail) setDetail(data.detail);
+                  // SSE progress 이벤트의 pct 값 반영 (step2 AI 생성 진행률)
+                  if (data.type === "progress" && typeof data.pct === "number") {
+                    // step2 pct(0~90)를 전체 20~90으로 리매핑
+                    const mapped = 20 + Math.round(data.pct * 0.78);
+                    setPct(mapped);
+                  }
                 }
                 if (data.type === "complete") {
                   // SSE로 받은 브리핑 데이터를 sanitize — React #310 방지
@@ -187,6 +190,7 @@ export function BriefingPanel({
         setProgress("");
         setStep(0);
         setDetail("");
+        setPct(0);
       }
     },
     [companyId]
@@ -261,28 +265,26 @@ export function BriefingPanel({
               </p>
             </div>
 
-            {/* 심플한 3단계 진행바 */}
-            {step > 0 && (
-              <div className="w-full max-w-xs">
-                <div className="flex gap-1.5">
-                  {[1, 2, 3].map((s) => (
-                    <div
-                      key={s}
-                      className={`h-1 flex-1 rounded-full transition-all duration-700 ${
-                        s < step ? "bg-blue-500" :
-                        s === step ? "bg-blue-400 animate-pulse" :
-                        "bg-gray-200 dark:bg-gray-700"
-                      }`}
-                    />
-                  ))}
+            {/* 프로그레스 바 */}
+            <div className="w-full max-w-xs space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-blue-500 transition-all duration-700 ease-out"
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 tabular-nums w-9 text-right">
+                  {pct}%
+                </span>
               </div>
-            )}
-
-            {/* 경과 시간 (작게) */}
-            <p className="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
-              {elapsed}초 경과
-            </p>
+              {/* 단계별 설명 또는 데이터 볼륨 메시지 */}
+              {(detail || progress) && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center truncate">
+                  {detail || progress}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 

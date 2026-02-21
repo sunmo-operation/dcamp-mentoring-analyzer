@@ -1019,7 +1019,7 @@ export async function getBatchOkrData(batchLabel: string): Promise<BatchOkrEntry
           }
         }
 
-        return { companyName, objective, currentValue, targetValue };
+        return { companyName, objective, currentValue, targetValue, notionPageId: (page?.id ?? "") as string };
       }, "배치OKR").filter((entry) => entry.companyName !== "");
     } catch (error) {
       console.warn(`[notion] 배치 OKR 조회 실패 (${batchLabel}):`, error);

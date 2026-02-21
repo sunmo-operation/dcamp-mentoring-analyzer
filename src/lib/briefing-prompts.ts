@@ -294,7 +294,12 @@ function formatBatchOkrData(data: BatchDashboardData): string {
   const lines = data.okrEntries.map((e) => {
     const current = e.currentValue !== null ? e.currentValue.toLocaleString() : "미측정";
     const target = e.targetValue !== null ? e.targetValue.toLocaleString() : "미설정";
-    return `- ${e.companyName}: ${e.objective} / 현황: ${current} / 목표: ${target}`;
+    let line = `- ${e.companyName}: ${e.objective} / 현황: ${current} / 목표: ${target}`;
+    // 블록 콘텐츠가 있으면 상세 정보 추가 (500자 제한)
+    if (e.blockContent) {
+      line += `\n  상세: ${truncate(e.blockContent, 500)}`;
+    }
+    return line;
   });
   return `### 오브젝티브 달성율\n${lines.join("\n")}`;
 }
