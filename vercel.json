@@ -1,5 +1,13 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "functions": {
+    "app/api/briefing/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/analyze/route.ts": {
+      "maxDuration": 120
+    }
+  }
 }

@@ -151,7 +151,8 @@ async function callClaudeAndParse(
 
   const response = await claude.messages.stream({
     model: process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001",
-    max_tokens: 8192,
+    // 실제 브리핑 JSON은 3000~5000 토큰이면 충분. 8192에서 줄여 속도 개선.
+    max_tokens: 5000,
     system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
     messages: [
       { role: "user", content: userPrompt },
@@ -250,6 +251,7 @@ export async function POST(request: Request) {
           elapsed: 0,
         }));
 
+        // 모든 데이터 수집을 병렬로 (batchData도 Promise.all에 포함)
         const [allData, kptReviews, okrItems, okrValues] = await Promise.all([
           getCompanyAllData(companyId),
           getKptReviews(companyId),
@@ -263,7 +265,11 @@ export async function POST(request: Request) {
         }
 
         const { company, sessions, expertRequests, analyses } = allData;
-        const batchData = await getCompanyBatchDashboardData(company);
+        // batchData도 타임아웃 제한 + 실패 시 null (전체 흐름 차단 방지)
+        const batchData = await Promise.race([
+          getCompanyBatchDashboardData(company),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+        ]).catch(() => null);
 
         // 2단계: AI 분석
         const elapsed2 = Math.round((Date.now() - startTime) / 1000);
@@ -312,7 +318,7 @@ export async function POST(request: Request) {
                 // 500자마다 진행률 업데이트
                 if (text.length - lastProgressSent > 500) {
                   lastProgressSent = text.length;
-                  const pct = Math.min(Math.round((text.length / 8000) * 90), 90);
+                  const pct = Math.min(Math.round((text.length / 5000) * 90), 90);
                   try {
                     controller.enqueue(encode({
                       type: "progress", step: 2, totalSteps: 3,
