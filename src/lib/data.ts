@@ -571,10 +571,10 @@ export async function getCompanyAllData(
   // JSON round-trip으로 직렬화 안전성을 보장 (React #310 근본 방지)
   const result = sanitizeForReact({ company, sessions, expertRequests, timeline, analyses });
 
-  // 5분 캐시 (Notion API 부하 방지 + 연속 탐색 시 즉시 응답)
+  // 15분 캐시 (Notion API 부하 방지 + 연속 탐색 시 즉시 응답)
   companyDataCache.set(companyNotionPageId, {
     data: result,
-    expires: Date.now() + 300_000,
+    expires: Date.now() + 900_000,
   });
 
   return result;

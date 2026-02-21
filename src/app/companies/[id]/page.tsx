@@ -26,8 +26,9 @@ import {
   TabsSkeleton,
 } from "@/components/company/company-skeletons";
 
-// 항상 최신 데이터를 가져오도록 동적 렌더링
-export const dynamic = "force-dynamic";
+// ISR: 2분간 캐시된 HTML 즉시 반환, 이후 백그라운드 재생성
+// LiveRefreshGuard가 60초마다 freshness 체크하므로 데이터 신선도 보장
+export const revalidate = 120;
 export const maxDuration = 120;
 
 // ── React cache: 같은 요청 내 동일 함수 호출 중복 제거 ──

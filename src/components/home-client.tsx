@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import { CompanyCard } from "@/components/company/company-card";
@@ -84,6 +84,34 @@ export function HomeClient({
     );
   }), [companies, searchQuery]);
 
+  // 기수(배치)별 그룹핑 — 기수 번호 내림차순 정렬
+  const groupedByBatch = useMemo(() => {
+    const groups = new Map<string, Company[]>();
+    for (const c of filtered) {
+      const label = c.batchLabel || "기타";
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label)!.push(c);
+    }
+    // 기수 번호 내림차순 정렬 (숫자 추출, "기타"는 맨 뒤)
+    const sorted = [...groups.entries()].sort(([a], [b]) => {
+      const numA = parseInt(a.match(/\d+/)?.[0] || "0", 10);
+      const numB = parseInt(b.match(/\d+/)?.[0] || "0", 10);
+      if (numA === 0 && numB === 0) return a.localeCompare(b);
+      if (numA === 0) return 1;
+      if (numB === 0) return -1;
+      return numB - numA;
+    });
+    return sorted;
+  }, [filtered]);
+
+  // 호버 프리페치: 서버 캐시 워밍 (기업당 1회만)
+  const prefetchedRef = useRef<Set<string>>(new Set());
+  const handlePrefetch = useCallback((companyId: string) => {
+    if (prefetchedRef.current.has(companyId)) return;
+    prefetchedRef.current.add(companyId);
+    fetch(`/api/prefetch?id=${companyId}`).catch(() => {});
+  }, []);
+
   // 분석 결과에 기업 정보를 매칭 (notionPageId 기준)
   const companyMap = useMemo(() => Object.fromEntries(
     companies.map((c) => [c.notionPageId, c])
@@ -104,16 +132,30 @@ export function HomeClient({
       {/* 검색 */}
       <CompanySearch onSearch={handleSearch} initialQuery={searchQuery} />
 
-      {/* 기업 목록 */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((company) => (
-          <CompanyCard
-            key={company.notionPageId}
-            company={company}
-            analysisCount={analysisCountByCompany[company.notionPageId] ?? 0}
-          />
-        ))}
-      </div>
+      {/* 기업 목록 — 기수별 그룹 */}
+      {groupedByBatch.map(([batchLabel, batchCompanies]) => (
+        <div key={batchLabel} className="mt-8">
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="text-lg font-semibold">{batchLabel}</h2>
+            <span className="text-sm text-muted-foreground">
+              {batchCompanies.length}개 기업
+            </span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {batchCompanies.map((company) => (
+              <div
+                key={company.notionPageId}
+                onMouseEnter={() => handlePrefetch(company.notionPageId)}
+              >
+                <CompanyCard
+                  company={company}
+                  analysisCount={analysisCountByCompany[company.notionPageId] ?? 0}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
 
       {filtered.length === 0 && (
         <p className="mt-8 text-center text-muted-foreground">
