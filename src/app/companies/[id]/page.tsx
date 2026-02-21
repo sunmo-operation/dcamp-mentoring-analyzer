@@ -18,9 +18,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { LiveRefreshGuard } from "@/components/live-refresh-guard";
+import { sanitizeForReact } from "@/lib/safe-render";
 
 // 항상 최신 데이터를 가져오도록 동적 렌더링
 export const dynamic = "force-dynamic";
+
+// Notion API 호출이 느릴 수 있으므로 충분한 타임아웃 설정
+// Vercel Pro 기본값(60초)으로는 부족할 수 있어 명시적으로 설정
+export const maxDuration = 120;
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -231,7 +236,7 @@ export default async function CompanyPage({ params, searchParams }: Props) {
         <BriefingPanel
           companyId={id}
           companyName={company.name}
-          initialBriefing={existingBriefing}
+          initialBriefing={existingBriefing ? sanitizeForReact(existingBriefing) : undefined}
           isStale={briefingIsStale}
           staleReason={briefingStaleReason}
         />

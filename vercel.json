@@ -8,6 +8,9 @@
     },
     "app/api/analyze/route.ts": {
       "maxDuration": 120
+    },
+    "app/companies/[id]/page.tsx": {
+      "maxDuration": 120
     }
   }
 }

@@ -30,26 +30,65 @@ export function safeStrArray(val: unknown): string[] {
 }
 
 /**
- * 브리핑/분석 데이터의 모든 leaf 값을 재귀적으로 검증
- * 문자열이어야 할 자리에 객체가 있으면 JSON.stringify로 변환
- * React #310의 근본 원인 차단
+ * 브리핑/분석 데이터를 RSC 직렬화에 안전한 형태로 변환
+ *
+ * JSON round-trip을 통해 모든 값이 JSON-serializable임을 보장:
+ * - undefined → 제거 (JSON에서 유효하지 않음)
+ * - Date → ISO 문자열
+ * - BigInt/Symbol/Function → 제거
+ * - 순환 참조 → 빈 객체로 대체
+ *
+ * RSC(React Server Components) 프로토콜은 본질적으로 JSON 기반이므로,
+ * JSON round-trip을 통과한 데이터는 RSC 직렬화에서 실패하지 않음.
  */
 export function sanitizeForReact<T>(data: T): T {
   if (data === null || data === undefined) return data;
   if (typeof data !== "object") return data;
 
+  try {
+    // JSON round-trip: 가장 확실한 직렬화 안전성 검증
+    return JSON.parse(JSON.stringify(data)) as T;
+  } catch (err) {
+    // 순환 참조 등으로 JSON.stringify 실패 시 수동 정리
+    console.warn("[sanitizeForReact] JSON round-trip 실패, 수동 정리 수행:", err);
+    return manualSanitize(data);
+  }
+}
+
+/**
+ * JSON round-trip 실패 시 fallback: 수동으로 객체를 정리
+ */
+function manualSanitize<T>(data: T, seen = new WeakSet()): T {
+  if (data === null || data === undefined) return data;
+  if (typeof data !== "object") return data;
+
+  // 순환 참조 방지
+  if (seen.has(data as object)) return {} as T;
+  seen.add(data as object);
+
   if (Array.isArray(data)) {
-    return data.map((item) => {
-      // 배열 요소가 예상치 못한 객체인 경우 (string[] 자리에 object[] 등)
-      // 일단 재귀 처리 — 최종적으로 JSX에서 렌더링 시 safe 함수가 방어
-      return sanitizeForReact(item);
-    }) as T;
+    return data
+      .filter((item) => typeof item !== "function" && typeof item !== "symbol")
+      .map((item) => manualSanitize(item, seen)) as T;
   }
 
-  // 일반 객체: 각 필드를 재귀 처리
   const result = {} as Record<string, unknown>;
   for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-    result[key] = sanitizeForReact(value);
+    // function, symbol, undefined는 제거
+    if (typeof value === "function" || typeof value === "symbol" || value === undefined) {
+      continue;
+    }
+    // Date → ISO 문자열
+    if (value instanceof Date) {
+      result[key] = value.toISOString();
+      continue;
+    }
+    // BigInt → 문자열
+    if (typeof value === "bigint") {
+      result[key] = String(value);
+      continue;
+    }
+    result[key] = manualSanitize(value, seen);
   }
   return result as T;
 }

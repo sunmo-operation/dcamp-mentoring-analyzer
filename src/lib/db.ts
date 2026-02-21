@@ -4,6 +4,7 @@
 // ══════════════════════════════════════════════════
 import { sql } from "@vercel/postgres";
 import type { AnalysisResult, CompanyBriefing } from "@/types";
+import { sanitizeForReact } from "@/lib/safe-render";
 
 // ── 테이블 초기화 (앱 시작 시 1회) ────────────────
 let initialized = false;
@@ -39,13 +40,14 @@ export async function ensureTables(): Promise<void> {
 export async function dbGetAnalyses(): Promise<AnalysisResult[]> {
   await ensureTables();
   const { rows } = await sql`SELECT data FROM analyses ORDER BY created_at DESC`;
-  return rows.map((r) => r.data as AnalysisResult);
+  return rows.map((r) => sanitizeForReact(r.data as AnalysisResult));
 }
 
 export async function dbGetAnalysis(id: string): Promise<AnalysisResult | undefined> {
   await ensureTables();
   const { rows } = await sql`SELECT data FROM analyses WHERE id = ${id}`;
-  return rows[0]?.data as AnalysisResult | undefined;
+  const data = rows[0]?.data as AnalysisResult | undefined;
+  return data ? sanitizeForReact(data) : undefined;
 }
 
 export async function dbGetAnalysesByCompany(companyId: string): Promise<AnalysisResult[]> {
@@ -55,7 +57,7 @@ export async function dbGetAnalysesByCompany(companyId: string): Promise<Analysi
     WHERE company_id = ${companyId}
     ORDER BY created_at DESC
   `;
-  return rows.map((r) => r.data as AnalysisResult);
+  return rows.map((r) => sanitizeForReact(r.data as AnalysisResult));
 }
 
 export async function dbSaveAnalysis(analysis: AnalysisResult): Promise<void> {
@@ -73,7 +75,7 @@ export async function dbSaveAnalysis(analysis: AnalysisResult): Promise<void> {
 export async function dbGetBriefings(): Promise<CompanyBriefing[]> {
   await ensureTables();
   const { rows } = await sql`SELECT data FROM briefings ORDER BY created_at DESC`;
-  return rows.map((r) => r.data as CompanyBriefing);
+  return rows.map((r) => sanitizeForReact(r.data as CompanyBriefing));
 }
 
 export async function dbGetBriefingByCompany(companyId: string): Promise<CompanyBriefing | undefined> {
@@ -85,7 +87,7 @@ export async function dbGetBriefingByCompany(companyId: string): Promise<Company
     LIMIT 1
   `;
   const briefing = rows[0]?.data as CompanyBriefing | undefined;
-  if (briefing && briefing.status === "completed") return briefing;
+  if (briefing && briefing.status === "completed") return sanitizeForReact(briefing);
   return undefined;
 }
 
