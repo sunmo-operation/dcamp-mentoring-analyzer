@@ -45,7 +45,10 @@ export default async function CompanyPage({ params, searchParams }: Props) {
   ]);
   if (!allData) notFound();
 
-  const { company, sessions, expertRequests, timeline, analyses } = allData;
+  // 모든 Notion/DB 데이터를 sanitize — React #310 근본 방지
+  // JSON round-trip으로 직렬화 불가능한 값(객체가 문자열 자리에 있는 등) 제거
+  const safeAllData = sanitizeForReact(allData);
+  const { company, sessions, expertRequests, timeline, analyses } = safeAllData;
   let briefingIsStale = false;
   let briefingStaleReason: string | undefined;
   if (existingBriefing) {

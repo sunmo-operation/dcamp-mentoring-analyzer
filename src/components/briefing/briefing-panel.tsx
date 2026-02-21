@@ -14,6 +14,7 @@ import { ResourceDiagnosis } from "./sections/resource-diagnosis";
 import { MeetingStrategy } from "./sections/meeting-strategy";
 import { PmActions } from "./sections/pm-actions";
 // industryContext 섹션 제거 — 노션 데이터 기반 핵심 브리핑에 집중
+import { sanitizeForReact } from "@/lib/safe-render";
 import type { CompanyBriefing } from "@/types";
 
 interface BriefingPanelProps {
@@ -150,7 +151,8 @@ export function BriefingPanel({
                   if (data.detail) setDetail(data.detail);
                 }
                 if (data.type === "complete") {
-                  setBriefing(data.briefing);
+                  // SSE로 받은 브리핑 데이터를 sanitize — React #310 방지
+                  setBriefing(sanitizeForReact(data.briefing as CompanyBriefing));
                   receivedComplete = true;
                 }
                 if (data.type === "error") {

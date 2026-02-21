@@ -22,6 +22,7 @@ import {
   dbGetBriefingByCompany,
   dbSaveBriefing,
 } from "@/lib/db";
+import { sanitizeForReact } from "@/lib/safe-render";
 
 const useDB = !!process.env.POSTGRES_URL;
 import {
@@ -268,7 +269,9 @@ export async function getCompanyAllData(
 
   const analyses = await getAnalysesByCompany(companyNotionPageId);
 
-  const result = { company, sessions, expertRequests, timeline, analyses };
+  // Notion API에서 반환된 데이터에 예상치 못한 객체 타입이 포함될 수 있으므로
+  // JSON round-trip으로 직렬화 안전성을 보장 (React #310 근본 방지)
+  const result = sanitizeForReact({ company, sessions, expertRequests, timeline, analyses });
 
   // 3분 캐시 (브리핑 API 등에서 재호출 시 즉시 반환)
   companyDataCache.set(companyNotionPageId, {

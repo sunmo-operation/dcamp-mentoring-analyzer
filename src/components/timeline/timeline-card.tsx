@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { safeStr } from "@/lib/safe-render";
 import type { TimelineEvent, ExpertRequest } from "@/types";
 
 // ── 소스 배지 색상 ──────────────────────────────
@@ -57,12 +58,15 @@ interface TimelineCardProps {
 }
 
 export function TimelineCard({ event, expertRequest }: TimelineCardProps) {
-  const typeConfig = TYPE_CONFIG[event.type] || TYPE_CONFIG.meeting;
-  const sourceStyle = SOURCE_STYLES[event.source] || SOURCE_STYLES.manual;
-  const sourceLabel = SOURCE_LABELS[event.source] || event.source;
-  const participants = event.metadata.participants;
-  const preview = event.rawContent
-    ? event.rawContent.slice(0, 150) + (event.rawContent.length > 150 ? "…" : "")
+  const eventType = typeof event.type === "string" ? event.type : "meeting";
+  const eventSource = typeof event.source === "string" ? event.source : "manual";
+  const typeConfig = TYPE_CONFIG[eventType] || TYPE_CONFIG.meeting;
+  const sourceStyle = SOURCE_STYLES[eventSource] || SOURCE_STYLES.manual;
+  const sourceLabel = SOURCE_LABELS[eventSource] || eventSource;
+  const participants = event.metadata?.participants;
+  const rawStr = safeStr(event.rawContent);
+  const preview = rawStr
+    ? rawStr.slice(0, 150) + (rawStr.length > 150 ? "…" : "")
     : "-";
 
   const isExpert = event.type === "expert_request";
@@ -93,7 +97,7 @@ export function TimelineCard({ event, expertRequest }: TimelineCardProps) {
       <CardContent className="px-4 pb-4 space-y-2">
         {/* 제목 */}
         <p className="font-semibold text-sm leading-snug">
-          {event.title || "-"}
+          {safeStr(event.title) || "-"}
         </p>
 
         {/* 참여자 */}
@@ -111,16 +115,16 @@ export function TimelineCard({ event, expertRequest }: TimelineCardProps) {
           <div className="flex items-center gap-2 pt-1">
             <Badge
               variant="outline"
-              className={`text-xs ${getStatusStyle(expertRequest.status)}`}
+              className={`text-xs ${getStatusStyle(safeStr(expertRequest.status))}`}
             >
-              {expertRequest.status || "-"}
+              {safeStr(expertRequest.status) || "-"}
             </Badge>
             {expertRequest.urgency && (
               <Badge
                 variant="outline"
-                className={`text-xs ${getUrgencyStyle(expertRequest.urgency)}`}
+                className={`text-xs ${getUrgencyStyle(safeStr(expertRequest.urgency))}`}
               >
-                {expertRequest.urgency}
+                {safeStr(expertRequest.urgency)}
               </Badge>
             )}
           </div>
