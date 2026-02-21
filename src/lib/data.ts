@@ -354,10 +354,10 @@ export async function getCompanyAllData(
   // JSON round-trip으로 직렬화 안전성을 보장 (React #310 근본 방지)
   const result = sanitizeForReact({ company, sessions, expertRequests, timeline, analyses });
 
-  // 3분 캐시 (브리핑 API 등에서 재호출 시 즉시 반환)
+  // 30초 캐시 (데이터 신선도 우선, 연속 탐색 시 API 부하 방지)
   companyDataCache.set(companyNotionPageId, {
     data: result,
-    expires: Date.now() + 180_000,
+    expires: Date.now() + 30_000,
   });
 
   return result;

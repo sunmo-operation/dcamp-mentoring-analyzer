@@ -602,7 +602,7 @@ export async function getCompanies(): Promise<Company[]> {
       const companies = await Promise.all(bases.map(enrichCompany));
       return companies.sort((a, b) => a.id - b.id);
     },
-    120_000 // 2분 캐시 (SWR 프레시니스 체크와 연동)
+    60_000 // 1분 캐시 (데이터 신선도 우선)
   );
 }
 
