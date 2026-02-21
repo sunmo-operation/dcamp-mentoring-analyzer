@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, cache } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -20,36 +20,123 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { LiveRefreshGuard } from "@/components/live-refresh-guard";
 import { sanitizeForReact } from "@/lib/safe-render";
+import {
+  ProfileSkeleton,
+  BriefingSkeleton,
+  TabsSkeleton,
+} from "@/components/company/company-skeletons";
 
 // 항상 최신 데이터를 가져오도록 동적 렌더링
 export const dynamic = "force-dynamic";
-
-// Notion API 호출이 느릴 수 있으므로 충분한 타임아웃 설정
-// Vercel Pro 기본값(60초)으로는 부족할 수 있어 명시적으로 설정
 export const maxDuration = 120;
+
+// ── React cache: 같은 요청 내 동일 함수 호출 중복 제거 ──
+// 3개 Suspense 섹션이 병렬로 같은 데이터를 요청해도 실제 Notion API는 1번만 호출
+const cachedGetAllData = cache(getCompanyAllData);
+const cachedGetKptReviews = cache(getKptReviews);
+const cachedGetOkrItems = cache(getOkrItems);
+const cachedGetBriefing = cache(getBriefingByCompany);
 
 interface Props {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ tab?: string; filter?: string }>;
 }
 
+// ══════════════════════════════════════════════════
+// 메인 페이지: 쉘(뒤로가기, 레이아웃)만 즉시 렌더링
+// 각 섹션은 독립 Suspense 경계에서 병렬 스트리밍
+// ══════════════════════════════════════════════════
 export default async function CompanyPage({ params, searchParams }: Props) {
   const { id } = await params;
   const { filter } = await searchParams;
 
-  // 통합 데이터 + 브리핑 + KPT/OKR 모두 병렬 fetch
-  const [allData, existingBriefing, kptReviews, okrItems] = await Promise.all([
-    getCompanyAllData(id),
-    getBriefingByCompany(id),
-    getKptReviews(id),
-    getOkrItems(id),
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      {/* 즉시 렌더링 — 페이지 쉘 */}
+      <ScrollToTop />
+      <LiveRefreshGuard scope="company-detail" companyId={id} />
+      <Link
+        href="/"
+        className="mb-6 inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
+      >
+        &larr; 홈으로
+      </Link>
+
+      {/* 스트리밍 섹션 1: 기업 프로필 + KPT 요약 */}
+      <Suspense fallback={<ProfileSkeleton />}>
+        <ProfileSection companyId={id} />
+      </Suspense>
+
+      {/* 스트리밍 섹션 2: AI 컨텍스트 브리핑 */}
+      <div className="my-8">
+        <Suspense fallback={<BriefingSkeleton />}>
+          <BriefingSection companyId={id} />
+        </Suspense>
+      </div>
+
+      <Separator className="my-8" />
+
+      {/* 스트리밍 섹션 3: 탭 (멘토링 + 타임라인 + 분석) */}
+      <Suspense fallback={<TabsSkeleton />}>
+        <TabsSection companyId={id} filter={filter} />
+      </Suspense>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════
+// 섹션 1: 기업 프로필 + KPT 요약
+// ══════════════════════════════════════════════════
+async function ProfileSection({ companyId }: { companyId: string }) {
+  // allData + kptReviews 병렬 fetch (cache로 다른 섹션과 중복 방지)
+  const [allData, kptReviews] = await Promise.all([
+    cachedGetAllData(companyId),
+    cachedGetKptReviews(companyId),
   ]);
   if (!allData) notFound();
 
-  // 모든 Notion/DB 데이터를 sanitize — React #310 근본 방지
-  // JSON round-trip으로 직렬화 불가능한 값(객체가 문자열 자리에 있는 등) 제거
-  const safeAllData = sanitizeForReact(allData);
-  const { company, sessions, expertRequests, timeline, analyses } = safeAllData;
+  const { company, expertRequests } = allData;
+
+  // KPT AI 요약 (자체 30분 캐시 보유)
+  const kptResult = await summarizeRecentKpt(companyId, kptReviews);
+
+  // 전문가 요청 요약
+  const expertSummary = {
+    total: expertRequests.length,
+    inProgress: expertRequests.filter((r) =>
+      ["매칭 중", "검토 중", "일정 확정", "접수"].some((s) =>
+        (r.status || "").includes(s)
+      )
+    ).length,
+    completed: expertRequests.filter((r) =>
+      ["진행 완료", "완료"].some((s) => (r.status || "").includes(s))
+    ).length,
+  };
+
+  return (
+    <CompanyProfile
+      company={company}
+      expertSummary={expertSummary}
+      kptSummary={kptResult?.summary}
+      kptCount={kptResult?.count}
+    />
+  );
+}
+
+// ══════════════════════════════════════════════════
+// 섹션 2: AI 브리핑 패널
+// ══════════════════════════════════════════════════
+async function BriefingSection({ companyId }: { companyId: string }) {
+  const [allData, existingBriefing, kptReviews, okrItems] = await Promise.all([
+    cachedGetAllData(companyId),
+    cachedGetBriefing(companyId),
+    cachedGetKptReviews(companyId),
+    cachedGetOkrItems(companyId),
+  ]);
+  if (!allData) return null;
+
+  const { company, sessions, expertRequests, analyses } = allData;
+
   let briefingIsStale = false;
   let briefingStaleReason: string | undefined;
   if (existingBriefing) {
@@ -64,21 +151,39 @@ export default async function CompanyPage({ params, searchParams }: Props) {
     briefingStaleReason = reason;
   }
 
-  // KPT 회고 AI 요약 (최근 2~3개월)
-  const kptResult = await summarizeRecentKpt(id, kptReviews);
+  return (
+    <BriefingPanel
+      companyId={companyId}
+      companyName={company.name}
+      initialBriefing={existingBriefing ? sanitizeForReact(existingBriefing) : undefined}
+      isStale={briefingIsStale}
+      staleReason={briefingStaleReason}
+    />
+  );
+}
 
-  // 전문가 요청 요약 카운트
-  const expertSummary = {
-    total: expertRequests.length,
-    inProgress: expertRequests.filter((r) =>
-      ["매칭 중", "검토 중", "일정 확정", "접수"].some((s) =>
-        (r.status || "").includes(s)
-      )
-    ).length,
-    completed: expertRequests.filter((r) =>
-      ["진행 완료", "완료"].some((s) => (r.status || "").includes(s))
-    ).length,
-  };
+// ══════════════════════════════════════════════════
+// 섹션 3: 탭 (멘토링 기록 + 타임라인 + AI 분석)
+// ══════════════════════════════════════════════════
+const SESSION_TYPE_ICON: Record<string, string> = {
+  "멘토": "\u{1F468}\u{200D}\u{1F3EB}",
+  "전문가투입": "\u{1F393}",
+  "점검": "\u{1F50D}",
+  "체크업": "\u{1F50D}",
+  "회고": "\u{1F4CB}",
+};
+
+async function TabsSection({
+  companyId,
+  filter,
+}: {
+  companyId: string;
+  filter?: string;
+}) {
+  const allData = await cachedGetAllData(companyId);
+  if (!allData) return null;
+
+  const { sessions, expertRequests, timeline, analyses } = allData;
 
   // ── 분석 히스토리 탭 콘텐츠 ─────────────────────
   const analysisContent = (
@@ -104,14 +209,6 @@ export default async function CompanyPage({ params, searchParams }: Props) {
   );
 
   // ── 멘토링 기록 탭 콘텐츠 ──────────────────────
-  const sessionTypeIcon: Record<string, string> = {
-    "멘토": "👨‍🏫",
-    "전문가투입": "🎓",
-    "점검": "🔍",
-    "체크업": "🔍",
-    "회고": "📋",
-  };
-
   const sortedSessions = [...sessions].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -129,8 +226,8 @@ export default async function CompanyPage({ params, searchParams }: Props) {
           {sortedSessions.map((session) => {
             const types = Array.isArray(session.sessionTypes) ? session.sessionTypes : [];
             const icon = types
-              .map((t) => sessionTypeIcon[String(t)])
-              .find(Boolean) || "💬";
+              .map((t) => SESSION_TYPE_ICON[String(t)])
+              .find(Boolean) || "\u{1F4AC}";
             const title = typeof session.title === "string" ? session.title : String(session.title || "");
             const summary = typeof session.summary === "string" ? session.summary : "";
             const followUp = typeof session.followUp === "string" ? session.followUp : "";
@@ -161,7 +258,6 @@ export default async function CompanyPage({ params, searchParams }: Props) {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0 pb-4 space-y-3">
-                  {/* 회의 내용 요약 */}
                   {summary && (
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-1">회의 내용</p>
@@ -170,7 +266,6 @@ export default async function CompanyPage({ params, searchParams }: Props) {
                       </p>
                     </div>
                   )}
-                  {/* 후속 조치 */}
                   {followUp && (
                     <div className="rounded-2xl bg-muted/50 p-4">
                       <p className="text-xs font-semibold text-muted-foreground mb-1">후속 조치</p>
@@ -179,7 +274,6 @@ export default async function CompanyPage({ params, searchParams }: Props) {
                       </p>
                     </div>
                   )}
-                  {/* 요약도 후속조치도 없는 경우 */}
                   {!summary && !followUp && (
                     <p className="text-sm text-muted-foreground">기록된 내용 없음</p>
                   )}
@@ -214,48 +308,10 @@ export default async function CompanyPage({ params, searchParams }: Props) {
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* 페이지 진입 시 최상단으로 스크롤 */}
-      <ScrollToTop />
-      {/* 60초마다 Notion 변경 감지 → 자동 갱신 */}
-      <LiveRefreshGuard scope="company-detail" companyId={id} />
-      {/* 뒤로가기 */}
-      <Link
-        href="/"
-        className="mb-6 inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
-      >
-        &larr; 홈으로
-      </Link>
-
-      {/* 기업 프로필 */}
-      <CompanyProfile
-        company={company}
-        expertSummary={expertSummary}
-        kptSummary={kptResult?.summary}
-        kptCount={kptResult?.count}
-      />
-
-      {/* AI 컨텍스트 브리핑 */}
-      <div className="my-8">
-        <BriefingPanel
-          companyId={id}
-          companyName={company.name}
-          initialBriefing={existingBriefing ? sanitizeForReact(existingBriefing) : undefined}
-          isStale={briefingIsStale}
-          staleReason={briefingStaleReason}
-        />
-      </div>
-
-      <Separator className="my-8" />
-
-      {/* 탭 시스템 (근거 데이터) */}
-      <Suspense fallback={<div className="py-8 text-center text-muted-foreground">로딩 중...</div>}>
-        <CompanyTabs
-          mentoringTab={mentoringContent}
-          timelineTab={timelineContent}
-          analysisTab={analysisContent}
-        />
-      </Suspense>
-    </div>
+    <CompanyTabs
+      mentoringTab={mentoringContent}
+      timelineTab={timelineContent}
+      analysisTab={analysisContent}
+    />
   );
 }

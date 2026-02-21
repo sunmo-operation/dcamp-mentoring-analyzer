@@ -499,28 +499,33 @@ export async function getCompanyAllData(
     company.excel = excelData;
   }
 
-  // Executive Snapshot: 사전설문 데이터를 맥킨지 스타일 AI 요약
-  if (company.excel) {
-    const snapshot = await generateExecutiveSnapshot(company).catch((error) => {
-      console.warn("[data] Executive Snapshot 생성 실패:", error);
-      return null;
-    });
-    if (snapshot) {
-      company.executiveSnapshot = snapshot;
-    }
-  }
+  // 사전 설문 기본 필드 먼저 반영 (비동기 불필요)
+  if (surveyData?.valuation) company.valuation = surveyData.valuation;
 
-  // 사전 설문 데이터 → AI 요약 후 company 객체에 merge
-  if (surveyData) {
-    if (surveyData.valuation) company.valuation = surveyData.valuation;
-    // 텍스트 필드는 AI 요약 (실패 시 원문 60자 truncate)
-    const summary = await summarizeSurveyText(
-      companyNotionPageId,
-      surveyData.productIntro,
-      surveyData.yearMilestone,
-    );
-    if (summary.productOneLiner) company.productIntro = summary.productOneLiner;
-    if (summary.batchGoal) company.yearMilestone = summary.batchGoal;
+  // AI 요약 2건을 병렬 실행 (기존: 순차 → 총 대기시간 ~50% 감소)
+  const [snapshot, surveySummary] = await Promise.all([
+    company.excel
+      ? generateExecutiveSnapshot(company).catch((error) => {
+          console.warn("[data] Executive Snapshot 생성 실패:", error);
+          return null;
+        })
+      : null,
+    surveyData
+      ? summarizeSurveyText(
+          companyNotionPageId,
+          surveyData.productIntro,
+          surveyData.yearMilestone,
+        ).catch((error) => {
+          console.warn("[data] 설문 요약 실패:", error);
+          return {} as { productOneLiner?: string; batchGoal?: string };
+        })
+      : null,
+  ]);
+
+  if (snapshot) company.executiveSnapshot = snapshot;
+  if (surveySummary) {
+    if (surveySummary.productOneLiner) company.productIntro = surveySummary.productOneLiner;
+    if (surveySummary.batchGoal) company.yearMilestone = surveySummary.batchGoal;
   }
 
   // 타임라인을 로컬에서 조립 (getTimeline 내부 재호출 제거)
@@ -566,10 +571,10 @@ export async function getCompanyAllData(
   // JSON round-trip으로 직렬화 안전성을 보장 (React #310 근본 방지)
   const result = sanitizeForReact({ company, sessions, expertRequests, timeline, analyses });
 
-  // 30초 캐시 (데이터 신선도 우선, 연속 탐색 시 API 부하 방지)
+  // 5분 캐시 (Notion API 부하 방지 + 연속 탐색 시 즉시 응답)
   companyDataCache.set(companyNotionPageId, {
     data: result,
-    expires: Date.now() + 30_000,
+    expires: Date.now() + 300_000,
   });
 
   return result;
