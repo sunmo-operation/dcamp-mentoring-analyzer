@@ -43,6 +43,8 @@ const PROPS = {
     batch: "배치",
     mentors: "담당 멘토",
     industry: "적용 산업 분야",
+    representative: "대표자",
+    surveyFeedback: "설문 피드백",
   },
   mentor: {
     id: "ID",
@@ -117,6 +119,15 @@ const PROPS = {
   batch: {
     period: "운영 기간",
   },
+  survey: {
+    company: "00. 관련 참여기업",
+    productIntro: "19. 제품/서비스 소개",
+    revenueStructure: "44. 주요 매출 구성",
+    yearMilestone: "55. 향후 1년 마일스톤",
+    orgStatus: "13. 조직 현황 및 주요 인력 소개",
+    dcampExpectation: "68. 기대 및 요청사항",
+    valuation: "16. 투자 유치 현황 - 기업 가치 (Post value)",
+  },
 } as const;
 
 // Notion DB IDs (환경변수)
@@ -128,6 +139,8 @@ const DB_IDS = {
   kptReviews: process.env.NOTION_KPT_DB_ID!,
   okrItems: process.env.NOTION_OKR_ITEMS_DB_ID!,
   okrValues: process.env.NOTION_OKR_VALUES_DB_ID!,
+  surveyIt: process.env.NOTION_SURVEY_IT_DB_ID,
+  representative: process.env.NOTION_REPRESENTATIVE_DB_ID,
   // 배치 대시보드 DB IDs
   batch3Okr: process.env.NOTION_BATCH3_OKR_DB_ID,
   batch3Growth: process.env.NOTION_BATCH3_GROWTH_DB_ID,
@@ -495,6 +508,7 @@ function mapCompanyBase(page: Props) {
     batchId: getRelationIds(props, P.batch)[0],
     mentorIds: getRelationIds(props, P.mentors),
     _industryRelationIds: getRelationIds(props, P.industry),
+    _representativeId: getRelationIds(props, P.representative)[0],
   };
 }
 
@@ -510,29 +524,49 @@ async function enrichCompany(
     batchEndDate = dates.end;
   }
 
-  // 산업 분야 이름 resolve
-  const industryNames =
+  // 산업 분야 이름 + 대표자 이름 resolve (병렬)
+  const [industryNames, ceoNames] = await Promise.all([
     base._industryRelationIds.length > 0
-      ? await resolveRelationNames(base._industryRelationIds)
-      : undefined;
+      ? resolveRelationNames(base._industryRelationIds)
+      : Promise.resolve(undefined),
+    base._representativeId
+      ? resolveRelationNames([base._representativeId])
+      : Promise.resolve(undefined),
+  ]);
+  const ceoName = ceoNames?.[0] || undefined;
 
-  // _industryRelationIds는 내부용이므로 제외
-  const { _industryRelationIds, ...rest } = base;
-  return { ...rest, batchStartDate, batchEndDate, industryNames } as Company;
+  // 내부용 필드 제외
+  const { _industryRelationIds, _representativeId, ...rest } = base;
+  return { ...rest, batchStartDate, batchEndDate, industryNames, ceoName } as Company;
 }
 
-// 홈페이지용 경량 조회 (enrichment 없이 DB 쿼리 1회로 완료)
+// 홈페이지용 경량 조회 (대표자 이름만 배치 resolve)
 export async function getCompaniesBasic(): Promise<Company[]> {
   return cached(
     "companies:basic",
     async () => {
       const pages = await queryAllPages(DB_IDS.companies);
-      return safeMap(pages, (page) => {
-          const base = mapCompanyBase(page);
-          const { _industryRelationIds, ...rest } = base;
-          return rest as Company;
-        }, "기업(경량)")
-        .sort((a, b) => a.id - b.id);
+      const bases = safeMap(pages, mapCompanyBase, "기업(경량)");
+
+      // 대표자 이름만 배치 resolve (홈 카드에 표시)
+      const allRepIds = [
+        ...new Set(bases.map((b) => b._representativeId).filter(Boolean)),
+      ] as string[];
+      if (allRepIds.length > 0) {
+        await Promise.all(allRepIds.map((id) => resolveRelationNames([id])));
+      }
+
+      // 대표자 이름 매핑 후 내부 필드 제거
+      const companies = await Promise.all(
+        bases.map(async (base) => {
+          const ceoName = base._representativeId
+            ? (await resolveRelationNames([base._representativeId]))[0] || undefined
+            : undefined;
+          const { _industryRelationIds, _representativeId, ...rest } = base;
+          return { ...rest, ceoName } as Company;
+        })
+      );
+      return companies.sort((a, b) => a.id - b.id);
     },
     60_000 // 1분 캐시 (SWR이 클라이언트에서 프레시니스 관리)
   );
@@ -553,11 +587,15 @@ export async function getCompanies(): Promise<Company[]> {
       const allIndustryIds = [
         ...new Set(bases.flatMap((b) => b._industryRelationIds)),
       ];
+      const allRepIds = [
+        ...new Set(bases.map((b) => b._representativeId).filter(Boolean)),
+      ] as string[];
 
-      // 배치 정보 + 산업분야 이름을 한번에 병렬 조회 (캐시 pre-warm)
+      // 배치 정보 + 산업분야 이름 + 대표자 이름을 한번에 병렬 조회 (캐시 pre-warm)
       await Promise.all([
         ...allBatchIds.map((id) => getBatchDates(id)),
         ...allIndustryIds.map((id) => resolveRelationNames([id])),
+        ...allRepIds.map((id) => resolveRelationNames([id])),
       ]);
 
       // 이제 enrichCompany 내부 호출은 모두 캐시 히트
@@ -1140,6 +1178,61 @@ export async function getLastEditedTime(
 // ══════════════════════════════════════════════════
 // 분석 결과 Notion 저장
 // ══════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// 사전 설문 데이터 조회
+// ══════════════════════════════════════════════════
+
+interface SurveyData {
+  productIntro?: string;
+  revenueStructure?: string;
+  yearMilestone?: string;
+  orgStatus?: string;
+  dcampExpectation?: string;
+  valuation?: number;
+}
+
+/**
+ * 기업의 사전 설문 응답 데이터 조회
+ * 사전 설문 IT DB를 `00. 관련 참여기업` 필터로 쿼리하여
+ * 해당 기업의 설문 응답에서 핵심 필드를 추출
+ */
+export async function getCompanySurveyData(
+  companyNotionPageId: string
+): Promise<SurveyData | null> {
+  if (!DB_IDS.surveyIt) return null;
+
+  const cacheKey = `survey:${companyNotionPageId}`;
+  return cached(
+    cacheKey,
+    async () => {
+      try {
+        const P = PROPS.survey;
+        const pages = await queryAllPages(DB_IDS.surveyIt!, {
+          property: P.company,
+          relation: { contains: companyNotionPageId },
+        });
+
+        if (pages.length === 0) return null;
+
+        // 첫 번째 설문 응답 사용 (일반적으로 1개)
+        const props = (pages[0]?.properties ?? {}) as Props;
+        return {
+          productIntro: getText(props, P.productIntro),
+          revenueStructure: getText(props, P.revenueStructure),
+          yearMilestone: getText(props, P.yearMilestone),
+          orgStatus: getText(props, P.orgStatus),
+          dcampExpectation: getText(props, P.dcampExpectation),
+          valuation: getNumber(props, P.valuation),
+        };
+      } catch (error) {
+        console.warn(`[notion] 사전 설문 조회 실패 (${companyNotionPageId}):`, error);
+        return null;
+      }
+    },
+    3_600_000 // 1시간 캐시 (설문 데이터는 자주 안 바뀜)
+  );
+}
 
 export async function saveAnalysisToNotion(
   sessionPageId: string,

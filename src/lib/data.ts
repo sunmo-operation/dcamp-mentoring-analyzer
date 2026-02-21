@@ -43,6 +43,7 @@ import {
   getOkrValues as notionGetOkrValues,
   getBatchOkrData as notionGetBatchOkrData,
   getBatchGrowthData as notionGetBatchGrowthData,
+  getCompanySurveyData as notionGetCompanySurveyData,
 } from "@/lib/notion";
 
 // ── 분석 결과 JSON 저장소 ─────────────────────────
@@ -215,8 +216,8 @@ export async function getCompanyAllData(
     return cached.data;
   }
 
-  // 기업 정보 + 세션 + 전문가 요청을 모두 병렬 호출 (직렬 대기 제거)
-  const [company, sessions, expertRequests] = await Promise.all([
+  // 기업 정보 + 세션 + 전문가 요청 + 사전 설문을 모두 병렬 호출
+  const [company, sessions, expertRequests, surveyData] = await Promise.all([
     notionGetCompany(companyNotionPageId),
     notionGetSessions(companyNotionPageId).catch((error) => {
       console.warn("[data] 세션 조회 실패:", error);
@@ -226,9 +227,23 @@ export async function getCompanyAllData(
       console.warn("[data] 전문가 요청 조회 실패:", error);
       return [] as ExpertRequest[];
     }),
+    notionGetCompanySurveyData(companyNotionPageId).catch((error) => {
+      console.warn("[data] 사전 설문 조회 실패:", error);
+      return null;
+    }),
   ]);
 
   if (!company) return null;
+
+  // 사전 설문 데이터를 company 객체에 merge
+  if (surveyData) {
+    if (surveyData.productIntro) company.productIntro = surveyData.productIntro;
+    if (surveyData.revenueStructure) company.revenueStructure = surveyData.revenueStructure;
+    if (surveyData.yearMilestone) company.yearMilestone = surveyData.yearMilestone;
+    if (surveyData.orgStatus) company.orgStatus = surveyData.orgStatus;
+    if (surveyData.dcampExpectation) company.dcampExpectation = surveyData.dcampExpectation;
+    if (surveyData.valuation) company.valuation = surveyData.valuation;
+  }
 
   // 타임라인을 로컬에서 조립 (getTimeline 내부 재호출 제거)
   const timeline: TimelineEvent[] = [];

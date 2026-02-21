@@ -31,6 +31,14 @@ export interface Company {
   mentorIds?: string[]; // 담당 멘토 (relation pageIds)
   achievementRate?: number; // 달성율 (formula)
   slackChannelId?: string; // Slack 채널 ID (수동 매핑)
+  // 사전 설문 + 대표자 연동 필드
+  ceoName?: string; // 대표자 이름
+  productIntro?: string; // 제품/서비스 소개 (BM)
+  revenueStructure?: string; // 주요 매출 구성 (수익모델)
+  yearMilestone?: string; // 향후 1년 마일스톤
+  orgStatus?: string; // 조직 현황 및 주요 인력
+  dcampExpectation?: string; // 디캠프 기대/요청사항
+  valuation?: number; // 기업 가치 (Post value, 원)
 }
 
 // ── 멘토 ──────────────────────────────────────────

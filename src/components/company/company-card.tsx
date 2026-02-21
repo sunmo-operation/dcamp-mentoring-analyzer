@@ -24,6 +24,7 @@ export function CompanyCard({ company, analysisCount = 0 }: CompanyCardProps) {
             <div className="min-w-0">
               <CardTitle className="text-lg truncate">{company.name}</CardTitle>
               <CardDescription className="text-xs mt-1">
+                {company.ceoName && <span className="text-foreground/70">대표 {company.ceoName} · </span>}
                 {company.batchLabel || "배치 미지정"}
               </CardDescription>
             </div>
