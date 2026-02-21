@@ -25,18 +25,15 @@ interface BriefingPanelProps {
   staleReason?: string;
 }
 
-// 전문 컨설턴트 톤 로딩 메시지 (3초마다 순환)
+// 로딩 메시지 (5초마다 순환, 심층 분석 톤)
 const FUN_MESSAGES = [
-  "Notion 데이터베이스 전체를 스캔하고 있어요",
-  "멘토링 회의록 전문을 읽고 핵심을 추출하고 있어요",
-  "KPT 회고와 OKR 달성률을 교차 분석 중이에요",
-  "전문가 요청 이력에서 팀의 고민 패턴을 파악하고 있어요",
-  "시간순 이벤트 간 인과관계를 추적하고 있어요",
-  "멘토 피드백 이행 여부를 검증하고 있어요",
-  "경쟁사 동향과 시장 트렌드를 조사하고 있어요",
-  "반복되는 이슈의 구조적 원인을 분석하고 있어요",
-  "데이터 기반으로 맞춤 전략을 설계하고 있어요",
-  "최종 브리핑 보고서를 정리하고 있어요",
+  "Notion DB 전체 스캔 중 — 멘토링·KPT·OKR·전문가 요청 데이터 수집",
+  "멘토링 회의록 전문 분석 — 핵심 논의와 후속 조치 추출",
+  "KPT 회고 × OKR 달성률 교차 검증 — 말과 실행의 갭 탐색",
+  "반복 이슈의 구조적 원인 진단 — 데이터 소스 간 교차 분석",
+  "멘토 피드백 이행 여부 검증 — 조언 vs 실행 매칭",
+  "전문가 투입 이력 분석 — 리소스 니즈와 실행력 파악",
+  "심층 브리핑 보고서 작성 중 — 최종 검토 단계",
 ];
 
 export function BriefingPanel({
@@ -65,7 +62,7 @@ export function BriefingPanel({
       setFunMsgIdx(0);
       msgTimerRef.current = setInterval(() => {
         setFunMsgIdx((prev) => (prev + 1) % FUN_MESSAGES.length);
-      }, 3000);
+      }, 5000);
     } else {
       if (msgTimerRef.current) clearInterval(msgTimerRef.current);
       setFunMsgIdx(0);
@@ -230,9 +227,9 @@ export function BriefingPanel({
   const repeatedAdviceLines = useMemo(() => parseBulletLines(safeRepeatedAdvice), [safeRepeatedAdvice]);
   const ignoredAdviceLines = useMemo(() => parseBulletLines(safeIgnoredAdvice), [safeIgnoredAdvice]);
   const dcampCanDoLines = useMemo(() => parseBulletLines(safeGapAnalysis), [safeGapAnalysis]);
-  const { primaryNeed, resourceReasoning } = useMemo(() => {
-    const lines = safeExpertRequests.split("\n").filter(Boolean);
-    return { primaryNeed: lines[0] || "", resourceReasoning: lines.slice(1).join(" ") };
+  const { primaryNeed, resourceLines } = useMemo(() => {
+    const parsed = parseBulletLines(safeExpertRequests);
+    return { primaryNeed: parsed[0] || "", resourceLines: parsed.slice(1) };
   }, [safeExpertRequests]);
 
   // ── 첫 생성 로딩 (토스 스타일 로딩 UX) ────────
@@ -259,7 +256,7 @@ export function BriefingPanel({
                 {companyName}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                브리핑을 준비하고 있어요
+                심층 분석 브리핑 생성 중 · 약 1분 소요
               </p>
             </div>
 
@@ -408,7 +405,7 @@ export function BriefingPanel({
         {mentorInsights && (primaryNeed || dcampCanDoLines.length > 0) && (
           <ResourceDiagnosis
             primaryNeed={primaryNeed}
-            resourceReasoning={resourceReasoning}
+            resourceLines={resourceLines}
             dcampCanDoLines={dcampCanDoLines}
           />
         )}

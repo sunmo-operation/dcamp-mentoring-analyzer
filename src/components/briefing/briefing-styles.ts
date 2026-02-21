@@ -48,16 +48,27 @@ export const urgencyLabel: Record<string, string> = {
 };
 
 // ── 개조식 텍스트를 라인 배열로 파싱 ─────────────────
-// Claude가 다양한 불릿 기호를 사용하므로 모두 제거
+// Claude가 다양한 불릿/구분자를 사용하므로 모두 처리
 export function parseBulletLines(text: string | undefined | null): string[] {
   if (!text) return [];
-  return text
-    .split("\n")
-    .map((line) =>
-      line
-        .replace(/^[\s]*[•▪▸►·‣⁃\-\*]\s*/, "")  // 불릿 기호 제거
-        .replace(/^\d+[.)]\s*/, "")                 // 번호 목록 제거 (1. 2) 등)
-        .trim()
-    )
-    .filter(Boolean);
+
+  // 1차: \n으로 분리
+  let lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+
+  // \n이 1줄뿐이고 " / " 구분자가 있으면 → 슬래시로 재분리
+  if (lines.length <= 1 && text.includes(" / ")) {
+    lines = text.split(" / ").map((l) => l.trim()).filter(Boolean);
+  }
+
+  // (1), (2) 등 번호 패턴이 한 줄에 여러 개면 → 번호 기준 재분리
+  if (lines.length <= 1 && /\(\d+\)/.test(text)) {
+    lines = text.split(/(?=\(\d+\))/).map((l) => l.trim()).filter(Boolean);
+  }
+
+  return lines.map((line) =>
+    line
+      .replace(/^[\s]*[•▪▸►·‣⁃\-\*]\s*/, "")  // 불릿 기호 제거
+      .replace(/^\d+[.)]\s*/, "")                 // 번호 목록 제거 (1. 2) 등)
+      .trim()
+  ).filter(Boolean);
 }

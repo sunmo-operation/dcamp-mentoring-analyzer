@@ -3,14 +3,14 @@ import { safeStr } from "@/lib/safe-render";
 
 interface ResourceDiagnosisProps {
   primaryNeed: string;
-  resourceReasoning: string;
+  resourceLines: string[];
   dcampCanDoLines: string[];
 }
 
 // ── ⑥ 리소스 진단 ──────────────────────────────
 export function ResourceDiagnosis({
   primaryNeed,
-  resourceReasoning,
+  resourceLines,
   dcampCanDoLines,
 }: ResourceDiagnosisProps) {
   const safeLines = Array.isArray(dcampCanDoLines) ? dcampCanDoLines : [];
@@ -24,10 +24,16 @@ export function ResourceDiagnosis({
       </CardHeader>
       <CardContent className="space-y-4">
         {primaryNeed && (
-          <div>
+          <div className="space-y-2">
             <p className="text-base font-semibold">{safeStr(primaryNeed)}</p>
-            {resourceReasoning && (
-              <p className="text-sm text-muted-foreground mt-1">{safeStr(resourceReasoning)}</p>
+            {resourceLines.length > 0 && (
+              <div className="space-y-1.5">
+                {resourceLines.map((line, i) => (
+                  <div key={i} className="border-l-2 border-muted-foreground/30 pl-2.5">
+                    <p className="text-sm text-muted-foreground">{safeStr(line)}</p>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
