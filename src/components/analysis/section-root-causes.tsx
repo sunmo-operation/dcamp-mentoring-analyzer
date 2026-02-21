@@ -27,7 +27,7 @@ export function SectionRootCauses({ causes }: Props) {
       <CardContent>
         <div className="space-y-6">
           {causes.map((cause, i) => (
-            <div key={i} className="rounded-lg border p-4">
+            <div key={i} className="rounded-2xl border-0 bg-muted/30 p-5">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h4 className="font-semibold">{cause.title}</h4>
                 <div className="flex items-center gap-2 shrink-0">
@@ -42,7 +42,7 @@ export function SectionRootCauses({ causes }: Props) {
               <p className="text-sm text-muted-foreground mb-3">
                 {cause.description}
               </p>
-              <div className="rounded bg-muted/50 p-2 text-xs text-muted-foreground">
+              <div className="rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground">
                 구조적 원인: {cause.structuralCause}
               </div>
             </div>

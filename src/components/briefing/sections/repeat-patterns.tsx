@@ -28,7 +28,7 @@ export function RepeatPatterns({ patterns }: RepeatPatternsProps) {
         {patterns.map((insight, i) => (
           <div
             key={i}
-            className="rounded-lg border p-4 space-y-2"
+            className="rounded-2xl border-0 bg-muted/30 p-5 space-y-2"
           >
             <div className="flex items-center gap-2 flex-wrap">
               <Badge className={categoryStyle[insight.issueCategory] || "bg-gray-100 text-gray-800"}>

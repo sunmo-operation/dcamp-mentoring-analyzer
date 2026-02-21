@@ -19,22 +19,20 @@ interface CompanyProfileProps {
   expertSummary?: ExpertSummary;
 }
 
+// 토스 스타일 기업 프로필 카드
 export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) {
-  // 주요 정보를 key-value로 표시
-  const metrics: { label: string; value: string }[] = [];
-  if (company.teamSize) metrics.push({ label: "팀 규모", value: `${company.teamSize}명` });
-  if (company.foundedDate) metrics.push({ label: "설립일", value: company.foundedDate });
-  if (company.marketSize) metrics.push({ label: "시장 규모", value: company.marketSize });
-  if (company.customerScaleRaw) metrics.push({ label: "고객 규모", value: company.customerScaleRaw });
-  if (company.dealType?.length) metrics.push({ label: "거래 유형", value: company.dealType.join(", ") });
-  if (company.serviceType?.length) metrics.push({ label: "서비스 유형", value: company.serviceType.join(", ") });
+  // 배치 지원서 기준 정보 (배치 진입 시점의 데이터)
+  const snapshotMetrics: { label: string; value: string }[] = [];
+  if (company.teamSize) snapshotMetrics.push({ label: "팀 규모", value: `${company.teamSize}명` });
+  if (company.foundedDate) snapshotMetrics.push({ label: "설립일", value: company.foundedDate });
+  if (company.customerScaleRaw) snapshotMetrics.push({ label: "고객 규모", value: company.customerScaleRaw });
 
   return (
     <Card>
       <CardHeader>
         <div>
           <CardTitle className="text-2xl">{company.name}</CardTitle>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {company.industryNames?.map((name) => (
               <Badge key={name}>{name}</Badge>
             ))}
@@ -44,22 +42,18 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
             {company.batchLabel && (
               <Badge variant="outline">{company.batchLabel}</Badge>
             )}
-            {company.teamSize && (
-              <Badge variant="outline">{company.teamSize}명</Badge>
-            )}
           </div>
 
           {/* 전문가 요청 요약 */}
           {expertSummary && expertSummary.total > 0 && (
             <Link
               href={`/companies/${company.notionPageId}?tab=timeline&filter=expert_request`}
-              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-sm transition-colors hover:bg-purple-100"
+              className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-secondary px-4 py-2 text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
             >
-              <span>🎓</span>
-              <span className="font-medium text-purple-800">
+              <span className="text-primary font-semibold">
                 전문가 요청 {expertSummary.total}건
               </span>
-              <span className="text-purple-600">
+              <span className="text-muted-foreground">
                 (진행중 {expertSummary.inProgress} / 완료 {expertSummary.completed})
               </span>
             </Link>
@@ -67,17 +61,25 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground mb-4">
+        <p className="text-muted-foreground mb-6 leading-relaxed">
           {company.description || "기업 소개가 없습니다"}
         </p>
-        {metrics.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {metrics.map(({ label, value }) => (
-              <div key={label} className="rounded-lg border p-3 text-center">
-                <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="mt-1 text-lg font-semibold">{value}</p>
-              </div>
-            ))}
+
+        {/* 배치 지원서 기준 데이터 — 명확히 시점을 표시 */}
+        {snapshotMetrics.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-3">
+              배치 지원서 기준
+              {company.batchLabel ? ` (${company.batchLabel})` : ""}
+            </p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {snapshotMetrics.map(({ label, value }) => (
+                <div key={label} className="rounded-2xl bg-muted p-4">
+                  <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                  <p className="text-base font-bold text-foreground">{value}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </CardContent>

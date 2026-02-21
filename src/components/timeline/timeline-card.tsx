@@ -69,7 +69,7 @@ export function TimelineCard({ event, expertRequest }: TimelineCardProps) {
   const canAnalyze = event.type === "mentoring" || event.type === "checkpoint";
 
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card className="hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.1)]">
       <CardHeader className="pb-2 pt-4 px-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -131,7 +131,7 @@ export function TimelineCard({ event, expertRequest }: TimelineCardProps) {
           <div className="pt-1">
             <Link
               href={`/analyze?sessionId=${event.metadata.notionPageId}`}
-              className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center rounded-2xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#1B6EF3] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)]"
             >
               분석하기
             </Link>

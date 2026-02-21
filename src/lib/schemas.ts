@@ -212,7 +212,9 @@ export const briefingResponseSchema = z.object({
       description: z.string().default(""),
       stage: z.string().default(""),
       similarity: z.string().default(""),
-      differentiation: z.string().default(""),
+      // 이전: differentiation → 현재: implications (호환 위해 둘 다 허용)
+      implications: z.string().optional(),
+      differentiation: z.string().optional(),
       recentMove: z.string().default(""),
       threatLevel: z.enum(["high", "medium", "low"]).default("medium"),
     })).default([]),
@@ -220,12 +222,14 @@ export const briefingResponseSchema = z.object({
       trend: z.string().default(""),
       impact: z.string().default(""),
       source: z.string().default(""),
+      url: z.string().optional(),
     })).default([]),
     regulatoryAndPolicy: z.array(z.object({
       title: z.string().default(""),
       type: z.string().default("업계소식"),
       impact: z.string().default(""),
       actionRequired: z.string().default(""),
+      url: z.string().optional(),
     })).default([]),
     marketInsight: z.string().default(""),
   }).nullable().optional(),
@@ -264,6 +268,20 @@ export function transformBriefingResponse(
     mentorInsights: parsed.mentorInsights ?? null,
     meetingStrategy: parsed.meetingStrategy ?? null,
     pmActions: parsed.pmActions,
-    industryContext: parsed.industryContext ?? null,
+    industryContext: parsed.industryContext
+      ? {
+          ...parsed.industryContext,
+          // implications / differentiation 호환: 새 필드명으로 통일
+          competitors: parsed.industryContext.competitors.map((c) => ({
+            name: c.name,
+            description: c.description,
+            stage: c.stage,
+            similarity: c.similarity,
+            implications: c.implications || c.differentiation || "",
+            recentMove: c.recentMove,
+            threatLevel: c.threatLevel,
+          })),
+        }
+      : null,
   };
 }

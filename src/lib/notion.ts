@@ -10,6 +10,8 @@ import type {
   KptReview,
   OkrItem,
   OkrValue,
+  BatchOkrEntry,
+  BatchGrowthEntry,
 } from "@/types";
 
 // ── Notion 클라이언트 ──────────────────────────────
@@ -126,9 +128,36 @@ const DB_IDS = {
   kptReviews: process.env.NOTION_KPT_DB_ID!,
   okrItems: process.env.NOTION_OKR_ITEMS_DB_ID!,
   okrValues: process.env.NOTION_OKR_VALUES_DB_ID!,
+  // 배치 대시보드 DB IDs
+  batch3Okr: process.env.NOTION_BATCH3_OKR_DB_ID,
+  batch3Growth: process.env.NOTION_BATCH3_GROWTH_DB_ID,
+  batch4Kpi: process.env.NOTION_BATCH4_KPI_DB_ID,
+  batch5Gallery: process.env.NOTION_BATCH5_GALLERY_DB_ID,
 };
 
-// ── 캐시 (TTL 기반 메모리 캐시) ──────────────────
+// ── 자동 재시도 (일시적 네트워크 오류 대응) ──────
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: { retries?: number; delay?: number; label?: string } = {}
+): Promise<T> {
+  const { retries = 2, delay = 1000, label = "API" } = options;
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries) {
+        console.warn(`[notion] ${label} 재시도 (${attempt + 1}/${retries})...`);
+        await new Promise(r => setTimeout(r, delay * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError;
+}
+
+// ── 캐시 (TTL 기반 + Stale-on-error) ─────────────
+// API 실패 시 만료된 캐시라도 반환하여 앱 크래시 방지
 const cache = new Map<string, { data: unknown; expires: number }>();
 
 function cached<T>(
@@ -143,6 +172,13 @@ function cached<T>(
   return fetcher().then((data) => {
     cache.set(key, { data, expires: Date.now() + ttl });
     return data;
+  }).catch((error) => {
+    // Stale-on-error: API 실패 시 만료된 캐시라도 반환
+    if (entry) {
+      console.warn(`[notion] ${key}: API 실패 → 만료된 캐시 반환`);
+      return entry.data as T;
+    }
+    throw error;
   });
 }
 
@@ -155,96 +191,139 @@ export function clearCache(): void {
 type Props = Record<string, any>;
 
 function getTitle(props: Props, key: string): string {
-  const prop = props[key];
-  if (!prop || prop.type !== "title") return "";
-  return prop.title?.map((t: { plain_text: string }) => t.plain_text).join("") || "";
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "title") return "";
+    return prop.title?.map((t: { plain_text: string }) => t.plain_text).join("") ?? "";
+  } catch { return ""; }
 }
 
 function getText(props: Props, key: string): string | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "rich_text") return undefined;
-  const text = prop.rich_text
-    ?.map((t: { plain_text: string }) => t.plain_text)
-    .join("");
-  return text || undefined;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "rich_text") return undefined;
+    const text = prop.rich_text
+      ?.map((t: { plain_text: string }) => t.plain_text)
+      .join("");
+    return text || undefined;
+  } catch { return undefined; }
 }
 
 function getSelect(props: Props, key: string): string | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "select" || !prop.select) return undefined;
-  return prop.select.name;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "select" || !prop.select) return undefined;
+    return prop.select.name;
+  } catch { return undefined; }
 }
 
 function getMultiSelect(props: Props, key: string): string[] | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "multi_select") return undefined;
-  const items = prop.multi_select?.map((s: { name: string }) => s.name) || [];
-  return items.length > 0 ? items : undefined;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "multi_select") return undefined;
+    const items = prop.multi_select?.map((s: { name: string }) => s.name) ?? [];
+    return items.length > 0 ? items : undefined;
+  } catch { return undefined; }
 }
 
 function getNumber(props: Props, key: string): number | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "number" || prop.number === null) return undefined;
-  return prop.number;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "number" || prop.number == null) return undefined;
+    return prop.number;
+  } catch { return undefined; }
 }
 
 function getDate(props: Props, key: string): string | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "date" || !prop.date) return undefined;
-  return prop.date.start || undefined;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "date" || !prop.date) return undefined;
+    return prop.date.start || undefined;
+  } catch { return undefined; }
 }
 
 function getDateEnd(props: Props, key: string): string | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "date" || !prop.date) return undefined;
-  return prop.date.end || undefined;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "date" || !prop.date) return undefined;
+    return prop.date.end || undefined;
+  } catch { return undefined; }
 }
 
 function getCheckbox(props: Props, key: string): boolean | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "checkbox") return undefined;
-  return prop.checkbox;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "checkbox") return undefined;
+    return prop.checkbox;
+  } catch { return undefined; }
 }
 
 function getUrl(props: Props, key: string): string | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "url" || !prop.url) return undefined;
-  return prop.url;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "url" || !prop.url) return undefined;
+    return prop.url;
+  } catch { return undefined; }
 }
 
 function getRelationIds(props: Props, key: string): string[] {
-  const prop = props[key];
-  if (!prop || prop.type !== "relation") return [];
-  return prop.relation?.map((r: { id: string }) => r.id) || [];
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "relation") return [];
+    return prop.relation?.map((r: { id: string }) => r.id) ?? [];
+  } catch { return []; }
 }
 
 function getFormula(props: Props, key: string): string | number | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "formula") return undefined;
-  const f = prop.formula;
-  if (f.type === "string") return f.string || undefined;
-  if (f.type === "number") return f.number ?? undefined;
-  if (f.type === "boolean") return f.boolean ? "true" : "false";
-  if (f.type === "date") return f.date?.start || undefined;
-  return undefined;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "formula") return undefined;
+    const f = prop.formula;
+    if (!f) return undefined;
+    if (f.type === "string") return f.string || undefined;
+    if (f.type === "number") return f.number ?? undefined;
+    if (f.type === "boolean") return f.boolean ? "true" : "false";
+    if (f.type === "date") return f.date?.start || undefined;
+    return undefined;
+  } catch { return undefined; }
 }
 
 function getStatus(props: Props, key: string): string | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "status" || !prop.status) return undefined;
-  return prop.status.name;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "status" || !prop.status) return undefined;
+    return prop.status.name;
+  } catch { return undefined; }
 }
 
 function getCreatedTime(props: Props, key: string): string | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "created_time") return undefined;
-  return prop.created_time || undefined;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "created_time") return undefined;
+    return prop.created_time || undefined;
+  } catch { return undefined; }
 }
 
 function getUniqueId(props: Props, key: string): number | undefined {
-  const prop = props[key];
-  if (!prop || prop.type !== "unique_id") return undefined;
-  return prop.unique_id?.number ?? undefined;
+  try {
+    const prop = props?.[key];
+    if (!prop || prop.type !== "unique_id") return undefined;
+    return prop.unique_id?.number ?? undefined;
+  } catch { return undefined; }
+}
+
+// ── 안전한 배열 매핑 (개별 항목 실패 시 skip → 앱 크래시 방지) ──
+function safeMap<T, R>(items: T[], mapper: (item: T) => R, label: string): R[] {
+  const results: R[] = [];
+  for (const item of items) {
+    try {
+      results.push(mapper(item));
+    } catch (error) {
+      const id = (item as Props)?.id ?? "unknown";
+      console.warn(`[notion] ${label} 파싱 실패 (${id}):`, error);
+    }
+  }
+  return results;
 }
 
 // ── 공통 헬퍼 ──────────────────────────────────────
@@ -257,10 +336,13 @@ async function resolveRelationNames(relationIds: string[]): Promise<string[]> {
         `page-title:${id}`,
         async () => {
           try {
-            const page = (await notion.pages.retrieve({ page_id: id })) as Props;
-            const props = page.properties as Props;
+            const page = (await withRetry(
+              () => notion.pages.retrieve({ page_id: id }),
+              { label: `페이지제목(${id.slice(0,8)})` }
+            )) as Props;
+            const props = (page?.properties ?? {}) as Props;
             for (const k of Object.keys(props)) {
-              if (props[k].type === "title") {
+              if (props[k]?.type === "title") {
                 return getTitle(props, k);
               }
             }
@@ -300,8 +382,9 @@ export async function extractPageText(pageId: string): Promise<string> {
       page_size: 100,
     });
 
-    for (const block of response.results) {
+    for (const block of (response?.results ?? [])) {
       const b = block as Props;
+      if (!b) continue;
       const type = b.type as string;
 
       if (supportedTypes.has(type)) {
@@ -331,9 +414,10 @@ async function getBatchDates(
     `batch-dates:${batchPageId}`,
     async () => {
       try {
-        const page = (await notion.pages.retrieve({
-          page_id: batchPageId,
-        })) as Props;
+        const page = (await withRetry(
+          () => notion.pages.retrieve({ page_id: batchPageId }),
+          { label: `배치날짜(${batchPageId.slice(0,8)})` }
+        )) as Props;
         const props = page.properties as Props;
         return {
           start: getDate(props, PROPS.batch.period) || undefined,
@@ -358,16 +442,21 @@ async function queryAllPages(
   let cursor: string | undefined;
 
   do {
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      filter,
-      sorts,
-      start_cursor: cursor,
-      page_size: 100,
-    });
+    // 각 페이지네이션 호출에 자동 재시도 적용
+    const response = await withRetry(
+      () => notion.databases.query({
+        database_id: databaseId,
+        filter,
+        sorts,
+        start_cursor: cursor,
+        page_size: 100,
+      }),
+      { label: "DB쿼리" }
+    );
 
-    pages.push(...(response.results as Props[]));
-    cursor = response.has_more
+    const results = (response?.results ?? []) as Props[];
+    pages.push(...results);
+    cursor = response?.has_more
       ? (response.next_cursor ?? undefined)
       : undefined;
   } while (cursor);
@@ -380,10 +469,10 @@ async function queryAllPages(
 // ══════════════════════════════════════════════════
 
 function mapCompanyBase(page: Props) {
-  const props = page.properties as Props;
+  const props = (page?.properties ?? {}) as Props;
   const P = PROPS.company;
   return {
-    notionPageId: page.id as string,
+    notionPageId: (page?.id ?? "") as string,
     id: getUniqueId(props, P.id) ?? 0,
     name: getTitle(props, P.name),
     description: getText(props, P.description),
@@ -438,15 +527,14 @@ export async function getCompaniesBasic(): Promise<Company[]> {
     "companies:basic",
     async () => {
       const pages = await queryAllPages(DB_IDS.companies);
-      return pages
-        .map((page) => {
+      return safeMap(pages, (page) => {
           const base = mapCompanyBase(page);
           const { _industryRelationIds, ...rest } = base;
           return rest as Company;
-        })
+        }, "기업(경량)")
         .sort((a, b) => a.id - b.id);
     },
-    300_000 // 5분 캐시
+    60_000 // 1분 캐시 (SWR이 클라이언트에서 프레시니스 관리)
   );
 }
 
@@ -456,7 +544,7 @@ export async function getCompanies(): Promise<Company[]> {
     "companies:all",
     async () => {
       const pages = await queryAllPages(DB_IDS.companies);
-      const bases = pages.map(mapCompanyBase);
+      const bases = safeMap(pages, mapCompanyBase, "기업");
 
       // 모든 고유 relation ID를 수집하여 한번에 pre-fetch (N+1 → 병렬 배치)
       const allBatchIds = [
@@ -476,7 +564,7 @@ export async function getCompanies(): Promise<Company[]> {
       const companies = await Promise.all(bases.map(enrichCompany));
       return companies.sort((a, b) => a.id - b.id);
     },
-    300_000 // 5분 캐시
+    120_000 // 2분 캐시 (SWR 프레시니스 체크와 연동)
   );
 }
 
@@ -484,9 +572,10 @@ export async function getCompany(
   notionPageId: string
 ): Promise<Company | undefined> {
   try {
-    const page = (await notion.pages.retrieve({
-      page_id: notionPageId,
-    })) as Props;
+    const page = (await withRetry(
+      () => notion.pages.retrieve({ page_id: notionPageId }),
+      { label: `기업(${notionPageId.slice(0,8)})` }
+    )) as Props;
     return enrichCompany(mapCompanyBase(page));
   } catch (error) {
     console.warn(`[notion] 기업 조회 실패 (${notionPageId}):`, error);
@@ -499,13 +588,13 @@ export async function getCompany(
 // ══════════════════════════════════════════════════
 
 function mapMentor(page: Props): Mentor {
-  const props = page.properties as Props;
+  const props = (page?.properties ?? {}) as Props;
   const P = PROPS.mentor;
   const expertiseRaw = getFormula(props, P.expertise) as string | undefined;
   const industryRaw = getFormula(props, P.industry) as string | undefined;
 
   return {
-    notionPageId: page.id as string,
+    notionPageId: (page?.id ?? "") as string,
     id: getUniqueId(props, P.id) ?? 0,
     name: getTitle(props, P.name),
     nameEn: getText(props, P.nameEn),
@@ -532,7 +621,7 @@ function mapMentor(page: Props): Mentor {
 
 export async function getMentors(): Promise<Mentor[]> {
   const pages = await queryAllPages(DB_IDS.mentors);
-  return pages.map(mapMentor).sort((a, b) => a.id - b.id);
+  return safeMap(pages, mapMentor, "멘토").sort((a, b) => a.id - b.id);
 }
 
 export async function getMentorsByCompany(
@@ -542,7 +631,7 @@ export async function getMentorsByCompany(
     property: PROPS.mentor.relatedCompanies,
     relation: { contains: companyNotionPageId },
   });
-  return pages.map(mapMentor);
+  return safeMap(pages, mapMentor, "멘토(기업별)");
 }
 
 // ══════════════════════════════════════════════════
@@ -550,10 +639,10 @@ export async function getMentorsByCompany(
 // ══════════════════════════════════════════════════
 
 function mapSession(page: Props): MentoringSession {
-  const props = page.properties as Props;
+  const props = (page?.properties ?? {}) as Props;
   const P = PROPS.session;
   return {
-    notionPageId: page.id as string,
+    notionPageId: (page?.id ?? "") as string,
     title: getTitle(props, P.title),
     date: getDate(props, P.date) || "",
     sessionTypes: getMultiSelect(props, P.types) || [],
@@ -585,7 +674,7 @@ export async function getMentoringSessions(
       { property: PROPS.session.date, direction: "descending" },
     ]);
 
-    return pages.map(mapSession);
+    return safeMap(pages, mapSession, "세션");
   });
 }
 
@@ -594,9 +683,10 @@ export async function getMentoringSessionWithTranscript(
   sessionNotionPageId: string
 ): Promise<MentoringSession | undefined> {
   try {
-    const page = (await notion.pages.retrieve({
-      page_id: sessionNotionPageId,
-    })) as Props;
+    const page = (await withRetry(
+      () => notion.pages.retrieve({ page_id: sessionNotionPageId }),
+      { label: `세션(${sessionNotionPageId.slice(0,8)})` }
+    )) as Props;
     const session = mapSession(page);
 
     // 병렬: 본문 추출 + 멘토 이름 + 기업 이름
@@ -626,10 +716,10 @@ export async function getMentoringSessionWithTranscript(
 // ══════════════════════════════════════════════════
 
 function mapExpertRequest(page: Props): ExpertRequest {
-  const props = page.properties as Props;
+  const props = (page?.properties ?? {}) as Props;
   const P = PROPS.expertRequest;
   return {
-    notionPageId: page.id as string,
+    notionPageId: (page?.id ?? "") as string,
     id: getUniqueId(props, P.id) ?? 0,
     title: getTitle(props, P.title),
     status: getStatus(props, P.status),
@@ -664,7 +754,7 @@ export async function getExpertRequests(
     const pages = await queryAllPages(DB_IDS.expertRequests, filter);
 
     // 요청 일시 내림차순 정렬
-    return pages.map(mapExpertRequest).sort((a, b) => {
+    return safeMap(pages, mapExpertRequest, "전문가요청").sort((a, b) => {
       const dateA = a.requestedAt || "";
       const dateB = b.requestedAt || "";
       return dateB.localeCompare(dateA);
@@ -741,10 +831,10 @@ export async function getTimeline(
 // ══════════════════════════════════════════════════
 
 function mapKptReview(page: Props): KptReview {
-  const props = page.properties as Props;
+  const props = (page?.properties ?? {}) as Props;
   const P = PROPS.kpt;
   return {
-    notionPageId: page.id as string,
+    notionPageId: (page?.id ?? "") as string,
     companyId: getRelationIds(props, P.company)[0],
     reviewDate: getDate(props, P.reviewDate),
     keep: getText(props, P.keep),
@@ -770,7 +860,7 @@ export async function getKptReviews(
         { property: PROPS.kpt.reviewDate, direction: "ascending" as const },
       ]);
 
-      return pages.map(mapKptReview);
+      return safeMap(pages, mapKptReview, "KPT회고");
     } catch (error) {
       console.warn("[notion] KPT 회고 조회 실패:", error);
       return [];
@@ -783,10 +873,10 @@ export async function getKptReviews(
 // ══════════════════════════════════════════════════
 
 function mapOkrItem(page: Props): OkrItem {
-  const props = page.properties as Props;
+  const props = (page?.properties ?? {}) as Props;
   const P = PROPS.okrItem;
   return {
-    notionPageId: page.id as string,
+    notionPageId: (page?.id ?? "") as string,
     name: getTitle(props, P.name),
     level: getSelect(props, P.level) || "",
     targetValue: getNumber(props, P.targetValue),
@@ -809,7 +899,7 @@ export async function getOkrItems(
         relation: { contains: companyNotionPageId },
       });
 
-      return pages.map(mapOkrItem);
+      return safeMap(pages, mapOkrItem, "OKR항목");
     } catch (error) {
       console.warn("[notion] OKR 항목 조회 실패:", error);
       return [];
@@ -822,10 +912,10 @@ export async function getOkrItems(
 // ══════════════════════════════════════════════════
 
 function mapOkrValue(page: Props): OkrValue {
-  const props = page.properties as Props;
+  const props = (page?.properties ?? {}) as Props;
   const P = PROPS.okrValue;
   return {
-    notionPageId: page.id as string,
+    notionPageId: (page?.id ?? "") as string,
     currentValue: getNumber(props, P.currentValue),
     targetValue: getFormula(props, P.targetValue) as string | undefined,
     period: getDate(props, P.period),
@@ -851,12 +941,200 @@ export async function getOkrValues(
         [{ property: PROPS.okrValue.period, direction: "ascending" as const }]
       );
 
-      return pages.map(mapOkrValue);
+      return safeMap(pages, mapOkrValue, "OKR측정값");
     } catch (error) {
       console.warn("[notion] OKR 측정값 조회 실패:", error);
       return [];
     }
   });
+}
+
+// ══════════════════════════════════════════════════
+// 분석 결과 Notion 저장
+// ══════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// 배치 대시보드 조회 (3기/4기/5기)
+// ══════════════════════════════════════════════════
+
+// 배치 번호 → OKR DB ID 매핑
+function getBatchOkrDbId(batchLabel: string): string | undefined {
+  // "3기", "4기", "5기" 등에서 숫자 추출
+  const match = batchLabel.match(/(\d+)/);
+  if (!match) return undefined;
+  const num = match[1];
+  if (num === "3") return DB_IDS.batch3Okr;
+  if (num === "4") return DB_IDS.batch4Kpi;
+  // 5기는 갤러리 형태이므로 OKR DB 없음
+  return undefined;
+}
+
+// 배치 번호 → 성장률 DB ID 매핑
+function getBatchGrowthDbId(batchLabel: string): string | undefined {
+  const match = batchLabel.match(/(\d+)/);
+  if (!match) return undefined;
+  const num = match[1];
+  if (num === "3") return DB_IDS.batch3Growth;
+  // 4기/5기는 별도 성장률 DB 없음
+  return undefined;
+}
+
+/**
+ * 배치 OKR 달성율 데이터 조회
+ * DB 필드: title(기업명), 텍스트(오브젝티브), 숫자(현재값/목표값)
+ */
+export async function getBatchOkrData(batchLabel: string): Promise<BatchOkrEntry[]> {
+  const dbId = getBatchOkrDbId(batchLabel);
+  if (!dbId) return [];
+
+  const cacheKey = `batch-okr:${batchLabel}`;
+  return cached(cacheKey, async () => {
+    try {
+      const pages = await queryAllPages(dbId);
+      return safeMap(pages, (page) => {
+        const props = (page?.properties ?? {}) as Props;
+        // 속성명 탐색: title 타입 → 기업명, 나머지는 이름 기반
+        let companyName = "";
+        let objective = "";
+        let currentValue: number | null = null;
+        let targetValue: number | null = null;
+
+        for (const [key, val] of Object.entries(props)) {
+          if (!val || !val.type) continue;
+          if (val.type === "title") {
+            companyName = getTitle(props, key);
+          } else if (val.type === "rich_text" && !objective) {
+            objective = getText(props, key) || "";
+          } else if (val.type === "number") {
+            const lowerKey = key.toLowerCase();
+            if (lowerKey.includes("현재") || lowerKey.includes("current")) {
+              currentValue = getNumber(props, key) ?? null;
+            } else if (lowerKey.includes("목표") || lowerKey.includes("target")) {
+              targetValue = getNumber(props, key) ?? null;
+            } else if (currentValue === null) {
+              currentValue = getNumber(props, key) ?? null;
+            } else if (targetValue === null) {
+              targetValue = getNumber(props, key) ?? null;
+            }
+          }
+        }
+
+        return { companyName, objective, currentValue, targetValue };
+      }, "배치OKR").filter((entry) => entry.companyName !== "");
+    } catch (error) {
+      console.warn(`[notion] 배치 OKR 조회 실패 (${batchLabel}):`, error);
+      return [];
+    }
+  }, 600_000); // 10분 캐시 (배치 데이터는 자주 변하지 않음)
+}
+
+/**
+ * 배치 전월 대비 성장률 데이터 조회
+ */
+export async function getBatchGrowthData(batchLabel: string): Promise<BatchGrowthEntry[]> {
+  const dbId = getBatchGrowthDbId(batchLabel);
+  if (!dbId) return [];
+
+  const cacheKey = `batch-growth:${batchLabel}`;
+  return cached(cacheKey, async () => {
+    try {
+      const pages = await queryAllPages(dbId);
+      return safeMap(pages, (page) => {
+        const props = (page?.properties ?? {}) as Props;
+        let companyName = "";
+        let metric = "";
+        let previousMonth: string | null = null;
+        let currentMonth: number | null = null;
+        let growthRate: number | null = null;
+
+        for (const [key, val] of Object.entries(props)) {
+          if (!val || !val.type) continue;
+          if (val.type === "title") {
+            companyName = getTitle(props, key);
+          } else if (val.type === "rich_text" && !metric) {
+            metric = getText(props, key) || "";
+          } else if (val.type === "number") {
+            const lowerKey = key.toLowerCase();
+            if (lowerKey.includes("성장") || lowerKey.includes("growth") || lowerKey.includes("증감")) {
+              growthRate = getNumber(props, key) ?? null;
+            } else if (lowerKey.includes("이번") || lowerKey.includes("current") || lowerKey.includes("당월")) {
+              currentMonth = getNumber(props, key) ?? null;
+            }
+          } else if (val.type === "formula") {
+            const lowerKey = key.toLowerCase();
+            if (lowerKey.includes("성장") || lowerKey.includes("growth") || lowerKey.includes("증감")) {
+              const formulaVal = getFormula(props, key);
+              if (typeof formulaVal === "number") growthRate = formulaVal;
+            } else if (lowerKey.includes("전월") || lowerKey.includes("previous")) {
+              const formulaVal = getFormula(props, key);
+              previousMonth = formulaVal !== undefined ? String(formulaVal) : null;
+            }
+          }
+        }
+
+        return { companyName, metric, previousMonth, currentMonth, growthRate };
+      }, "배치성장률").filter((entry) => entry.companyName !== "");
+    } catch (error) {
+      console.warn(`[notion] 배치 성장률 조회 실패 (${batchLabel}):`, error);
+      return [];
+    }
+  }, 600_000); // 10분 캐시
+}
+
+// ══════════════════════════════════════════════════
+// 경량 프레시니스 체크 (last_edited_time 기반)
+// ══════════════════════════════════════════════════
+
+/**
+ * 노션 DB의 최근 수정 시간을 경량으로 조회
+ * page_size=1로 최소 페이로드, last_edited_time 메타데이터만 활용
+ * → 변경 감지 후 필요할 때만 전체 데이터 리페치
+ */
+export async function getLastEditedTime(
+  scope: "companies" | "company-detail",
+  companyId?: string
+): Promise<string | null> {
+  try {
+    if (scope === "companies") {
+      const response = await notion.databases.query({
+        database_id: DB_IDS.companies,
+        sorts: [{ timestamp: "last_edited_time", direction: "descending" }],
+        page_size: 1,
+      });
+      return (response.results[0] as Props)?.last_edited_time ?? null;
+    }
+
+    if (scope === "company-detail" && companyId) {
+      // 회의록 + 전문가요청 DB 병렬 체크 (가장 자주 변하는 데이터)
+      const [meetingsRes, expertRes] = await Promise.all([
+        notion.databases.query({
+          database_id: DB_IDS.meetings,
+          filter: { property: PROPS.session.companies, relation: { contains: companyId } },
+          sorts: [{ timestamp: "last_edited_time", direction: "descending" }],
+          page_size: 1,
+        }),
+        notion.databases.query({
+          database_id: DB_IDS.expertRequests,
+          filter: { property: PROPS.expertRequest.company, relation: { contains: companyId } },
+          sorts: [{ timestamp: "last_edited_time", direction: "descending" }],
+          page_size: 1,
+        }),
+      ]);
+
+      const times = [
+        (meetingsRes.results[0] as Props)?.last_edited_time,
+        (expertRes.results[0] as Props)?.last_edited_time,
+      ].filter(Boolean) as string[];
+
+      // 가장 최근 수정 시간 반환
+      return times.length > 0 ? times.sort().pop()! : null;
+    }
+
+    return null;
+  } catch (error) {
+    console.warn("[notion] 최신 수정 시간 조회 실패:", error);
+    return null;
+  }
 }
 
 // ══════════════════════════════════════════════════

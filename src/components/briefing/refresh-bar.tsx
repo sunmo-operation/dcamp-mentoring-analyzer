@@ -23,7 +23,7 @@ export function RefreshBar({
   if (!briefing) return null;
 
   return (
-    <div className="rounded-lg border bg-card p-3">
+    <div className="rounded-2xl border-0 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)] p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           {loading ? (

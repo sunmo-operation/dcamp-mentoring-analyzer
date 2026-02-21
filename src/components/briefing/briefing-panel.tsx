@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { StaleIndicator } from "./stale-indicator";
 import { RefreshBar } from "./refresh-bar";
@@ -252,8 +252,8 @@ export function BriefingPanel({
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-bold">AI 컨텍스트 브리핑</h2>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-          <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+        <div className="rounded-2xl border-0 bg-destructive/5 p-5 dark:bg-red-950">
+          <p className="text-sm font-medium text-destructive dark:text-red-200">{error}</p>
           <Button
             variant="outline"
             size="sm"
@@ -292,16 +292,17 @@ export function BriefingPanel({
     pmActions,
   } = briefing;
 
-  // 개조식 파싱
-  const keyNumbers = parseBulletLines(executiveSummary?.reportBody);
-  const repeatedAdviceLines = parseBulletLines(mentorInsights?.repeatedAdvice);
-  const ignoredAdviceLines = parseBulletLines(mentorInsights?.ignoredAdvice);
-  const dcampCanDoLines = parseBulletLines(mentorInsights?.gapAnalysis);
+  // 개조식 파싱 (브리핑 데이터가 바뀔 때만 재계산)
+  const keyNumbers = useMemo(() => parseBulletLines(executiveSummary?.reportBody), [executiveSummary?.reportBody]);
+  const repeatedAdviceLines = useMemo(() => parseBulletLines(mentorInsights?.repeatedAdvice), [mentorInsights?.repeatedAdvice]);
+  const ignoredAdviceLines = useMemo(() => parseBulletLines(mentorInsights?.ignoredAdvice), [mentorInsights?.ignoredAdvice]);
+  const dcampCanDoLines = useMemo(() => parseBulletLines(mentorInsights?.gapAnalysis), [mentorInsights?.gapAnalysis]);
 
   // 리소스 진단 파싱
-  const resourceLines = (mentorInsights?.currentExpertRequests || "").split("\n").filter(Boolean);
-  const primaryNeed = resourceLines[0] || "";
-  const resourceReasoning = resourceLines.slice(1).join(" ");
+  const { primaryNeed, resourceReasoning } = useMemo(() => {
+    const lines = (mentorInsights?.currentExpertRequests || "").split("\n").filter(Boolean);
+    return { primaryNeed: lines[0] || "", resourceReasoning: lines.slice(1).join(" ") };
+  }, [mentorInsights?.currentExpertRequests]);
 
   return (
     <div className="space-y-6">

@@ -16,7 +16,7 @@ export function SectionRisks({ risks }: Props) {
           {risks.map((risk, i) => (
             <div
               key={i}
-              className="rounded-lg border-l-4 border-l-yellow-500 bg-yellow-50 p-4"
+              className="rounded-2xl border-l-4 border-l-amber-400 bg-amber-50/50 p-5 dark:bg-amber-950/30"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="font-medium text-sm">{risk.title}</span>

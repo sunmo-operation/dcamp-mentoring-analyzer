@@ -14,7 +14,7 @@ export function SectionSurface({ issues }: Props) {
       <CardContent>
         <div className="space-y-4">
           {issues.map((issue, i) => (
-            <div key={i} className="border-l-2 border-muted-foreground/30 pl-4">
+            <div key={i} className="border-l-2 border-primary/30 pl-4 rounded-r-xl">
               <p className="font-medium">&ldquo;{issue.title}&rdquo;</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {issue.description}

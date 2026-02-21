@@ -16,7 +16,7 @@ export default async function AnalyzePage({ searchParams }: Props) {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <Link
         href="/"
-        className="mb-4 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+        className="mb-6 inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
       >
         &larr; 홈으로
       </Link>

@@ -11,6 +11,7 @@ import type {
   TimelineEvent,
   AnalysisResult,
   CompanyBriefing,
+  BatchDashboardData,
 } from "@/types";
 import {
   dbGetAnalyses,
@@ -39,6 +40,8 @@ import {
   getKptReviews as notionGetKptReviews,
   getOkrItems as notionGetOkrItems,
   getOkrValues as notionGetOkrValues,
+  getBatchOkrData as notionGetBatchOkrData,
+  getBatchGrowthData as notionGetBatchGrowthData,
 } from "@/lib/notion";
 
 // ── 분석 결과 JSON 저장소 ─────────────────────────
@@ -382,3 +385,42 @@ export const clearCache = notionClearCache;
 export const getKptReviews = notionGetKptReviews;
 export const getOkrItems = notionGetOkrItems;
 export const getOkrValues = notionGetOkrValues;
+
+/**
+ * 기업의 배치 대시보드 데이터 조회
+ * batchLabel(예: "3기")로 해당 배치 OKR + 성장률 DB를 병렬 쿼리,
+ * 기업 이름으로 필터링하여 해당 기업 데이터만 반환
+ *
+ * company 객체를 전달하면 Notion 재조회 없이 바로 사용 (성능 최적화)
+ */
+export async function getCompanyBatchDashboardData(
+  companyIdOrCompany: string | Company
+): Promise<BatchDashboardData | null> {
+  // company 객체가 직접 전달되면 재조회 없이 사용
+  const company = typeof companyIdOrCompany === "string"
+    ? await notionGetCompany(companyIdOrCompany)
+    : companyIdOrCompany;
+  if (!company || !company.batchLabel) return null;
+
+  const batchLabel = company.batchLabel;
+
+  // OKR + 성장률 병렬 조회
+  const [allOkr, allGrowth] = await Promise.all([
+    notionGetBatchOkrData(batchLabel),
+    notionGetBatchGrowthData(batchLabel),
+  ]);
+
+  // 기업 이름으로 필터링 (부분 일치)
+  const companyName = company.name;
+  const okrEntries = allOkr.filter(
+    (e) => e.companyName === companyName || e.companyName.includes(companyName) || companyName.includes(e.companyName)
+  );
+  const growthEntries = allGrowth.filter(
+    (e) => e.companyName === companyName || e.companyName.includes(companyName) || companyName.includes(e.companyName)
+  );
+
+  // 데이터가 하나도 없으면 null 반환
+  if (okrEntries.length === 0 && growthEntries.length === 0) return null;
+
+  return { batchLabel, okrEntries, growthEntries };
+}

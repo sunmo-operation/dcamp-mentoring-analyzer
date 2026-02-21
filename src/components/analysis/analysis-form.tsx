@@ -441,7 +441,7 @@ export function AnalysisForm({
 
               {/* 원문 로드 안내 */}
               {state.transcriptNotice && (
-                <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+                <div className="rounded-2xl bg-amber-50 border-0 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
                   {state.transcriptNotice}
                 </div>
               )}
@@ -496,14 +496,14 @@ export function AnalysisForm({
 
           {/* 컨텍스트 자동 주입 안내 */}
           {fields.companyId && (
-            <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-sm text-blue-800">
+            <div className="rounded-2xl bg-secondary border-0 px-4 py-3 text-sm text-primary dark:bg-secondary dark:text-secondary-foreground">
               기수 전체 타임라인 + 전문가 요청 이력 자동 반영됨
             </div>
           )}
 
           {/* 에러 메시지 */}
           {state.error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="rounded-2xl bg-destructive/5 p-4 text-sm text-destructive font-medium">
               {state.error}
             </div>
           )}

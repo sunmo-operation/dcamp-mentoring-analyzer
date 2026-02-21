@@ -12,6 +12,7 @@ import {
   getKptReviews,
   getOkrItems,
   getOkrValues,
+  getCompanyBatchDashboardData,
 } from "@/lib/data";
 import type { CompanyBriefing } from "@/types";
 import {
@@ -20,22 +21,174 @@ import {
   nullsToUndefined,
 } from "@/lib/schemas";
 
-// Vercel 함수 실행 시간 제한
-// Hobby 플랜: 최대 10초 (스트리밍 시 최대 60초)
-// Pro 플랜: 최대 300초
-export const maxDuration = 60;
+// Vercel Pro 플랜: 최대 300초
+export const maxDuration = 300;
 
 interface BriefingRequest {
   companyId: string;
   force?: boolean;
 }
 
-// SSE 스트리밍 방식으로 브리핑 생성
-// 연결을 유지하면서 진행 상황을 실시간 전송 → 타임아웃 방지
+// ══════════════════════════════════════════════════
+// JSON 파싱 — 근본적 안정성 확보
+// ══════════════════════════════════════════════════
+
+/**
+ * Claude 응답에서 JSON 추출 + 파싱 (다단계 복구)
+ * 1단계: 직접 파싱
+ * 2단계: 코드블록/텍스트 제거 후 파싱
+ * 3단계: 잘린 JSON 복구 (미완성 문자열 처리 포함)
+ */
+function parseClaudeJson(raw: string, prefill: string): unknown {
+  // prefill(예: "{")과 Claude 응답을 합쳐서 완전한 텍스트 만들기
+  const fullText = (prefill + raw).trim();
+
+  // 1단계: 직접 파싱 시도
+  try {
+    return JSON.parse(fullText);
+  } catch {
+    // 계속 진행
+  }
+
+  // 2단계: 마크다운 코드블록 등 제거 후 최외곽 {} 추출
+  let cleaned = fullText;
+  // 코드블록 제거
+  cleaned = cleaned.replace(/^```(?:json)?\s*\n?/m, "").replace(/\n?```\s*$/m, "");
+
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    const extracted = cleaned.slice(firstBrace, lastBrace + 1);
+    try {
+      return JSON.parse(extracted);
+    } catch {
+      // 3단계로
+    }
+  }
+
+  // 3단계: 잘린 JSON 복구
+  console.warn("[브리핑] JSON 직접 파싱 실패, 잘린 JSON 복구 시도...");
+  let jsonStr = firstBrace >= 0 ? cleaned.slice(firstBrace) : cleaned;
+
+  // 미완성 문자열 값 닫기: 마지막 열린 "를 찾아서 닫기
+  const quoteCount = (jsonStr.match(/(?<!\\)"/g) || []).length;
+  if (quoteCount % 2 !== 0) {
+    // 홀수개 = 문자열이 안 닫힘
+    // 마지막 문자열 값을 잘라내고 닫기
+    const lastQuote = jsonStr.lastIndexOf('"');
+    // 마지막 따옴표 이후의 불완전한 텍스트를 제거하고 따옴표로 닫기
+    const afterLastQuote = jsonStr.slice(lastQuote + 1);
+    if (!afterLastQuote.includes("}") && !afterLastQuote.includes("]")) {
+      jsonStr = jsonStr.slice(0, lastQuote + 1);
+    } else {
+      jsonStr += '"';
+    }
+  }
+
+  // 마지막 완전한 key-value 쌍 이후에서 자르기
+  // 불완전한 값(키만 있고 값이 없는 경우) 제거
+  const lastCompleteComma = jsonStr.lastIndexOf(",");
+  const lastCompleteColon = jsonStr.lastIndexOf(":");
+  const lastCloseBrace = jsonStr.lastIndexOf("}");
+  const lastCloseBracket = jsonStr.lastIndexOf("]");
+  const lastComplete = Math.max(lastCloseBrace, lastCloseBracket);
+
+  if (lastCompleteComma > lastComplete && lastCompleteComma > lastCompleteColon) {
+    // 마지막 콤마 이후가 불완전한 항목이면 제거
+    jsonStr = jsonStr.slice(0, lastCompleteComma);
+  } else if (lastCompleteColon > lastComplete) {
+    // 키는 있지만 값이 불완전한 경우, 해당 키-값 쌍 제거
+    const keyStart = jsonStr.lastIndexOf('"', lastCompleteColon - 1);
+    if (keyStart >= 0) {
+      const beforeKey = jsonStr.lastIndexOf(",", keyStart);
+      if (beforeKey >= 0) {
+        jsonStr = jsonStr.slice(0, beforeKey);
+      }
+    }
+  }
+
+  // 열린 괄호를 모두 닫기
+  let openBraces = 0, openBrackets = 0;
+  let inString = false;
+  let prevChar = "";
+  for (const ch of jsonStr) {
+    if (ch === '"' && prevChar !== "\\") inString = !inString;
+    if (!inString) {
+      if (ch === "{") openBraces++;
+      if (ch === "}") openBraces--;
+      if (ch === "[") openBrackets++;
+      if (ch === "]") openBrackets--;
+    }
+    prevChar = ch;
+  }
+  jsonStr += "]".repeat(Math.max(0, openBrackets));
+  jsonStr += "}".repeat(Math.max(0, openBraces));
+
+  try {
+    const result = JSON.parse(jsonStr);
+    console.log("[브리핑] 잘린 JSON 복구 성공!");
+    return result;
+  } catch (e) {
+    console.error("[브리핑] JSON 복구 최종 실패.", e);
+    console.error("[브리핑] 마지막 300자:", jsonStr.slice(-300));
+    throw new Error("JSON_PARSE_FAILED");
+  }
+}
+
+/**
+ * Claude 스트리밍 호출 + JSON 파싱 (1회 시도)
+ * assistant prefill로 JSON 시작을 강제하여 마크다운/텍스트 혼입 원천 차단
+ */
+async function callClaudeAndParse(
+  claude: ReturnType<typeof getClaudeClient>,
+  systemPrompt: string,
+  userPrompt: string,
+  onProgress: (text: string) => void
+): Promise<{ parsed: unknown; stopReason: string }> {
+  // assistant prefill: Claude가 반드시 JSON으로 시작하도록 강제
+  // 이 기법은 Claude 공식 문서에서 권장하는 structured output 보장 방법
+  const JSON_PREFILL = "{";
+
+  const response = await claude.messages.stream({
+    model: process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001",
+    max_tokens: 8192,
+    system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
+    messages: [
+      { role: "user", content: userPrompt },
+      { role: "assistant", content: JSON_PREFILL },
+    ],
+  });
+
+  let fullText = "";
+  let stopReason = "";
+
+  for await (const event of response) {
+    if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+      fullText += event.delta.text;
+      onProgress(fullText);
+    }
+    if (event.type === "message_delta") {
+      stopReason = (event as unknown as { delta?: { stop_reason?: string } }).delta?.stop_reason || stopReason;
+    }
+  }
+
+  if (stopReason === "max_tokens") {
+    console.warn(`[브리핑] Claude 응답이 max_tokens에서 잘림! 텍스트 길이: ${fullText.length}자`);
+  }
+
+  console.log(`[브리핑] Claude 응답 길이: ${fullText.length}자, stopReason: ${stopReason}`);
+
+  const parsed = parseClaudeJson(fullText, JSON_PREFILL);
+  return { parsed, stopReason };
+}
+
+// ══════════════════════════════════════════════════
+// SSE 스트리밍 브리핑 API
+// ══════════════════════════════════════════════════
+
 export async function POST(request: Request) {
   const encoder = new TextEncoder();
 
-  // SSE 이벤트 전송 헬퍼
   function encode(data: object): Uint8Array {
     return encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
   }
@@ -52,7 +205,6 @@ export async function POST(request: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      // heartbeat: 3초마다 ping 전송 → 연결 유지 (Vercel 스트리밍 타임아웃 방지)
       const heartbeat = setInterval(() => {
         try {
           controller.enqueue(encode({ type: "heartbeat" }));
@@ -64,8 +216,32 @@ export async function POST(request: Request) {
       const startTime = Date.now();
 
       try {
-        // 즉시 첫 이벤트 전송 (Vercel이 스트리밍 함수로 인식하도록)
         controller.enqueue(encode({ type: "heartbeat" }));
+
+        // 0단계: 캐시 확인 (데이터 수집 전에 먼저 체크)
+        if (!force) {
+          const existing = await getBriefingByCompany(companyId);
+          if (existing) {
+            const [quickData, quickKpt, quickOkr] = await Promise.all([
+              getCompanyAllData(companyId),
+              getKptReviews(companyId),
+              getOkrItems(companyId),
+            ]);
+            if (quickData) {
+              const { stale } = isBriefingStale(existing, {
+                sessions: quickData.sessions,
+                expertRequests: quickData.expertRequests,
+                analyses: quickData.analyses,
+                kptCount: quickKpt.length,
+                okrItemCount: quickOkr.length,
+              });
+              if (!stale) {
+                controller.enqueue(encode({ type: "complete", briefing: existing, cached: true }));
+                return;
+              }
+            }
+          }
+        }
 
         // 1단계: 데이터 수집
         controller.enqueue(encode({
@@ -87,24 +263,9 @@ export async function POST(request: Request) {
         }
 
         const { company, sessions, expertRequests, analyses } = allData;
+        const batchData = await getCompanyBatchDashboardData(company);
 
-        // 캐시된 브리핑 확인
-        if (!force) {
-          const existing = await getBriefingByCompany(companyId);
-          if (existing) {
-            const { stale } = isBriefingStale(existing, {
-              sessions, expertRequests, analyses,
-              kptCount: kptReviews.length,
-              okrItemCount: okrItems.length,
-            });
-            if (!stale) {
-              controller.enqueue(encode({ type: "complete", briefing: existing, cached: true }));
-              return;
-            }
-          }
-        }
-
-        // 2단계: AI 분석 시작
+        // 2단계: AI 분석
         const elapsed2 = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({
           type: "status", step: 2, totalSteps: 3,
@@ -125,54 +286,58 @@ export async function POST(request: Request) {
         const systemPrompt = buildBriefingSystemPrompt();
         const userPrompt = buildBriefingUserPrompt(
           company, sessions, expertRequests, analyses,
-          kptReviews, okrItems, okrValues
+          kptReviews, okrItems, okrValues, batchData
         );
 
-        // Claude 스트리밍 API 호출
-        // 5000: industryContext 제거 후 핵심 섹션만 생성 → 충분한 여유
-        // cache_control: 시스템 프롬프트 캐싱으로 반복 호출 시 TTFT 단축
-        const response = await claude.messages.stream({
-          model: process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001",
-          max_tokens: 5000,
-          system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
-          messages: [{ role: "user", content: userPrompt }],
-        });
+        // Claude 호출 + 자동 재시도 (최대 2회)
+        let rawParsed: unknown;
+        let lastError: Error | null = null;
+        const MAX_ATTEMPTS = 2;
 
-        let fullText = "";
-        let lastProgressSent = 0;
-
-        // AI 응답 수신 중 (실시간 진행률 전송)
-        let stopReason = "";
-        for await (const event of response) {
-          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-            fullText += event.delta.text;
-
-            // 500자마다 진행률 업데이트 전송
-            if (fullText.length - lastProgressSent > 500) {
-              lastProgressSent = fullText.length;
-              const pct = Math.min(Math.round((fullText.length / 6000) * 90), 90);
-              const elapsed3 = Math.round((Date.now() - startTime) / 1000);
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+          try {
+            if (attempt > 1) {
+              console.log(`[브리핑] 재시도 ${attempt}/${MAX_ATTEMPTS}...`);
               controller.enqueue(encode({
-                type: "progress",
-                step: 2, totalSteps: 3,
-                message: `AI가 브리핑을 작성하고 있어요`,
-                pct,
-                elapsed: elapsed3,
+                type: "status", step: 2, totalSteps: 3,
+                message: `AI 응답 재시도 중 (${attempt}/${MAX_ATTEMPTS})`,
+                elapsed: Math.round((Date.now() - startTime) / 1000),
               }));
             }
-          }
-          // 응답 종료 이유 추적 (max_tokens = 잘림 감지용)
-          if (event.type === "message_stop") {
-            stopReason = (event as unknown as { message?: { stop_reason?: string } }).message?.stop_reason || "";
-          }
-          if (event.type === "message_delta") {
-            stopReason = (event as unknown as { delta?: { stop_reason?: string } }).delta?.stop_reason || stopReason;
+
+            let lastProgressSent = 0;
+            const { parsed } = await callClaudeAndParse(
+              claude, systemPrompt, userPrompt,
+              (text) => {
+                // 500자마다 진행률 업데이트
+                if (text.length - lastProgressSent > 500) {
+                  lastProgressSent = text.length;
+                  const pct = Math.min(Math.round((text.length / 8000) * 90), 90);
+                  try {
+                    controller.enqueue(encode({
+                      type: "progress", step: 2, totalSteps: 3,
+                      message: "AI가 브리핑을 작성하고 있어요",
+                      pct,
+                      elapsed: Math.round((Date.now() - startTime) / 1000),
+                    }));
+                  } catch {
+                    // 스트림 닫힌 경우 무시
+                  }
+                }
+              }
+            );
+
+            rawParsed = parsed;
+            lastError = null;
+            break; // 성공하면 루프 종료
+          } catch (e) {
+            lastError = e instanceof Error ? e : new Error(String(e));
+            console.warn(`[브리핑] 시도 ${attempt} 실패:`, lastError.message);
           }
         }
 
-        // 토큰 부족으로 응답 잘림 감지
-        if (stopReason === "max_tokens") {
-          console.warn(`[브리핑] Claude 응답이 max_tokens(8192)에서 잘림! 텍스트 길이: ${fullText.length}자`);
+        if (lastError || !rawParsed) {
+          throw lastError || new Error("AI 응답 파싱 실패");
         }
 
         // 3단계: 결과 처리
@@ -183,96 +348,41 @@ export async function POST(request: Request) {
           elapsed: elapsed4,
         }));
 
-        // JSON 파싱 (다양한 Claude 응답 형식 처리)
-        let jsonStr = fullText.trim();
-
-        // 마크다운 코드블록 제거
-        if (jsonStr.startsWith("```")) {
-          jsonStr = jsonStr.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-        }
-
-        // JSON 앞뒤에 텍스트가 있는 경우 최외곽 {} 추출
-        const firstBrace = jsonStr.indexOf("{");
-        const lastBrace = jsonStr.lastIndexOf("}");
-        if (firstBrace >= 0 && lastBrace > firstBrace) {
-          jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
-        }
-
-        // 디버그: 응답 길이와 앞뒤 100자 로그
-        console.log(`[브리핑] Claude 응답 길이: ${fullText.length}자, JSON 추출: ${jsonStr.length}자`);
-        console.log(`[브리핑] 앞 100자: ${jsonStr.slice(0, 100)}`);
-        console.log(`[브리핑] 뒤 100자: ${jsonStr.slice(-100)}`);
-
-        let rawParsed: unknown;
-        try {
-          rawParsed = JSON.parse(jsonStr);
-        } catch {
-          // JSON 잘림 복구 시도: 열린 괄호/대괄호를 닫아줌
-          console.warn("[브리핑] JSON 파싱 실패, 잘린 JSON 복구 시도...");
-          let repaired = jsonStr;
-          // 마지막 완전한 값 뒤에서 자르고 괄호 닫기
-          const lastComma = repaired.lastIndexOf(",");
-          const lastColon = repaired.lastIndexOf(":");
-          if (lastComma > lastColon) {
-            repaired = repaired.slice(0, lastComma);
-          }
-          // 열린 괄호 카운트해서 닫기
-          let openBraces = 0, openBrackets = 0;
-          for (const ch of repaired) {
-            if (ch === "{") openBraces++;
-            if (ch === "}") openBraces--;
-            if (ch === "[") openBrackets++;
-            if (ch === "]") openBrackets--;
-          }
-          repaired += "]".repeat(Math.max(0, openBrackets));
-          repaired += "}".repeat(Math.max(0, openBraces));
-
-          try {
-            rawParsed = JSON.parse(repaired);
-            console.log("[브리핑] 잘린 JSON 복구 성공!");
-          } catch {
-            console.error("[브리핑] JSON 복구도 실패. 마지막 200자:", jsonStr.slice(-200));
-            throw new Error("AI 응답 JSON 파싱 실패 (응답이 잘렸을 수 있습니다. 다시 시도해주세요)");
-          }
-        }
-
         const validated = briefingResponseSchema.safeParse(nullsToUndefined(rawParsed));
         if (!validated.success) {
-          console.error("Claude 브리핑 응답 스키마 검증 실패:", validated.error.format());
+          console.error("스키마 검증 실패:", JSON.stringify(validated.error.issues.slice(0, 3)));
+          // 스키마 검증 실패 시에도 가능한 데이터를 살려서 사용
+          // partial parse: 검증 실패한 필드만 기본값으로 대체
+          const lenient = briefingResponseSchema.safeParse(
+            nullsToUndefined(stripInvalidFields(rawParsed, validated.error.issues))
+          );
+          if (lenient.success) {
+            console.log("[브리핑] 부분 복구 성공 (일부 필드 기본값 적용)");
+            const transformedSections = transformBriefingResponse(lenient.data);
+            const briefing = buildBriefing(companyId, transformedSections, dataFingerprint);
+            await safeSave(briefing);
+            const totalElapsed = Math.round((Date.now() - startTime) / 1000);
+            controller.enqueue(encode({ type: "complete", briefing, cached: false, elapsed: totalElapsed }));
+            return;
+          }
           throw new Error(`AI 응답 형식 오류: ${validated.error.issues[0]?.message || "알 수 없는 형식"}`);
         }
 
         const transformedSections = transformBriefingResponse(validated.data);
-        const briefing: CompanyBriefing = {
-          id: `briefing-${nanoid(8)}`,
-          companyId,
-          createdAt: new Date().toISOString(),
-          status: "completed",
-          ...transformedSections,
-          dataFingerprint,
-        };
+        const briefing = buildBriefing(companyId, transformedSections, dataFingerprint);
+        await safeSave(briefing);
 
-        // 저장 (실패해도 브리핑은 반환)
-        try {
-          await saveBriefing(briefing);
-        } catch (saveError) {
-          console.warn("브리핑 저장 실패 (무시):", saveError);
-        }
-
-        // 완료
         const totalElapsed = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({ type: "complete", briefing, cached: false, elapsed: totalElapsed }));
       } catch (error) {
         const msg = error instanceof Error ? error.message : "알 수 없는 오류";
-        const stack = error instanceof Error ? error.stack : "";
-        console.error("브리핑 스트리밍 오류:", msg, stack);
+        console.error("브리핑 스트리밍 오류:", msg);
 
-        // 사용자에게 디버그 가능한 에러 메시지 전송
         let userMsg = `브리핑 생성 실패: ${msg}`;
         if (msg.includes("API key") || msg.includes("apiKey") || msg.includes("authentication")) {
           userMsg = "ANTHROPIC_API_KEY가 설정되지 않았거나 유효하지 않습니다.";
-        } else if (msg.includes("JSON") || msg.includes("parse")) {
-          userMsg = "AI 응답을 파싱하지 못했습니다. 다시 시도해주세요.";
+        } else if (msg.includes("JSON") || msg.includes("parse") || msg.includes("PARSE")) {
+          userMsg = "AI 응답을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.";
         } else if (msg.includes("timeout") || msg.includes("ETIMEDOUT")) {
           userMsg = "AI 서버 응답 시간 초과. 다시 시도해주세요.";
         }
@@ -280,7 +390,7 @@ export async function POST(request: Request) {
         try {
           controller.enqueue(encode({ type: "error", message: userMsg }));
         } catch {
-          // 스트림 이미 닫힌 경우 무시
+          // 스트림 이미 닫힌 경우
         }
       } finally {
         clearInterval(heartbeat);
@@ -296,4 +406,47 @@ export async function POST(request: Request) {
       "Connection": "keep-alive",
     },
   });
+}
+
+// ── 헬퍼 함수 ──────────────────────────────────────
+
+function buildBriefing(
+  companyId: string,
+  sections: ReturnType<typeof transformBriefingResponse>,
+  dataFingerprint: CompanyBriefing["dataFingerprint"]
+): CompanyBriefing {
+  return {
+    id: `briefing-${nanoid(8)}`,
+    companyId,
+    createdAt: new Date().toISOString(),
+    status: "completed",
+    ...sections,
+    dataFingerprint,
+  };
+}
+
+async function safeSave(briefing: CompanyBriefing) {
+  try {
+    await saveBriefing(briefing);
+  } catch (e) {
+    console.warn("브리핑 저장 실패 (무시):", e);
+  }
+}
+
+/**
+ * Zod 검증 실패한 필드를 제거하여 부분 복구 시도
+ */
+function stripInvalidFields(data: unknown, issues: { path: PropertyKey[] }[]): unknown {
+  if (typeof data !== "object" || data === null) return data;
+  const obj = { ...(data as Record<string, unknown>) };
+  for (const issue of issues) {
+    if (issue.path.length > 0) {
+      const topKey = String(issue.path[0]);
+      // 최상위 필드가 문제면 null로 대체 (optional 필드이므로 안전)
+      if (issue.path.length === 1) {
+        obj[topKey] = undefined;
+      }
+    }
+  }
+  return obj;
 }

@@ -14,36 +14,39 @@ interface CompanyCardProps {
   analysisCount?: number;
 }
 
+// 토스 스타일 기업 카드: 호버 시 살짝 떠오르는 효과 + 넉넉한 여백
 export function CompanyCard({ company, analysisCount = 0 }: CompanyCardProps) {
   return (
     <Link href={`/companies/${company.notionPageId}`}>
-      <Card className="transition-shadow hover:shadow-md cursor-pointer h-full">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-lg">{company.name}</CardTitle>
-              <CardDescription className="text-xs">
+      <Card className="cursor-pointer h-full hover:-translate-y-1 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.1)]">
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <CardTitle className="text-lg truncate">{company.name}</CardTitle>
+              <CardDescription className="text-xs mt-1">
                 {company.batchLabel || "배치 미지정"}
               </CardDescription>
             </div>
             {company.investmentStage && (
-              <Badge variant="secondary">{company.investmentStage}</Badge>
+              <Badge variant="secondary" className="shrink-0">
+                {company.investmentStage}
+              </Badge>
             )}
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
             {company.description || "기업 소개 없음"}
           </p>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-3">
               {company.industryNames?.[0] && (
-                <span>{company.industryNames[0]}</span>
+                <span className="bg-muted px-2 py-0.5 rounded-md">{company.industryNames[0]}</span>
               )}
               {company.teamSize && <span>{company.teamSize}명</span>}
             </div>
             {analysisCount > 0 && (
-              <span className="text-primary font-medium">
+              <span className="text-primary font-semibold">
                 분석 {analysisCount}건
               </span>
             )}

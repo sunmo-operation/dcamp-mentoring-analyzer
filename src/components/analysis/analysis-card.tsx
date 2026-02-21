@@ -26,7 +26,7 @@ export function AnalysisCard({ analysis, company }: AnalysisCardProps) {
 
   return (
     <Link href={`/analyze/${analysis.id}`}>
-      <Card className="transition-shadow hover:shadow-md cursor-pointer h-full">
+      <Card className="cursor-pointer h-full hover:-translate-y-1 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.1)]">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div>
@@ -52,7 +52,7 @@ export function AnalysisCard({ analysis, company }: AnalysisCardProps) {
           </div>
           {topRisk && (
             <div className="flex items-center gap-2 text-xs">
-              <span className="rounded-full px-2 py-0.5 font-medium bg-yellow-100 text-yellow-800">
+              <span className="rounded-full px-2.5 py-0.5 font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 text-[11px]">
                 주의
               </span>
               <span className="text-muted-foreground truncate">

@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
-
-const notoSansKR = Noto_Sans_KR({
-  variable: "--font-noto-sans-kr",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
-});
+import { SWRProvider } from "@/lib/swr-provider";
 
 export const metadata: Metadata = {
   title: "dcamp 멘토링 분석기",
@@ -22,9 +16,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`${notoSansKR.variable} font-sans antialiased`}>
-        <Header />
-        <main className="min-h-[calc(100vh-64px)]">{children}</main>
+      <body className="font-sans antialiased">
+        <SWRProvider>
+          <Header />
+          <main className="min-h-[calc(100vh-64px)]">{children}</main>
+        </SWRProvider>
       </body>
     </html>
   );

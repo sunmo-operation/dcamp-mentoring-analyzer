@@ -13,7 +13,7 @@ export function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="ml-2 shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted transition-colors"
+      className="ml-2 shrink-0 rounded-xl px-2 py-1 text-xs text-muted-foreground hover:bg-muted transition-all duration-200"
       title="복사"
     >
       {copied ? "복사됨" : "복사"}

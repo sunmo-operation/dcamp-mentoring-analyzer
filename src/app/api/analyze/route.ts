@@ -15,9 +15,9 @@ import {
   nullsToUndefined,
 } from "@/lib/schemas";
 
-// Vercel Hobby 플랜 최대 실행 시간 설정 (60초)
+// Vercel Pro 플랜 최대 실행 시간 설정 (300초)
 // Claude AI 분석이 10초 이상 걸리므로 필요
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   let analysis: AnalysisResult | null = null;

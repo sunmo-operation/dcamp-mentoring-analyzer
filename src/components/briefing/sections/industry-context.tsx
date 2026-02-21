@@ -9,7 +9,7 @@ interface Competitor {
   description: string;
   stage: string;
   similarity: string;
-  differentiation: string;
+  implications: string; // 시사점 & 고민 사안
   recentMove: string;
   threatLevel: "high" | "medium" | "low";
 }
@@ -19,6 +19,7 @@ interface IndustryTrend {
   trend: string;
   impact: string;
   source: string;
+  url?: string;
 }
 
 // ── 법령/정책 타입 ──────────────────────────────
@@ -27,6 +28,7 @@ interface RegulatoryItem {
   type: string;
   impact: string;
   actionRequired: string;
+  url?: string;
 }
 
 interface IndustryContextProps {
@@ -86,7 +88,7 @@ export function IndustryContext({
                     {c.description && (
                       <p className="text-sm text-muted-foreground">{c.description}</p>
                     )}
-                    {/* 유사점 / 차별점 */}
+                    {/* 경쟁 포인트 / 시사점 */}
                     <div className="grid gap-2 sm:grid-cols-2">
                       {c.similarity && (
                         <div className="rounded-md bg-muted/50 p-2.5">
@@ -94,10 +96,10 @@ export function IndustryContext({
                           <p className="text-xs leading-relaxed">{c.similarity}</p>
                         </div>
                       )}
-                      {c.differentiation && (
-                        <div className="rounded-md bg-muted/50 p-2.5">
-                          <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">우리의 차별점/약점</p>
-                          <p className="text-xs leading-relaxed">{c.differentiation}</p>
+                      {c.implications && (
+                        <div className="rounded-md bg-amber-50/50 dark:bg-amber-950/30 p-2.5">
+                          <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 mb-0.5">시사점 & 고민 사안</p>
+                          <p className="text-xs leading-relaxed">{c.implications}</p>
                         </div>
                       )}
                     </div>
@@ -125,11 +127,23 @@ export function IndustryContext({
                   <div key={i} className="border-l-2 border-purple-400 pl-3 py-1">
                     <p className="text-sm font-medium">{t.trend}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{t.impact}</p>
-                    {t.source && (
-                      <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                        출처: {t.source}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {t.source && (
+                        <p className="text-[10px] text-muted-foreground/60">
+                          출처: {t.source}
+                        </p>
+                      )}
+                      {t.url && (
+                        <a
+                          href={t.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-blue-500 hover:text-blue-700 underline"
+                        >
+                          자세히 보기 →
+                        </a>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -151,6 +165,16 @@ export function IndustryContext({
                         {r.type}
                       </Badge>
                       <span className="text-sm font-medium">{r.title}</span>
+                      {r.url && (
+                        <a
+                          href={r.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-blue-500 hover:text-blue-700 underline ml-auto"
+                        >
+                          원문 보기 →
+                        </a>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground">{r.impact}</p>
                     {r.actionRequired && (

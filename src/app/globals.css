@@ -1,3 +1,4 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -7,7 +8,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-noto-sans-kr);
+  --font-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -38,6 +39,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* 토스 스타일: 넉넉한 radius */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -47,73 +49,84 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+/* ══ 토스(Toss) 스타일 색상 팔레트 ══ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 1rem;
+  /* 배경: 깨끗한 화이트 / 옅은 그레이 */
+  --background: #F2F4F6;
+  --foreground: #191F28;
+  /* 카드: 순수 화이트 */
+  --card: #FFFFFF;
+  --card-foreground: #191F28;
+  --popover: #FFFFFF;
+  --popover-foreground: #191F28;
+  /* 포인트: 토스 블루 */
+  --primary: #3182F6;
+  --primary-foreground: #FFFFFF;
+  /* 세컨더리: 연한 블루 배경 */
+  --secondary: #E8F3FF;
+  --secondary-foreground: #3182F6;
+  /* 뮤트: 부드러운 그레이 */
+  --muted: #F2F4F6;
+  --muted-foreground: #8B95A1;
+  /* 액센트 */
+  --accent: #F2F4F6;
+  --accent-foreground: #333D4B;
+  /* 위험 */
+  --destructive: #F04452;
+  /* 경계 */
+  --border: #E5E8EB;
+  --input: #E5E8EB;
+  --ring: #3182F6;
+  /* 차트 컬러 */
+  --chart-1: #3182F6;
+  --chart-2: #00C9B7;
+  --chart-3: #6366F1;
+  --chart-4: #F59E0B;
+  --chart-5: #F04452;
+  /* 사이드바 */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #191F28;
+  --sidebar-primary: #3182F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F2F4F6;
+  --sidebar-accent-foreground: #333D4B;
+  --sidebar-border: #E5E8EB;
+  --sidebar-ring: #3182F6;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #17171C;
+  --foreground: #F2F4F6;
+  --card: #1F1F25;
+  --card-foreground: #F2F4F6;
+  --popover: #1F1F25;
+  --popover-foreground: #F2F4F6;
+  --primary: #4593FC;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1A2740;
+  --secondary-foreground: #4593FC;
+  --muted: #25252B;
+  --muted-foreground: #6B7684;
+  --accent: #25252B;
+  --accent-foreground: #F2F4F6;
+  --destructive: #FF6B6B;
+  --border: #2C2C34;
+  --input: #2C2C34;
+  --ring: #4593FC;
+  --chart-1: #4593FC;
+  --chart-2: #00C9B7;
+  --chart-3: #818CF8;
+  --chart-4: #FBBF24;
+  --chart-5: #FF6B6B;
+  --sidebar: #1F1F25;
+  --sidebar-foreground: #F2F4F6;
+  --sidebar-primary: #4593FC;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #25252B;
+  --sidebar-accent-foreground: #F2F4F6;
+  --sidebar-border: #2C2C34;
+  --sidebar-ring: #4593FC;
 }
 
 @layer base {
@@ -122,7 +135,21 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* ── 토스 스타일 카드 그림자 (넓고 부드럽게 퍼지는 느낌) ── */
+.toss-shadow {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+}
+.toss-shadow-hover {
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 /* 토스 스타일 로딩 메시지 애니메이션 */

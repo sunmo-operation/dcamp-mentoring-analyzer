@@ -6,6 +6,7 @@ import type {
   KptReview,
   OkrItem,
   OkrValue,
+  BatchDashboardData,
 } from "@/types";
 
 // ══════════════════════════════════════════════════
@@ -299,6 +300,32 @@ function formatOkrValues(values: OkrValue[]): string {
     .join("\n");
 }
 
+// ── 배치 대시보드 데이터 포맷 ────────────────────────
+
+function formatBatchOkrData(data: BatchDashboardData): string {
+  if (data.okrEntries.length === 0) return "";
+
+  const lines = data.okrEntries.map((e) => {
+    const current = e.currentValue !== null ? e.currentValue.toLocaleString() : "미측정";
+    const target = e.targetValue !== null ? e.targetValue.toLocaleString() : "미설정";
+    return `- ${e.companyName}: ${e.objective} / 현황: ${current} / 목표: ${target}`;
+  });
+  return `### 오브젝티브 달성율\n${lines.join("\n")}`;
+}
+
+function formatBatchGrowthData(data: BatchDashboardData): string {
+  if (data.growthEntries.length === 0) return "";
+
+  const lines = data.growthEntries.map((e) => {
+    const rate = e.growthRate !== null
+      ? (e.growthRate >= 0 ? `+${e.growthRate}%` : `${e.growthRate}%`)
+      : "미측정";
+    const current = e.currentMonth !== null ? e.currentMonth.toLocaleString() : "없음";
+    return `- ${e.companyName}: ${e.metric} / 당월: ${current} / 성장률: ${rate}`;
+  });
+  return `### 전월 대비 성장률\n${lines.join("\n")}`;
+}
+
 /**
  * 사용자 프롬프트: 최근 60일 중심 + 유형별 구분 + 간략 타임라인
  */
@@ -309,7 +336,8 @@ export function buildBriefingUserPrompt(
   analyses: AnalysisResult[],
   kptReviews: KptReview[],
   okrItems: OkrItem[],
-  okrValues: OkrValue[]
+  okrValues: OkrValue[],
+  batchData?: BatchDashboardData | null
 ): string {
   const batchPeriod =
     company.batchStartDate && company.batchEndDate
@@ -351,9 +379,19 @@ export function buildBriefingUserPrompt(
   if (company.website) companyFields.push(`- 웹사이트: ${company.website}`);
   if (company.achievementRate !== undefined) companyFields.push(`- OKR 달성율: ${company.achievementRate}%`);
 
+  // 배치 대시보드 섹션 (데이터가 있을 때만 포함)
+  let batchSection = "";
+  if (batchData) {
+    const okrSection = formatBatchOkrData(batchData);
+    const growthSection = formatBatchGrowthData(batchData);
+    if (okrSection || growthSection) {
+      batchSection = `\n## ${batchData.batchLabel} 배치 대시보드 현황\n${[okrSection, growthSection].filter(Boolean).join("\n\n")}\n`;
+    }
+  }
+
   return `## 기업 기본 정보 (Notion DB 최신 데이터)
 ${companyFields.join("\n")}
-
+${batchSection}
 ## OKR 현황
 ### 성과지표 항목 (${okrItems.length}건)
 ${formatOkrItems(okrItems)}

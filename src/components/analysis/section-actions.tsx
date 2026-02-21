@@ -31,7 +31,7 @@ export function SectionActions({ actions }: Props) {
           {actions.map((action, i) => (
             <div
               key={i}
-              className="flex items-start gap-4 rounded-lg border p-4"
+              className="flex items-start gap-4 rounded-2xl border-0 bg-muted/30 p-5"
             >
               <span
                 className={`mt-0.5 shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${priorityColor[action.priority] ?? ""}`}

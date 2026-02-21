@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import useSWR from "swr";
 import { CompanyCard } from "@/components/company/company-card";
 import { CompanySearch } from "@/components/company/company-search";
 import { AnalysisCard } from "@/components/analysis/analysis-card";
 import { Separator } from "@/components/ui/separator";
+import { useLiveRefresh } from "@/hooks/use-live-refresh";
 import type { Company, AnalysisResult } from "@/types";
 
 interface HomeClientProps {
@@ -15,15 +17,50 @@ interface HomeClientProps {
 }
 
 export function HomeClient({
-  companies,
-  recentAnalyses,
-  analysisCountByCompany,
+  companies: initialCompanies,
+  recentAnalyses: initialRecentAnalyses,
+  analysisCountByCompany: initialAnalysisCount,
 }: HomeClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("q") || ""
   );
+
+  // ── SWR: 기업 목록 (SSR 데이터 → 백그라운드 갱신) ──
+  const { data: companies = initialCompanies } = useSWR<Company[]>(
+    "/api/companies",
+    {
+      fallbackData: initialCompanies,
+      refreshInterval: 60_000,       // 60초마다 백그라운드 갱신
+      revalidateOnFocus: true,       // 탭 복귀 시 갱신
+      revalidateOnReconnect: true,   // 네트워크 복구 시 갱신
+      dedupingInterval: 30_000,      // 30초 내 중복 요청 방지
+    }
+  );
+
+  // ── SWR: 분석 결과 (SSR 데이터 → 백그라운드 갱신) ──
+  const { data: allAnalyses = [] } = useSWR<AnalysisResult[]>(
+    "/api/analyses",
+    {
+      fallbackData: initialRecentAnalyses, // 초기값으로 SSR 데이터
+      refreshInterval: 60_000,
+      revalidateOnFocus: true,
+    }
+  );
+
+  // 분석 데이터에서 최신 5건 + 기업별 카운트 계산
+  const { recentAnalyses, analysisCountByCompany } = useMemo(() => {
+    const completed = allAnalyses.filter((a) => a.status === "completed");
+    const recent = [...completed]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+    const countMap: Record<string, number> = {};
+    for (const a of completed) {
+      countMap[a.companyId] = (countMap[a.companyId] ?? 0) + 1;
+    }
+    return { recentAnalyses: recent, analysisCountByCompany: countMap };
+  }, [allAnalyses]);
 
   const handleSearch = useCallback(
     (query: string) => {
@@ -36,7 +73,8 @@ export function HomeClient({
     [router]
   );
 
-  const filtered = companies.filter((c) => {
+  // 검색 결과 필터링 (검색어/기업 목록이 바뀔 때만 재계산)
+  const filtered = useMemo(() => companies.filter((c) => {
     const q = searchQuery.toLowerCase();
     return (
       c.name.toLowerCase().includes(q) ||
@@ -44,12 +82,12 @@ export function HomeClient({
       (c.batchLabel?.toLowerCase().includes(q) ?? false) ||
       (c.description?.toLowerCase().includes(q) ?? false)
     );
-  });
+  }), [companies, searchQuery]);
 
   // 분석 결과에 기업 정보를 매칭 (notionPageId 기준)
-  const companyMap = Object.fromEntries(
+  const companyMap = useMemo(() => Object.fromEntries(
     companies.map((c) => [c.notionPageId, c])
-  );
+  ), [companies]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">

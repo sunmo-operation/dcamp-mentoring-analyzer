@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollToTop } from "@/components/scroll-to-top";
+import { LiveRefreshGuard } from "@/components/live-refresh-guard";
 
 // 항상 최신 데이터를 가져오도록 동적 렌더링
 export const dynamic = "force-dynamic";
@@ -79,7 +80,7 @@ export default async function CompanyPage({ params, searchParams }: Props) {
         </div>
         <Link
           href={`/analyze?companyId=${company.notionPageId}`}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className="rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#1B6EF3] hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(49,130,246,0.3)]"
         >
           새 분석
         </Link>
@@ -159,7 +160,7 @@ export default async function CompanyPage({ params, searchParams }: Props) {
                   )}
                   {/* 후속 조치 */}
                   {session.followUp && (
-                    <div className="rounded-md bg-muted/50 p-3">
+                    <div className="rounded-2xl bg-muted/50 p-4">
                       <p className="text-xs font-semibold text-muted-foreground mb-1">후속 조치</p>
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
                         {session.followUp}
@@ -204,10 +205,12 @@ export default async function CompanyPage({ params, searchParams }: Props) {
     <div className="mx-auto max-w-6xl px-4 py-8">
       {/* 페이지 진입 시 최상단으로 스크롤 */}
       <ScrollToTop />
+      {/* 60초마다 Notion 변경 감지 → 자동 갱신 */}
+      <LiveRefreshGuard scope="company-detail" companyId={id} />
       {/* 뒤로가기 */}
       <Link
         href="/"
-        className="mb-4 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+        className="mb-6 inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
       >
         &larr; 홈으로
       </Link>

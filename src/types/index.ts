@@ -218,6 +218,30 @@ export interface OkrValue {
   okrItemId?: string; // 연결 성과지표
 }
 
+// ── 배치 대시보드 OKR 달성율 (3기 등) ─────────────
+export interface BatchOkrEntry {
+  companyName: string;
+  objective: string;
+  currentValue: number | null;
+  targetValue: number | null;
+}
+
+// ── 배치 대시보드 전월 대비 성장률 (3기 등) ─────────────
+export interface BatchGrowthEntry {
+  companyName: string;
+  metric: string;
+  previousMonth: string | null;
+  currentMonth: number | null;
+  growthRate: number | null;
+}
+
+// ── 배치 대시보드 통합 데이터 ─────────────
+export interface BatchDashboardData {
+  batchLabel: string;
+  okrEntries: BatchOkrEntry[];
+  growthEntries: BatchGrowthEntry[];
+}
+
 // ── AI 컨텍스트 브리핑 (v2 — 심층 분석) ─────────────
 export interface CompanyBriefing {
   id: string;
@@ -283,7 +307,7 @@ export interface CompanyBriefing {
       description: string;
       stage: string;
       similarity: string;
-      differentiation: string;
+      implications: string; // 우리에게 주는 시사점 & 고민 사안
       recentMove: string;
       threatLevel: "high" | "medium" | "low";
     }[];
@@ -291,12 +315,14 @@ export interface CompanyBriefing {
       trend: string;
       impact: string;
       source: string;
+      url?: string; // 참고 링크
     }[];
     regulatoryAndPolicy: {
       title: string;
       type: string; // "법령" | "지원사업" | "정책" | "업계소식"
       impact: string;
       actionRequired: string;
+      url?: string; // 참고 링크
     }[];
     marketInsight: string;
   } | null;

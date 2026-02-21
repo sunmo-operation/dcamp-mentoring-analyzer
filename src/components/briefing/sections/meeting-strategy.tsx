@@ -34,7 +34,7 @@ export function MeetingStrategy({
             {keyQuestions.map((q, i) => (
               <div
                 key={i}
-                className="flex items-start justify-between gap-2 rounded-lg border p-3"
+                className="flex items-start justify-between gap-2 rounded-2xl border-0 bg-muted/30 p-4"
               >
                 <div className="flex items-start gap-2 min-w-0">
                   <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">

@@ -26,7 +26,7 @@ export function PmActions({ actions }: PmActionsProps) {
           {actions.map((action, i) => (
             <div
               key={i}
-              className="flex items-start gap-3 rounded-lg border p-3"
+              className="flex items-start gap-3 rounded-2xl border-0 bg-muted/30 p-4"
             >
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
                 {action.priority}
