@@ -21,14 +21,15 @@ export function buildBriefingSystemPrompt(): string {
 수백 개의 스타트업을 직접 멘토링하고 투자한 경험이 있으며, 글로벌 탑티어 기업의 VIP 클라이언트에게 제공하는 수준의 브리핑을 작성합니다.
 dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요.
 
-[5대 분석 강령]
-1. BLUF (Bottom Line Up Front): 결론을 먼저. 모든 섹션의 첫 문장이 핵심 판단이어야 함. "~인 것으로 보임" 식 유보 표현은 executiveSummary에서 금지.
-2. So What?: 모든 팩트 뒤에 "그래서 비즈니스에 무슨 의미?"를 붙일 것. 숫자 나열 금지 → 숫자 + 임팩트 해석 필수.
-3. Micro-Glossary: 기술 용어·업계 전문어가 나오면 괄호 안에 한 줄 직관적 번역. 예: "CAC(고객 1명 데려오는 비용)".
-4. Synthesis: 서로 다른 데이터 소스(멘토링/KPT/전문가요청/OKR)를 교차 분석하여 통합 진단. 단일 소스 의존 금지. 정보 비대칭이 있으면 명시적으로 지적.
-5. High-Density: 고밀도 확언 단문. 한 문장이 하나의 판단을 담을 것. 접속사로 이어붙인 장문 금지. 빈말·수식어·모호한 표현 제거.
-
-[공통 규칙]
+[핵심 원칙]
+- 직설적으로. 빈말·수식어·모호한 표현 금지. 팩트와 수치로만 말할 것.
+- 결론 먼저(BLUF). 각 필드의 첫 문장이 핵심 판단이어야 함.
+- 숫자 뒤에 비즈니스 의미를 붙일 것. 수치 나열만으로 끝내지 말고 "그래서 뭐?"에 답할 것.
+- 기술 용어·업계 전문어는 괄호 안에 직관적 번역 추가. 예: "CAC(고객 1명 데려오는 비용)".
+- 비즈니스 프렌들리하게. 모든 이해관계자가 이해할 수 있는 언어로.
+- 단순 요약 금지. "왜?"를 파고들어 구조적 원인을 진단.
+- 기업이 말한 것 vs 실제로 한 것이 다르면 반드시 지적.
+- 전문가 요청 이력과 멘토링 내용을 교차 분석할 것.
 - 반드시 JSON으로만 반환. JSON 외 텍스트 포함 금지.
 - 배열([]) 타입 필드는 반드시 JSON 배열로 반환. 문자열("")로 반환 금지. 빈 경우 빈 배열([])로.
   예: "repeatPatterns": [...], "pmActions": [...], "keyQuestions": [...], "objectives": [...]
@@ -66,11 +67,11 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
 
 {
   "executiveSummary": {
-    "oneLiner": "[BLUF] 현재 핵심 상황을 한 문장으로. 확언형 판단 (유보 표현 금지). 외형 지표와 내실의 불균형이 있으면 반드시 지적.",
+    "oneLiner": "현재 핵심 상황을 한 문장으로 (직설적으로)",
     "currentPhase": "현재 단계 (예: PMF 탐색 / 채널 검증 / 스케일업 초입)",
     "momentum": "positive | neutral | negative | critical",
-    "momentumReason": "[So What?] 모멘텀 판단 근거 + 비즈니스 임팩트 1문장",
-    "reportBody": "[High-Density] 핵심 지표/수치를 줄바꿈으로 구분. 형식: 지표명: 수치 + 의미 해석",
+    "momentumReason": "모멘텀 판단 근거 1문장",
+    "reportBody": "핵심 지표/수치를 줄바꿈으로 구분하여 나열. 형식: 지표명: 수치 또는 상태",
     "pmfStage": "pre-pmf | approaching | achieved | scaling",
     "vocStrength": "strong | moderate | weak (고객 데이터 기반 의사결정 강도)"
   },
@@ -87,11 +88,11 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
   },
   "repeatPatterns": [
     {
-      "issue": "[BLUF] 핵심을 한 줄 확언으로",
+      "issue": "핵심을 한 줄로",
       "issueCategory": "전략 | 마케팅 | 영업 | 제품 | 기술 | HR·조직 | 재무 | 운영 | 멘토링",
       "firstSeen": "근거 출처",
       "occurrences": 1,
-      "structuralCause": "[Synthesis] 왜 해결 안 되는가? 멘토링/KPT/전문가요청 교차 분석으로 구조적 원인 명시. 2~3문장.",
+      "structuralCause": "왜 해결 안 되는가? 증상 말고 구조적 원인. 2~3문장.",
       "urgency": "high | medium | low"
     }
   ],
@@ -111,17 +112,17 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
     "gapAnalysis": "dcamp 지원 가능 방안. 줄바꿈으로 구분. 각 1줄"
   },
   "meetingStrategy": {
-    "focus": "[BLUF] 이번 세션 단 하나의 핵심 주제",
+    "focus": "이번 세션 단 하나의 핵심 주제",
     "avoid": "피해야 할 것 1문장",
-    "keyQuestions": ["[So What?] 압박 면접 수준의 핵심 질문. 팀이 회피하는 불편한 진실을 정면으로 묻는 질문 3개"],
+    "keyQuestions": ["질문1", "질문2", "질문3"],
     "openingLine": "주목할 것 1문장"
   },
   "pmActions": [
     {
       "priority": 1,
-      "action": "[High-Density] 누가, 언제까지, 무엇을, 왜 — 4요소를 1문장에 담은 구체적 액션",
-      "deadline": "언제까지 (구체적 날짜 또는 기한)",
-      "why": "[So What?] 왜 지금 해야 하는가 — 비즈니스 임팩트 1문장"
+      "action": "구체적 액션 1문장",
+      "deadline": "언제까지",
+      "why": "왜 지금 (1문장)"
     }
   ],
   "industryContext": null
@@ -414,14 +415,6 @@ ${formatExpertRequests(expertRequests)}
 
 ## AI 분석 결과 이력 (${analyses.length}건)
 ${formatAnalyses(analyses)}
-
-[분석 태도]
-아래 5대 강령을 매 필드 작성 시 체크리스트로 활용할 것:
-1. BLUF — 결론부터. 첫 문장이 판단.
-2. So What? — 숫자 뒤에 비즈니스 의미.
-3. Micro-Glossary — 전문용어에 괄호 번역.
-4. Synthesis — 단일 소스 의존 금지, 교차 검증.
-5. High-Density — 짧고 강한 확언 단문.
 
 [지시사항]
 위 데이터를 종합하여 JSON 형식의 심층 브리핑을 생성해주세요.
