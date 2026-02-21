@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { Company } from "@/types";
+import type { Company, KptReview } from "@/types";
 
 interface ExpertSummary {
   total: number;
@@ -17,6 +17,8 @@ interface ExpertSummary {
 interface CompanyProfileProps {
   company: Company;
   expertSummary?: ExpertSummary;
+  kptSummary?: string; // AI 요약된 최근 KPT 회고
+  kptCount?: number; // 원본 KPT 건수
 }
 
 // 투자유치 현황 포맷: "Series A ₩50억" / "Series A" / "₩50억"
@@ -31,7 +33,7 @@ function formatInvestment(company: Company): string | null {
 }
 
 // 비즈니스 중심 기업 프로필 카드
-export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) {
+export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }: CompanyProfileProps) {
   // 배치 기간 포맷
   const batchPeriod =
     company.batchStartDate && company.batchEndDate
@@ -66,7 +68,7 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
   const investment = formatInvestment(company);
   if (investment) metaParts.push(investment);
 
-  const hasCompactInfo = metaParts.length > 0 || company.productIntro || company.yearMilestone;
+  const hasCompactInfo = metaParts.length > 0 || company.productIntro;
 
   return (
     <Card>
@@ -107,7 +109,7 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
           {company.description || "기업 소개가 없습니다"}
         </p>
 
-        {/* 컴팩트 핵심 정보 (3줄 이내) */}
+        {/* 컴팩트 핵심 정보 */}
         {hasCompactInfo && (
           <div className="rounded-xl bg-muted/50 px-4 py-3 space-y-1.5">
             {metaParts.length > 0 && (
@@ -120,12 +122,21 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
                 {company.productIntro}
               </p>
             )}
-            {company.yearMilestone && (
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground/80">배치 목표</span>{" "}
-                {company.yearMilestone}
-              </p>
-            )}
+          </div>
+        )}
+
+        {/* 팀의 회고 (최근 KPT 요약) */}
+        {kptSummary && (
+          <div className="rounded-xl border border-border/60 px-4 py-3 space-y-1">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold text-muted-foreground">팀의 회고</p>
+              {kptCount && kptCount > 0 && (
+                <span className="text-[10px] text-muted-foreground/60">최근 {kptCount}건 기반</span>
+              )}
+            </div>
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
+              {kptSummary}
+            </p>
           </div>
         )}
 

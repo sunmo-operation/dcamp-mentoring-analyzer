@@ -7,6 +7,7 @@ import {
   isBriefingStale,
   getKptReviews,
   getOkrItems,
+  summarizeRecentKpt,
 } from "@/lib/data";
 import { CompanyProfile } from "@/components/company/company-profile";
 import { CompanyTabs } from "@/components/company/company-tabs";
@@ -62,6 +63,9 @@ export default async function CompanyPage({ params, searchParams }: Props) {
     briefingIsStale = stale;
     briefingStaleReason = reason;
   }
+
+  // KPT 회고 AI 요약 (최근 2~3개월)
+  const kptResult = await summarizeRecentKpt(id, kptReviews);
 
   // 전문가 요청 요약 카운트
   const expertSummary = {
@@ -232,7 +236,12 @@ export default async function CompanyPage({ params, searchParams }: Props) {
       </Link>
 
       {/* 기업 프로필 */}
-      <CompanyProfile company={company} expertSummary={expertSummary} />
+      <CompanyProfile
+        company={company}
+        expertSummary={expertSummary}
+        kptSummary={kptResult?.summary}
+        kptCount={kptResult?.count}
+      />
 
       {/* AI 컨텍스트 브리핑 */}
       <div className="my-8">

@@ -12,6 +12,7 @@ import type {
   AnalysisResult,
   CompanyBriefing,
   BatchDashboardData,
+  KptReview,
 } from "@/types";
 import {
   dbGetAnalyses,
@@ -263,6 +264,88 @@ ${yearMilestone ? `[배치 기간 핵심 목표 원문]\n${yearMilestone}\n` : "
     surveySummaryCache.set(companyId, { data: result, expires: Date.now() + 300_000 });
     return result;
   }
+}
+
+// ── KPT 회고 AI 요약 (30분 캐시) ──────────────
+const kptSummaryCache = new Map<string, { data: string; count: number; expires: number }>();
+
+/**
+ * 최근 2~3개월 KPT를 AI로 요약
+ * Keep/Problem/Try를 종합해 팀의 현재 상태를 2~3줄로 진단
+ */
+export async function summarizeRecentKpt(
+  companyId: string,
+  kptReviews: KptReview[],
+): Promise<{ summary: string; count: number } | null> {
+  if (kptReviews.length === 0) return null;
+
+  // 캐시 확인
+  const cached = kptSummaryCache.get(companyId);
+  if (cached && cached.expires > Date.now()) {
+    return { summary: cached.data, count: cached.count };
+  }
+
+  // 최근 3개월 필터
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  const cutoff = threeMonthsAgo.toISOString().slice(0, 10);
+
+  const recent = kptReviews
+    .filter((k) => (k.reviewDate || "") >= cutoff)
+    .sort((a, b) => (b.reviewDate || "").localeCompare(a.reviewDate || ""));
+
+  if (recent.length === 0) return null;
+
+  // KPT 원문 조합
+  const kptText = recent.map((k) => {
+    const parts: string[] = [];
+    if (k.reviewDate) parts.push(`[${k.reviewDate}]`);
+    if (k.keep) parts.push(`Keep: ${k.keep}`);
+    if (k.problem) parts.push(`Problem: ${k.problem}`);
+    if (k.try) parts.push(`Try: ${k.try}`);
+    return parts.join("\n");
+  }).join("\n---\n");
+
+  try {
+    const client = getClaudeClient();
+    const msg = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 300,
+      messages: [{
+        role: "user",
+        content: `스타트업 액셀러레이터 PM으로서, 아래 KPT 회고 ${recent.length}건을 분석해 팀의 현재 상태를 3줄 이내로 진단하세요.
+
+규칙:
+- 1줄: 잘 되고 있는 것 (Keep 핵심)
+- 2줄: 풀어야 할 과제 (Problem 핵심)
+- 3줄: 다음 시도/방향 (Try 핵심)
+- 각 줄 40자 이내, "~중", "~예정" 같은 간결체
+- 구체적 수치/키워드가 있으면 유지
+
+${kptText}`,
+      }],
+    });
+    const summary = msg.content[0].type === "text" ? msg.content[0].text.trim() : "";
+    if (summary) {
+      kptSummaryCache.set(companyId, { data: summary, count: recent.length, expires: Date.now() + 1_800_000 });
+      return { summary, count: recent.length };
+    }
+  } catch (error) {
+    console.warn("[data] KPT 요약 실패:", error);
+  }
+
+  // 폴백: 가장 최근 KPT의 핵심만 표시
+  const latest = recent[0];
+  const fallback = [
+    latest.keep && `잘한 점: ${latest.keep.slice(0, 40)}`,
+    latest.problem && `과제: ${latest.problem.slice(0, 40)}`,
+    latest.try && `시도: ${latest.try?.slice(0, 40)}`,
+  ].filter(Boolean).join("\n");
+  if (fallback) {
+    kptSummaryCache.set(companyId, { data: fallback, count: recent.length, expires: Date.now() + 300_000 });
+    return { summary: fallback, count: recent.length };
+  }
+  return null;
 }
 
 /**
