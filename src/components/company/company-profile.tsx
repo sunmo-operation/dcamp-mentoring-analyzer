@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,6 +19,17 @@ interface CompanyProfileProps {
   expertSummary?: ExpertSummary;
 }
 
+// 투자유치 현황 포맷: "Series A ₩50억" / "Series A" / "₩50억"
+function formatInvestment(company: Company): string | null {
+  const parts: string[] = [];
+  if (company.investmentStage) parts.push(company.investmentStage);
+  if (company.valuation) {
+    const billions = company.valuation / 100_000_000;
+    parts.push(billions >= 1 ? `₩${billions.toFixed(0)}억` : `₩${(company.valuation / 10_000).toFixed(0)}만`);
+  }
+  return parts.length > 0 ? parts.join(" ") : null;
+}
+
 // 비즈니스 중심 기업 프로필 카드
 export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) {
   // 배치 기간 포맷
@@ -41,33 +49,34 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
   if (company.productMaturity) businessMetrics.push({ label: "제품 성숙도", value: company.productMaturity });
   if (company.techMaturity) businessMetrics.push({ label: "기술 성숙도", value: company.techMaturity });
   if (company.achievementRate !== undefined) businessMetrics.push({ label: "OKR 달성율", value: `${company.achievementRate}%` });
-  if (company.valuation) businessMetrics.push({ label: "기업 가치", value: `₩${(company.valuation / 100_000_000).toFixed(0)}억` });
 
   // 팀 기본 정보 (보조 정보로 하단에 배치)
   const teamInfo: string[] = [];
   if (company.teamSize) teamInfo.push(`${company.teamSize}명`);
-  if (company.foundedDate) teamInfo.push(`설립 ${company.foundedDate}`);
   if (company.website) teamInfo.push(company.website);
+
+  // 컴팩트 메타라인: 대표자 · 설립일 · 투자유치
+  const metaParts: string[] = [];
+  if (company.ceoName) metaParts.push(`${company.ceoName} 대표`);
+  if (company.foundedDate) {
+    const year = company.foundedDate.slice(0, 4);
+    const month = company.foundedDate.slice(5, 7);
+    metaParts.push(`${year}.${month} 설립`);
+  }
+  const investment = formatInvestment(company);
+  if (investment) metaParts.push(investment);
+
+  const hasCompactInfo = metaParts.length > 0 || company.productIntro || company.yearMilestone;
 
   return (
     <Card>
       <CardHeader>
         <div>
-          <div className="flex items-baseline gap-2">
-            <CardTitle className="text-2xl">{company.name}</CardTitle>
-            {company.ceoName && (
-              <span className="text-sm text-muted-foreground">
-                대표 {company.ceoName}
-              </span>
-            )}
-          </div>
+          <CardTitle className="text-2xl">{company.name}</CardTitle>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {Array.isArray(company.industryNames) && company.industryNames.map((name, idx) => (
               <Badge key={typeof name === "string" ? name : idx}>{String(name)}</Badge>
             ))}
-            {company.investmentStage && (
-              <Badge variant="secondary">{String(company.investmentStage)}</Badge>
-            )}
             {company.batchLabel && (
               <Badge variant="outline">
                 {String(company.batchLabel)}
@@ -93,13 +102,32 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
-        {/* 기업 소개 — 가장 중요한 정보 */}
+        {/* 기업 소개 */}
         <p className="text-muted-foreground leading-relaxed">
           {company.description || "기업 소개가 없습니다"}
         </p>
 
-        {/* 핵심 정보 — 사전 설문 데이터 */}
-        <SurveyInfoSection company={company} />
+        {/* 컴팩트 핵심 정보 (3줄 이내) */}
+        {hasCompactInfo && (
+          <div className="rounded-xl bg-muted/50 px-4 py-3 space-y-1.5">
+            {metaParts.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                {metaParts.join(" · ")}
+              </p>
+            )}
+            {company.productIntro && (
+              <p className="text-sm font-medium text-foreground">
+                {company.productIntro}
+              </p>
+            )}
+            {company.yearMilestone && (
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground/80">배치 목표</span>{" "}
+                {company.yearMilestone}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* 핵심 비즈니스 지표 */}
         {businessMetrics.length > 0 && (
@@ -121,57 +149,5 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
         )}
       </CardContent>
     </Card>
-  );
-}
-
-// ── 텍스트 2줄 제한 + 클릭 시 확장 ──────────────
-function ExpandableText({ text }: { text: string }) {
-  const [expanded, setExpanded] = useState(false);
-  const isLong = text.length > 100;
-
-  return (
-    <div>
-      <p className={`text-sm text-foreground leading-relaxed whitespace-pre-line ${!expanded && isLong ? "line-clamp-2" : ""}`}>
-        {text}
-      </p>
-      {isLong && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="text-xs text-primary mt-1 hover:underline"
-        >
-          {expanded ? "접기" : "더보기"}
-        </button>
-      )}
-    </div>
-  );
-}
-
-// ── 핵심 정보 섹션 (사전 설문 데이터) ──────────────
-function SurveyInfoSection({ company }: { company: Company }) {
-  const items: { icon: string; label: string; value: string }[] = [];
-
-  if (company.productIntro) items.push({ icon: "💼", label: "제품/서비스", value: company.productIntro });
-  if (company.revenueStructure) items.push({ icon: "💰", label: "수익 구조", value: company.revenueStructure });
-  if (company.yearMilestone) items.push({ icon: "🎯", label: "1년 목표", value: company.yearMilestone });
-  if (company.orgStatus) items.push({ icon: "👥", label: "조직 현황", value: company.orgStatus });
-  if (company.dcampExpectation) items.push({ icon: "🤝", label: "디캠프 기대", value: company.dcampExpectation });
-
-  if (items.length === 0) return null;
-
-  return (
-    <div className="space-y-3 rounded-2xl border p-4">
-      <h3 className="text-sm font-semibold text-foreground">핵심 정보</h3>
-      <div className="space-y-3">
-        {items.map(({ icon, label, value }) => (
-          <div key={label} className="flex gap-3">
-            <span className="shrink-0 text-base leading-relaxed">{icon}</span>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-muted-foreground mb-0.5">{label}</p>
-              <ExpandableText text={value} />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }

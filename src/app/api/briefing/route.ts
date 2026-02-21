@@ -271,15 +271,18 @@ export async function POST(request: Request) {
           new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
         ]).catch(() => null);
 
-        // 데이터 수집 결과 요약 (detail에 포함)
+        // 데이터 수집 결과 요약 — 검토 볼륨을 구체적으로 표시
+        const totalTextLength = sessions.reduce((sum, s) => sum + (s.summary?.length || 0), 0);
+        const totalDocs = sessions.length + kptReviews.length + expertRequests.length + analyses.length + okrItems.length;
+        const dateRange = sessions.length > 0
+          ? `${sessions[sessions.length - 1]?.date?.slice(0, 7) || ""} ~ ${sessions[0]?.date?.slice(0, 7) || ""}`
+          : "";
+
         const detailParts: string[] = [];
-        if (sessions.length > 0) detailParts.push(`회의록 ${sessions.length}건`);
-        if (kptReviews.length > 0) detailParts.push(`KPT ${kptReviews.length}건`);
-        if (okrItems.length > 0) detailParts.push(`OKR ${okrItems.length}건`);
-        if (expertRequests.length > 0) detailParts.push(`전문가요청 ${expertRequests.length}건`);
-        if (analyses.length > 0) detailParts.push(`분석 ${analyses.length}건`);
-        if (batchData) detailParts.push(`배치 데이터 ${batchData.okrEntries.length + batchData.growthEntries.length}건`);
-        const collectionDetail = detailParts.join(" · ") || "데이터 수집 완료";
+        detailParts.push(`문서 ${totalDocs}건`);
+        if (totalTextLength > 0) detailParts.push(`약 ${Math.ceil(totalTextLength / 1000)}천자`);
+        if (dateRange) detailParts.push(dateRange);
+        const collectionDetail = `${detailParts.join(" · ")} 검토 중`;
 
         // 2단계: AI 분석
         controller.enqueue(encode({

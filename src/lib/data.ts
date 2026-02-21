@@ -23,6 +23,7 @@ import {
   dbSaveBriefing,
 } from "@/lib/db";
 import { sanitizeForReact } from "@/lib/safe-render";
+import { getClaudeClient } from "@/lib/claude";
 
 const useDB = !!process.env.POSTGRES_URL;
 import {
@@ -202,6 +203,68 @@ export interface CompanyAllData {
 // 기업 전체 데이터 메모리 캐시 (3분 TTL)
 const companyDataCache = new Map<string, { data: CompanyAllData; expires: number }>();
 
+// ── 사전 설문 AI 요약 (1시간 캐시) ──────────────
+const surveySummaryCache = new Map<string, { data: { productOneLiner?: string; batchGoal?: string }; expires: number }>();
+
+async function summarizeSurveyText(
+  companyId: string,
+  productIntro?: string,
+  yearMilestone?: string,
+): Promise<{ productOneLiner?: string; batchGoal?: string }> {
+  if (!productIntro && !yearMilestone) return {};
+
+  // 캐시 확인
+  const cached = surveySummaryCache.get(companyId);
+  if (cached && cached.expires > Date.now()) return cached.data;
+
+  // 이미 충분히 짧으면 AI 호출 생략
+  const shortEnough = (!productIntro || productIntro.length <= 60) &&
+    (!yearMilestone || yearMilestone.length <= 60);
+  if (shortEnough) {
+    const result = { productOneLiner: productIntro, batchGoal: yearMilestone };
+    surveySummaryCache.set(companyId, { data: result, expires: Date.now() + 3_600_000 });
+    return result;
+  }
+
+  try {
+    const client = getClaudeClient();
+    const msg = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 256,
+      messages: [{
+        role: "user",
+        content: `스타트업 액셀러레이터 포트폴리오 매니저로서, 사전 설문 원문을 투자자/경영진이 한눈에 파악할 수 있도록 비즈니스 프렌들리한 한 줄 요약으로 변환하세요.
+
+규칙:
+- 각 항목 50자 이내, 명사구 형태 ("~입니다" 금지)
+- 핵심 비즈니스 모델/가치/지표만 남기고 불필요한 수식어 제거
+- 숫자, KPI가 있으면 반드시 유지
+
+${productIntro ? `[제품/서비스 소개 원문]\n${productIntro}\n` : ""}
+${yearMilestone ? `[배치 기간 핵심 목표 원문]\n${yearMilestone}\n` : ""}
+반드시 아래 JSON 형식으로만 응답:
+{"productOneLiner": "요약", "batchGoal": "요약"}`,
+      }],
+    });
+    const text = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const json = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || "{}");
+    const result = {
+      productOneLiner: json.productOneLiner || productIntro?.slice(0, 60),
+      batchGoal: json.batchGoal || yearMilestone?.slice(0, 60),
+    };
+    surveySummaryCache.set(companyId, { data: result, expires: Date.now() + 3_600_000 });
+    return result;
+  } catch (error) {
+    console.warn("[data] 설문 AI 요약 실패, 원문 truncate:", error);
+    const result = {
+      productOneLiner: productIntro?.slice(0, 60),
+      batchGoal: yearMilestone?.slice(0, 60),
+    };
+    surveySummaryCache.set(companyId, { data: result, expires: Date.now() + 300_000 });
+    return result;
+  }
+}
+
 /**
  * 기업의 모든 데이터를 통합 조회 (캐시 적용)
  * Notion API: company(1회) + sessions(1회) + expertRequests(1회) = 최대 3회
@@ -235,14 +298,17 @@ export async function getCompanyAllData(
 
   if (!company) return null;
 
-  // 사전 설문 데이터를 company 객체에 merge
+  // 사전 설문 데이터 → AI 요약 후 company 객체에 merge
   if (surveyData) {
-    if (surveyData.productIntro) company.productIntro = surveyData.productIntro;
-    if (surveyData.revenueStructure) company.revenueStructure = surveyData.revenueStructure;
-    if (surveyData.yearMilestone) company.yearMilestone = surveyData.yearMilestone;
-    if (surveyData.orgStatus) company.orgStatus = surveyData.orgStatus;
-    if (surveyData.dcampExpectation) company.dcampExpectation = surveyData.dcampExpectation;
     if (surveyData.valuation) company.valuation = surveyData.valuation;
+    // 텍스트 필드는 AI 요약 (실패 시 원문 60자 truncate)
+    const summary = await summarizeSurveyText(
+      companyNotionPageId,
+      surveyData.productIntro,
+      surveyData.yearMilestone,
+    );
+    if (summary.productOneLiner) company.productIntro = summary.productOneLiner;
+    if (summary.batchGoal) company.yearMilestone = summary.batchGoal;
   }
 
   // 타임라인을 로컬에서 조립 (getTimeline 내부 재호출 제거)
