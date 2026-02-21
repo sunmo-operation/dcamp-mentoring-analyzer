@@ -213,6 +213,11 @@ export const briefingResponseSchema = z.object({
     })).default([])),
     trendAnalysis: z.string().default(""),
     metricVsNarrative: z.string().nullable().optional(),
+    kptHighlights: z.object({
+      keep: z.string().default(""),
+      problem: z.string().default(""),
+      try: z.string().default(""),
+    }).nullable().optional(),
   }).nullable().optional(),
 
   repeatPatterns: z.preprocess(coerceToObjectArray, z.array(z.object({
@@ -310,6 +315,7 @@ export function transformBriefingResponse(
           objectives: parsed.okrDiagnosis.objectives,
           trendAnalysis: parsed.okrDiagnosis.trendAnalysis,
           metricVsNarrative: parsed.okrDiagnosis.metricVsNarrative ?? null,
+          kptHighlights: parsed.okrDiagnosis.kptHighlights ?? null,
         }
       : null,
     repeatPatterns: parsed.repeatPatterns,

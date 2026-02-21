@@ -268,6 +268,11 @@ export interface CompanyBriefing {
     }[];
     trendAnalysis: string;
     metricVsNarrative: string | null;
+    kptHighlights?: {
+      keep: string;
+      problem: string;
+      try: string;
+    } | null;
   } | null;
   repeatPatterns: {
     issue: string;

@@ -76,7 +76,12 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
     "overallRate": "0~100 숫자. N기 대시보드의 정량 데이터 우선 반영. 없으면 null",
     "objectives": [{ "name": "핵심목표/KPI 명칭", "achievementRate": 0, "achieved": false }],
     "trendAnalysis": "N기 대시보드 수치 변화 기반 추이 분석 1~2문장. 노션에 기록된 숫자를 직접 인용할 것",
-    "metricVsNarrative": "말 vs 실제가 다른 점. 없으면 null"
+    "metricVsNarrative": "말 vs 실제가 다른 점. 없으면 null",
+    "kptHighlights": {
+      "keep": "KPT Keep에서 읽히는 팀의 핵심 강점과 그 의미를 해석. 단순 나열 금지, 인사이트 중심 1~2문장. KPT 데이터 없으면 null",
+      "problem": "KPT Problem에서 드러나는 구조적 이슈와 반복 패턴을 진단. 단순 나열 금지, 근본 원인 중심 1~2문장. KPT 데이터 없으면 null",
+      "try": "KPT Try에서 팀이 시도하려는 방향의 실효성을 평가. 단순 나열 금지, 전략적 판단 중심 1~2문장. KPT 데이터 없으면 null"
+    }
   },
   "repeatPatterns": [
     {
@@ -124,7 +129,10 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
 전략 / 마케팅 / 영업 / 제품 / 기술 / HR·조직 / 재무 / 운영 / 멘토링
 (채용·팀빌딩 → HR·조직, GTM·브랜딩 → 마케팅, 고객 확보·매출 → 영업, 기술 부채 → 기술, 프로세스 → 운영)
 
-[OKR] OKR 데이터 있으면 채우고, 없으면 null.
+[OKR & KPT 규칙]
+- OKR 정량 데이터(overallRate, objectives)가 있으면 채우고, 없으면 해당 필드는 null.
+- 단, KPT 회고 데이터가 있으면 kptHighlights는 반드시 채울 것 (OKR이 없어도).
+- OKR도 KPT도 모두 없으면 okrDiagnosis 전체를 null로 반환.
 
 [디캠프 리소스 판단 — 주의사항]
 - 전문가 투입, 실무진 지원 등 dcamp 리소스의 현재 상태에 대해 확정적 판단을 내리지 말 것.
@@ -409,7 +417,8 @@ ${formatAnalyses(analyses)}
 위 데이터를 종합하여 JSON 형식의 심층 브리핑을 생성해주세요.
 - 가장 최근 3회 미팅(세션)에 가장 높은 가중치를 두고 분석할 것. 그 외 세션은 맥락/추세 파악용.
 - 모든 날짜에 반드시 연도를 포함할 것 (예: 2025년 3월, 2026년 1월).
-- OKR·KPI 데이터가 있으면 okrDiagnosis를 채우고, 없으면 null.
+- OKR 정량 데이터 또는 KPT 회고 데이터가 하나라도 있으면 okrDiagnosis를 채울 것. 둘 다 없을 때만 null.
+- KPT 회고 데이터가 있으면 kptHighlights의 keep/problem/try를 핵심만 요약하여 반드시 포함할 것.
 - 노션 데이터의 정량적 수치(매출, DAU, 전환율 등)는 원본 그대로 인용.
 - 전문가 요청과 멘토링 내용을 교차 분석하여 인사이트 도출.
 - KPT Problem과 멘토링 행간에서 unspokenSignals를 추론.

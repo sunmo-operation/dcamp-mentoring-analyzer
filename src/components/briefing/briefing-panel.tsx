@@ -204,7 +204,18 @@ export function BriefingPanel({
   // ── 브리핑 데이터 파싱 (훅은 조건부 return 위에 위치해야 함!) ──
   // React의 Rules of Hooks: 훅 개수가 렌더 간 변하면 에러 #310 발생
   const executiveSummary = briefing?.executiveSummary;
-  const okrDiagnosis = briefing?.okrDiagnosis;
+  const rawOkrDiagnosis = briefing?.okrDiagnosis;
+  // 실질적 콘텐츠가 있는 경우만 표시 (빈 카드 방지)
+  const hasOkrContent = rawOkrDiagnosis && (
+    rawOkrDiagnosis.overallRate !== null
+    || (rawOkrDiagnosis.objectives?.length ?? 0) > 0
+    || !!rawOkrDiagnosis.trendAnalysis
+    || !!rawOkrDiagnosis.metricVsNarrative
+    || (rawOkrDiagnosis.kptHighlights && (
+      rawOkrDiagnosis.kptHighlights.keep || rawOkrDiagnosis.kptHighlights.problem || rawOkrDiagnosis.kptHighlights.try
+    ))
+  );
+  const okrDiagnosis = hasOkrContent ? rawOkrDiagnosis : null;
   const repeatPatterns = briefing?.repeatPatterns;
   const unspokenSignals = briefing?.unspokenSignals;
   const mentorInsights = briefing?.mentorInsights;
@@ -365,13 +376,14 @@ export function BriefingPanel({
           />
         )}
 
-        {/* ② OKR 진단 */}
+        {/* ② OKR & KPT 진단 */}
         {okrDiagnosis && (
           <OkrDiagnosis
             overallRate={okrDiagnosis.overallRate}
             objectives={okrDiagnosis.objectives}
             trendAnalysis={okrDiagnosis.trendAnalysis}
             metricVsNarrative={okrDiagnosis.metricVsNarrative}
+            kptHighlights={okrDiagnosis.kptHighlights}
           />
         )}
 

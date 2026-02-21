@@ -19,13 +19,31 @@ interface CompanyProfileProps {
   expertSummary?: ExpertSummary;
 }
 
-// 토스 스타일 기업 프로필 카드
+// 비즈니스 중심 기업 프로필 카드
 export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) {
-  // 배치 지원서 기준 정보 (배치 진입 시점의 데이터)
-  const snapshotMetrics: { label: string; value: string }[] = [];
-  if (company.teamSize) snapshotMetrics.push({ label: "팀 규모", value: `${company.teamSize}명` });
-  if (company.foundedDate) snapshotMetrics.push({ label: "설립일", value: company.foundedDate });
-  if (company.customerScaleRaw) snapshotMetrics.push({ label: "고객 규모", value: company.customerScaleRaw });
+  // 배치 기간 포맷
+  const batchPeriod =
+    company.batchStartDate && company.batchEndDate
+      ? `${company.batchStartDate} ~ ${company.batchEndDate}`
+      : company.batchStartDate || null;
+
+  // 핵심 비즈니스 지표 (값이 있는 것만 노출)
+  const businessMetrics: { label: string; value: string }[] = [];
+  if (company.investmentStage) businessMetrics.push({ label: "투자 단계", value: company.investmentStage });
+  if (company.dealType?.length) businessMetrics.push({ label: "거래 유형", value: company.dealType.join(", ") });
+  if (company.serviceType?.length) businessMetrics.push({ label: "서비스 유형", value: company.serviceType.join(", ") });
+  if (company.marketSize) businessMetrics.push({ label: "시장 규모", value: company.marketSize });
+  if (company.customerScaleRaw) businessMetrics.push({ label: "고객 규모", value: company.customerScaleRaw });
+  if (company.growthStageRaw) businessMetrics.push({ label: "성장 단계", value: company.growthStageRaw });
+  if (company.productMaturity) businessMetrics.push({ label: "제품 성숙도", value: company.productMaturity });
+  if (company.techMaturity) businessMetrics.push({ label: "기술 성숙도", value: company.techMaturity });
+  if (company.achievementRate !== undefined) businessMetrics.push({ label: "OKR 달성율", value: `${company.achievementRate}%` });
+
+  // 팀 기본 정보 (보조 정보로 하단에 배치)
+  const teamInfo: string[] = [];
+  if (company.teamSize) teamInfo.push(`${company.teamSize}명`);
+  if (company.foundedDate) teamInfo.push(`설립 ${company.foundedDate}`);
+  if (company.website) teamInfo.push(company.website);
 
   return (
     <Card>
@@ -40,7 +58,10 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
               <Badge variant="secondary">{String(company.investmentStage)}</Badge>
             )}
             {company.batchLabel && (
-              <Badge variant="outline">{String(company.batchLabel)}</Badge>
+              <Badge variant="outline">
+                {String(company.batchLabel)}
+                {batchPeriod && <span className="ml-1 text-muted-foreground font-normal">({batchPeriod})</span>}
+              </Badge>
             )}
           </div>
 
@@ -60,27 +81,29 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
           )}
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground mb-6 leading-relaxed">
+      <CardContent className="space-y-5">
+        {/* 기업 소개 — 가장 중요한 정보 */}
+        <p className="text-muted-foreground leading-relaxed">
           {company.description || "기업 소개가 없습니다"}
         </p>
 
-        {/* 배치 지원서 기준 데이터 — 명확히 시점을 표시 */}
-        {snapshotMetrics.length > 0 && (
-          <div>
-            <p className="text-xs text-muted-foreground mb-3">
-              배치 지원서 기준
-              {company.batchLabel ? ` (${company.batchLabel})` : ""}
-            </p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {snapshotMetrics.map(({ label, value }) => (
-                <div key={label} className="rounded-2xl bg-muted p-4">
-                  <p className="text-xs text-muted-foreground mb-1">{label}</p>
-                  <p className="text-base font-bold text-foreground">{value}</p>
-                </div>
-              ))}
-            </div>
+        {/* 핵심 비즈니스 지표 */}
+        {businessMetrics.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {businessMetrics.map(({ label, value }) => (
+              <div key={label} className="rounded-2xl bg-muted p-4">
+                <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                <p className="text-sm font-bold text-foreground">{value}</p>
+              </div>
+            ))}
           </div>
+        )}
+
+        {/* 팀 기본 정보 — 보조 라인 */}
+        {teamInfo.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            {teamInfo.join(" · ")}
+          </p>
         )}
       </CardContent>
     </Card>
