@@ -365,7 +365,21 @@ export async function POST(request: Request) {
             controller.enqueue(encode({ type: "complete", briefing, cached: false, elapsed: totalElapsed }));
             return;
           }
-          throw new Error(`AI 응답 형식 오류: ${validated.error.issues[0]?.message || "알 수 없는 형식"}`);
+          // 최후의 보루: 부분 복구도 실패하면 가용한 데이터를 최대한 살림
+          console.warn("[브리핑] 부분 복구도 실패. 최소 데이터로 브리핑 생성 시도...");
+          console.warn("[브리핑] lenient 에러:", JSON.stringify(lenient.error.issues.slice(0, 3)));
+          // rawParsed에서 최소한의 데이터라도 추출
+          const fallback = briefingResponseSchema.safeParse({});
+          if (fallback.success) {
+            const transformedSections = transformBriefingResponse(fallback.data);
+            const briefing = buildBriefing(companyId, transformedSections, dataFingerprint);
+            briefing.errorMessage = "AI 응답 일부가 올바르지 않아 기본값으로 대체되었습니다. 다시 생성해주세요.";
+            await safeSave(briefing);
+            const totalElapsed = Math.round((Date.now() - startTime) / 1000);
+            controller.enqueue(encode({ type: "complete", briefing, cached: false, elapsed: totalElapsed, partial: true }));
+            return;
+          }
+          throw new Error("AI_FORMAT_ERROR");
         }
 
         const transformedSections = transformBriefingResponse(validated.data);
@@ -378,13 +392,15 @@ export async function POST(request: Request) {
         const msg = error instanceof Error ? error.message : "알 수 없는 오류";
         console.error("브리핑 스트리밍 오류:", msg);
 
-        let userMsg = `브리핑 생성 실패: ${msg}`;
+        let userMsg = `브리핑 생성 중 문제가 발생했습니다. 다시 시도해주세요.`;
         if (msg.includes("API key") || msg.includes("apiKey") || msg.includes("authentication")) {
           userMsg = "ANTHROPIC_API_KEY가 설정되지 않았거나 유효하지 않습니다.";
-        } else if (msg.includes("JSON") || msg.includes("parse") || msg.includes("PARSE")) {
-          userMsg = "AI 응답을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.";
+        } else if (msg.includes("JSON") || msg.includes("parse") || msg.includes("PARSE") || msg.includes("FORMAT") || msg.includes("형식")) {
+          userMsg = "AI 응답을 처리하지 못했습니다. '다시 시도' 버튼을 눌러주세요.";
         } else if (msg.includes("timeout") || msg.includes("ETIMEDOUT")) {
           userMsg = "AI 서버 응답 시간 초과. 다시 시도해주세요.";
+        } else if (msg.includes("rate") || msg.includes("429")) {
+          userMsg = "AI 서버가 바쁩니다. 잠시 후 다시 시도해주세요.";
         }
 
         try {

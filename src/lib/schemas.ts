@@ -4,6 +4,55 @@
 // ══════════════════════════════════════════════════
 import { z } from "zod";
 
+// ── 배열 강제 변환 전처리기 ──────────────────────────
+// Claude가 배열 대신 문자열을 반환하는 경우를 방어
+// (에러: "expected array, received string" 원천 차단)
+
+/**
+ * 문자열 배열용 전처리: 문자열을 줄바꿈/쉼표/번호매기기로 분할
+ * 예: "질문1\n질문2" → ["질문1", "질문2"]
+ */
+function coerceToStringArray(val: unknown): unknown {
+  if (Array.isArray(val)) return val;
+  if (val === null || val === undefined) return undefined;
+  if (typeof val === "string") {
+    if (!val.trim()) return [];
+    // JSON 배열 파싱 시도
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch { /* 계속 진행 */ }
+    // 줄바꿈 / 번호매기기(1. 2.) / 쉼표로 분할
+    const lines = val
+      .split(/\n|\d+\.\s+/)
+      .map((s) => s.replace(/^[-•▪▸*,]\s*/, "").trim())
+      .filter(Boolean);
+    return lines.length > 0 ? lines : [val];
+  }
+  return undefined;
+}
+
+/**
+ * 객체 배열용 전처리: 문자열이면 JSON 파싱 시도, 실패 시 빈 배열
+ * 예: "[{...}]" → [{...}] / "텍스트" → []
+ */
+function coerceToObjectArray(val: unknown): unknown {
+  if (Array.isArray(val)) return val;
+  if (val === null || val === undefined) return undefined;
+  if (typeof val === "string") {
+    if (!val.trim()) return [];
+    // JSON 파싱 시도
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+      if (typeof parsed === "object" && parsed !== null) return [parsed];
+    } catch { /* 계속 진행 */ }
+    // 객체 배열은 텍스트에서 복구 불가 → 빈 배열
+    return [];
+  }
+  return undefined;
+}
+
 /**
  * Claude 응답의 null 값을 undefined로 변환 (재귀)
  * Zod의 .default()는 undefined만 처리하므로, null → undefined 전처리 필요
@@ -37,8 +86,8 @@ import type {
 const analysisSummarySchema = z.object({
   oneLiner: z.string().default(""),
   // 프롬프트: keyTopics, 타입: keywords — 양쪽 모두 허용
-  keyTopics: z.array(z.string()).optional(),
-  keywords: z.array(z.string()).optional(),
+  keyTopics: z.preprocess(coerceToStringArray, z.array(z.string())).optional(),
+  keywords: z.preprocess(coerceToStringArray, z.array(z.string())).optional(),
   duration: z.string().optional(),
 });
 
@@ -85,10 +134,10 @@ const riskSignalSchema = z.object({
 
 export const analysisResponseSchema = z.object({
   summary: analysisSummarySchema.nullable().optional(),
-  surfaceIssues: z.array(surfaceIssueSchema).nullable().optional(),
-  rootCauses: z.array(rootCauseSchema).nullable().optional(),
-  recommendedActions: z.array(recommendedActionSchema).nullable().optional(),
-  riskSignals: z.array(riskSignalSchema).nullable().optional(),
+  surfaceIssues: z.preprocess(coerceToObjectArray, z.array(surfaceIssueSchema)).nullable().optional(),
+  rootCauses: z.preprocess(coerceToObjectArray, z.array(rootCauseSchema)).nullable().optional(),
+  recommendedActions: z.preprocess(coerceToObjectArray, z.array(recommendedActionSchema)).nullable().optional(),
+  riskSignals: z.preprocess(coerceToObjectArray, z.array(riskSignalSchema)).nullable().optional(),
 });
 
 export type AnalysisResponse = z.infer<typeof analysisResponseSchema>;
@@ -157,16 +206,16 @@ export const briefingResponseSchema = z.object({
 
   okrDiagnosis: z.object({
     overallRate: z.number().nullable().optional(),
-    objectives: z.array(z.object({
+    objectives: z.preprocess(coerceToObjectArray, z.array(z.object({
       name: z.string().default(""),
       achievementRate: z.number().default(0),
       achieved: z.boolean().default(false),
-    })).default([]),
+    })).default([])),
     trendAnalysis: z.string().default(""),
     metricVsNarrative: z.string().nullable().optional(),
   }).nullable().optional(),
 
-  repeatPatterns: z.array(z.object({
+  repeatPatterns: z.preprocess(coerceToObjectArray, z.array(z.object({
     issue: z.string().default(""),
     // 9개 카테고리 + 이전 호환용 (조직, 실행, 시장)
     issueCategory: z.string().default("운영"),
@@ -174,14 +223,14 @@ export const briefingResponseSchema = z.object({
     occurrences: z.number().default(1),
     structuralCause: z.string().default(""),
     urgency: z.enum(["high", "medium", "low"]).default("medium"),
-  })).default([]),
+  })).default([])),
 
-  unspokenSignals: z.array(z.object({
+  unspokenSignals: z.preprocess(coerceToObjectArray, z.array(z.object({
     signal: z.string().default(""),
     detectedFrom: z.string().default(""),
     hypothesis: z.string().default(""),
     earlyWarning: z.string().default(""),
-  })).default([]),
+  })).default([])),
 
   mentorInsights: z.object({
     repeatedAdvice: z.string().default(""),
@@ -194,20 +243,20 @@ export const briefingResponseSchema = z.object({
   meetingStrategy: z.object({
     focus: z.string().default(""),
     avoid: z.string().default(""),
-    keyQuestions: z.array(z.string()).default([]),
+    keyQuestions: z.preprocess(coerceToStringArray, z.array(z.string()).default([])),
     openingLine: z.string().default(""),
   }).nullable().optional(),
 
-  pmActions: z.array(z.object({
+  pmActions: z.preprocess(coerceToObjectArray, z.array(z.object({
     priority: z.number().default(1),
     action: z.string().default(""),
     deadline: z.string().default(""),
     why: z.string().default(""),
-  })).default([]),
+  })).default([])),
 
   // 업계 동향 / 경쟁서비스 / 법령·정책
   industryContext: z.object({
-    competitors: z.array(z.object({
+    competitors: z.preprocess(coerceToObjectArray, z.array(z.object({
       name: z.string().default(""),
       description: z.string().default(""),
       stage: z.string().default(""),
@@ -217,20 +266,20 @@ export const briefingResponseSchema = z.object({
       differentiation: z.string().optional(),
       recentMove: z.string().default(""),
       threatLevel: z.enum(["high", "medium", "low"]).default("medium"),
-    })).default([]),
-    industryTrends: z.array(z.object({
+    })).default([])),
+    industryTrends: z.preprocess(coerceToObjectArray, z.array(z.object({
       trend: z.string().default(""),
       impact: z.string().default(""),
       source: z.string().default(""),
       url: z.string().optional(),
-    })).default([]),
-    regulatoryAndPolicy: z.array(z.object({
+    })).default([])),
+    regulatoryAndPolicy: z.preprocess(coerceToObjectArray, z.array(z.object({
       title: z.string().default(""),
       type: z.string().default("업계소식"),
       impact: z.string().default(""),
       actionRequired: z.string().default(""),
       url: z.string().optional(),
-    })).default([]),
+    })).default([])),
     marketInsight: z.string().default(""),
   }).nullable().optional(),
 });
