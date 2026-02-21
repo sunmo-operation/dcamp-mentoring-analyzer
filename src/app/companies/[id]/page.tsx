@@ -123,9 +123,17 @@ export default async function CompanyPage({ params, searchParams }: Props) {
       {sortedSessions.length > 0 ? (
         <div className="space-y-4">
           {sortedSessions.map((session) => {
-            const icon = session.sessionTypes
-              .map((t) => sessionTypeIcon[t])
+            const types = Array.isArray(session.sessionTypes) ? session.sessionTypes : [];
+            const icon = types
+              .map((t) => sessionTypeIcon[String(t)])
               .find(Boolean) || "💬";
+            const title = typeof session.title === "string" ? session.title : String(session.title || "");
+            const summary = typeof session.summary === "string" ? session.summary : "";
+            const followUp = typeof session.followUp === "string" ? session.followUp : "";
+            const dateStr = session.date
+              ? new Date(session.date).toLocaleDateString("ko-KR")
+              : "-";
+
             return (
               <Card key={session.notionPageId}>
                 <CardHeader className="pb-2 pt-4">
@@ -133,42 +141,42 @@ export default async function CompanyPage({ params, searchParams }: Props) {
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-lg shrink-0">{icon}</span>
                       <CardTitle className="text-base truncate">
-                        {session.title}
+                        {title}
                       </CardTitle>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      {session.sessionTypes.map((type) => (
-                        <Badge key={type} variant="outline" className="text-xs">
-                          {type}
+                      {types.map((type) => (
+                        <Badge key={String(type)} variant="outline" className="text-xs">
+                          {String(type)}
                         </Badge>
                       ))}
                       <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(session.date).toLocaleDateString("ko-KR")}
+                        {dateStr}
                       </span>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0 pb-4 space-y-3">
                   {/* 회의 내용 요약 */}
-                  {session.summary && (
+                  {summary && (
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-1">회의 내용</p>
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {session.summary}
+                        {summary}
                       </p>
                     </div>
                   )}
                   {/* 후속 조치 */}
-                  {session.followUp && (
+                  {followUp && (
                     <div className="rounded-2xl bg-muted/50 p-4">
                       <p className="text-xs font-semibold text-muted-foreground mb-1">후속 조치</p>
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {session.followUp}
+                        {followUp}
                       </p>
                     </div>
                   )}
                   {/* 요약도 후속조치도 없는 경우 */}
-                  {!session.summary && !session.followUp && (
+                  {!summary && !followUp && (
                     <p className="text-sm text-muted-foreground">기록된 내용 없음</p>
                   )}
                 </CardContent>

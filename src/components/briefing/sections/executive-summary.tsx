@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { momentumStyle } from "../briefing-styles";
+import { safeStr } from "@/lib/safe-render";
 
 // PMF 단계 스타일
 const pmfStyle: Record<string, { bg: string; label: string }> = {
@@ -49,7 +50,7 @@ export function ExecutiveSummary({
             <Badge className={momentumStyle[momentum]?.bg || momentumStyle.neutral.bg}>
               {momentumStyle[momentum]?.label || "보합"}
             </Badge>
-            <Badge variant="outline">{currentPhase}</Badge>
+            <Badge variant="outline">{safeStr(currentPhase)}</Badge>
             {pmf && <Badge className={pmf.bg}>{pmf.label}</Badge>}
             {voc && <Badge className={voc.bg}>{voc.label}</Badge>}
           </div>
@@ -57,16 +58,16 @@ export function ExecutiveSummary({
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-base font-semibold leading-relaxed">
-          {oneLiner}
+          {safeStr(oneLiner)}
         </p>
         <p className="text-xs text-muted-foreground">
-          {momentumReason}
+          {safeStr(momentumReason)}
         </p>
         {keyNumbers.length > 0 && (
           <div className="rounded-lg bg-muted/50 p-3 space-y-1.5">
             {keyNumbers.map((line, i) => (
               <div key={i} className="border-l-2 border-primary/40 pl-2.5">
-                <p className="text-sm">{line}</p>
+                <p className="text-sm">{safeStr(line)}</p>
               </div>
             ))}
           </div>

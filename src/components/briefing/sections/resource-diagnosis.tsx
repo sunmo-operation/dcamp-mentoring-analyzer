@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { safeStr } from "@/lib/safe-render";
 
 interface ResourceDiagnosisProps {
   primaryNeed: string;
@@ -12,7 +13,9 @@ export function ResourceDiagnosis({
   resourceReasoning,
   dcampCanDoLines,
 }: ResourceDiagnosisProps) {
-  if (!primaryNeed && dcampCanDoLines.length === 0) return null;
+  const safeLines = Array.isArray(dcampCanDoLines) ? dcampCanDoLines : [];
+
+  if (!primaryNeed && safeLines.length === 0) return null;
 
   return (
     <Card>
@@ -22,23 +25,23 @@ export function ResourceDiagnosis({
       <CardContent className="space-y-4">
         {primaryNeed && (
           <div>
-            <p className="text-base font-semibold">{primaryNeed}</p>
+            <p className="text-base font-semibold">{safeStr(primaryNeed)}</p>
             {resourceReasoning && (
-              <p className="text-sm text-muted-foreground mt-1">{resourceReasoning}</p>
+              <p className="text-sm text-muted-foreground mt-1">{safeStr(resourceReasoning)}</p>
             )}
           </div>
         )}
 
-        {dcampCanDoLines.length > 0 && (
+        {safeLines.length > 0 && (
           <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-3">
             <p className="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-2">
               dcamp 지원 가능
             </p>
             <ul className="space-y-1">
-              {dcampCanDoLines.map((line, i) => (
+              {safeLines.map((line, i) => (
                 <li key={i} className="text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
                   <span className="shrink-0">&#8226;</span>
-                  <span>{line}</span>
+                  <span>{safeStr(line)}</span>
                 </li>
               ))}
             </ul>

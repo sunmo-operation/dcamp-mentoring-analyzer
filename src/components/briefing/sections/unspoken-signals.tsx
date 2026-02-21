@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { safeStr } from "@/lib/safe-render";
 
 interface UnspokenSignal {
   signal: string;
@@ -13,7 +14,8 @@ interface UnspokenSignalsProps {
 
 // ── ④ 말하지 않은 신호 ──────────────────────────────
 export function UnspokenSignals({ signals }: UnspokenSignalsProps) {
-  if (signals.length === 0) return null;
+  const safeSignals = Array.isArray(signals) ? signals : [];
+  if (safeSignals.length === 0) return null;
 
   return (
     <Card>
@@ -21,15 +23,15 @@ export function UnspokenSignals({ signals }: UnspokenSignalsProps) {
         <CardTitle className="text-base">말하지 않은 신호</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {signals.map((signal, i) => (
+        {safeSignals.map((signal, i) => (
           <div
             key={i}
             className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-800 dark:bg-amber-950/50 space-y-2"
           >
-            <p className="text-sm font-semibold">{signal.signal}</p>
+            <p className="text-sm font-semibold">{safeStr(signal.signal)}</p>
             {signal.hypothesis && (
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {signal.hypothesis}
+                {safeStr(signal.hypothesis)}
               </p>
             )}
             <div className="rounded-md bg-red-50 dark:bg-red-950/50 p-2.5 border border-red-200 dark:border-red-800">
@@ -37,11 +39,11 @@ export function UnspokenSignals({ signals }: UnspokenSignalsProps) {
                 리스크
               </p>
               <p className="text-xs text-red-600 dark:text-red-400 leading-relaxed">
-                {signal.earlyWarning}
+                {safeStr(signal.earlyWarning)}
               </p>
             </div>
             <p className="text-[10px] text-muted-foreground/60">
-              감지: {signal.detectedFrom}
+              감지: {safeStr(signal.detectedFrom)}
             </p>
           </div>
         ))}

@@ -317,16 +317,23 @@ export function BriefingPanel({
   } = briefing;
 
   // 개조식 파싱 (브리핑 데이터가 바뀔 때만 재계산)
-  const keyNumbers = useMemo(() => parseBulletLines(executiveSummary?.reportBody), [executiveSummary?.reportBody]);
-  const repeatedAdviceLines = useMemo(() => parseBulletLines(mentorInsights?.repeatedAdvice), [mentorInsights?.repeatedAdvice]);
-  const ignoredAdviceLines = useMemo(() => parseBulletLines(mentorInsights?.ignoredAdvice), [mentorInsights?.ignoredAdvice]);
-  const dcampCanDoLines = useMemo(() => parseBulletLines(mentorInsights?.gapAnalysis), [mentorInsights?.gapAnalysis]);
+  // safeStr로 감싸서 객체가 들어왔을 때 React #310 방지
+  const safeReportBody = typeof executiveSummary?.reportBody === "string" ? executiveSummary.reportBody : "";
+  const safeRepeatedAdvice = typeof mentorInsights?.repeatedAdvice === "string" ? mentorInsights.repeatedAdvice : "";
+  const safeIgnoredAdvice = typeof mentorInsights?.ignoredAdvice === "string" ? mentorInsights.ignoredAdvice : "";
+  const safeGapAnalysis = typeof mentorInsights?.gapAnalysis === "string" ? mentorInsights.gapAnalysis : "";
+  const safeExpertRequests = typeof mentorInsights?.currentExpertRequests === "string" ? mentorInsights.currentExpertRequests : "";
+
+  const keyNumbers = useMemo(() => parseBulletLines(safeReportBody), [safeReportBody]);
+  const repeatedAdviceLines = useMemo(() => parseBulletLines(safeRepeatedAdvice), [safeRepeatedAdvice]);
+  const ignoredAdviceLines = useMemo(() => parseBulletLines(safeIgnoredAdvice), [safeIgnoredAdvice]);
+  const dcampCanDoLines = useMemo(() => parseBulletLines(safeGapAnalysis), [safeGapAnalysis]);
 
   // 리소스 진단 파싱
   const { primaryNeed, resourceReasoning } = useMemo(() => {
-    const lines = (mentorInsights?.currentExpertRequests || "").split("\n").filter(Boolean);
+    const lines = safeExpertRequests.split("\n").filter(Boolean);
     return { primaryNeed: lines[0] || "", resourceReasoning: lines.slice(1).join(" ") };
-  }, [mentorInsights?.currentExpertRequests]);
+  }, [safeExpertRequests]);
 
   return (
     <div className="space-y-6">

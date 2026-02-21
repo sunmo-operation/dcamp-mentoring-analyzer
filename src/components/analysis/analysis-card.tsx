@@ -44,9 +44,9 @@ export function AnalysisCard({ analysis, company }: AnalysisCardProps) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {summary?.keywords?.map((keyword) => (
-              <Badge key={keyword} variant="secondary" className="text-xs">
-                {keyword}
+            {Array.isArray(summary?.keywords) && summary.keywords.map((keyword, idx) => (
+              <Badge key={typeof keyword === "string" ? keyword : idx} variant="secondary" className="text-xs">
+                {typeof keyword === "string" ? keyword : String(keyword)}
               </Badge>
             ))}
           </div>
@@ -56,7 +56,7 @@ export function AnalysisCard({ analysis, company }: AnalysisCardProps) {
                 주의
               </span>
               <span className="text-muted-foreground truncate">
-                {topRisk.title}
+                {typeof topRisk.title === "string" ? topRisk.title : String(topRisk.title || "")}
               </span>
             </div>
           )}

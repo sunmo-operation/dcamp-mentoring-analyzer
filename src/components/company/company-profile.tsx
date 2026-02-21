@@ -33,14 +33,14 @@ export function CompanyProfile({ company, expertSummary }: CompanyProfileProps) 
         <div>
           <CardTitle className="text-2xl">{company.name}</CardTitle>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {company.industryNames?.map((name) => (
-              <Badge key={name}>{name}</Badge>
+            {Array.isArray(company.industryNames) && company.industryNames.map((name, idx) => (
+              <Badge key={typeof name === "string" ? name : idx}>{String(name)}</Badge>
             ))}
             {company.investmentStage && (
-              <Badge variant="secondary">{company.investmentStage}</Badge>
+              <Badge variant="secondary">{String(company.investmentStage)}</Badge>
             )}
             {company.batchLabel && (
-              <Badge variant="outline">{company.batchLabel}</Badge>
+              <Badge variant="outline">{String(company.batchLabel)}</Badge>
             )}
           </div>
 

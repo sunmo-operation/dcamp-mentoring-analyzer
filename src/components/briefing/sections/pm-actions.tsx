@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { safeStr } from "@/lib/safe-render";
 
 interface PmAction {
   priority: number;
@@ -14,7 +15,8 @@ interface PmActionsProps {
 
 // ── ⑧ PM 액션 ──────────────────────────────────
 export function PmActions({ actions }: PmActionsProps) {
-  if (actions.length === 0) return null;
+  const safeActions = Array.isArray(actions) ? actions : [];
+  if (safeActions.length === 0) return null;
 
   return (
     <Card>
@@ -23,7 +25,7 @@ export function PmActions({ actions }: PmActionsProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {actions.map((action, i) => (
+          {safeActions.map((action, i) => (
             <div
               key={i}
               className="flex items-start gap-3 rounded-2xl border-0 bg-muted/30 p-4"
@@ -32,12 +34,12 @@ export function PmActions({ actions }: PmActionsProps) {
                 {action.priority}
               </div>
               <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium">{action.action}</p>
+                <p className="text-sm font-medium">{safeStr(action.action)}</p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                   <Badge variant="outline" className="text-xs">
-                    {action.deadline}
+                    {safeStr(action.deadline)}
                   </Badge>
-                  <span>{action.why}</span>
+                  <span>{safeStr(action.why)}</span>
                 </div>
               </div>
             </div>
