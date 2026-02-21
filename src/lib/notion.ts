@@ -515,13 +515,18 @@ function mapCompanyBase(page: Props) {
 async function enrichCompany(
   base: ReturnType<typeof mapCompanyBase>
 ): Promise<Company> {
-  // 배치 시작일 2단계 조회
+  // 배치 시작일 + 배치 이름 2단계 조회
   let batchStartDate: string | undefined;
   let batchEndDate: string | undefined;
+  let batchName: string | undefined;
   if (base.batchId) {
-    const dates = await getBatchDates(base.batchId);
+    const [dates, batchNames] = await Promise.all([
+      getBatchDates(base.batchId),
+      resolveRelationNames([base.batchId]),
+    ]);
     batchStartDate = dates.start;
     batchEndDate = dates.end;
+    batchName = batchNames[0] || undefined;
   }
 
   // 산업 분야 이름 + 대표자 이름 resolve (병렬)
@@ -537,10 +542,10 @@ async function enrichCompany(
 
   // 내부용 필드 제외
   const { _industryRelationIds, _representativeId, ...rest } = base;
-  return { ...rest, batchStartDate, batchEndDate, industryNames, ceoName } as Company;
+  return { ...rest, batchStartDate, batchEndDate, batchName, industryNames, ceoName } as Company;
 }
 
-// 홈페이지용 경량 조회 (대표자 이름만 배치 resolve)
+// 홈페이지용 경량 조회 (대표자 이름 + 배치 이름 resolve)
 export async function getCompaniesBasic(): Promise<Company[]> {
   return cached(
     "companies:basic",
@@ -548,22 +553,29 @@ export async function getCompaniesBasic(): Promise<Company[]> {
       const pages = await queryAllPages(DB_IDS.companies);
       const bases = safeMap(pages, mapCompanyBase, "기업(경량)");
 
-      // 대표자 이름만 배치 resolve (홈 카드에 표시)
+      // 대표자 이름 + 배치 이름을 배치 resolve (홈 카드 + 기수별 그룹핑)
       const allRepIds = [
         ...new Set(bases.map((b) => b._representativeId).filter(Boolean)),
       ] as string[];
-      if (allRepIds.length > 0) {
-        await Promise.all(allRepIds.map((id) => resolveRelationNames([id])));
-      }
+      const allBatchIds = [
+        ...new Set(bases.map((b) => b.batchId).filter(Boolean)),
+      ] as string[];
+      await Promise.all([
+        ...allRepIds.map((id) => resolveRelationNames([id])),
+        ...allBatchIds.map((id) => resolveRelationNames([id])),
+      ]);
 
-      // 대표자 이름 매핑 후 내부 필드 제거
+      // 대표자 이름 + 배치 이름 매핑 후 내부 필드 제거
       const companies = await Promise.all(
         bases.map(async (base) => {
           const ceoName = base._representativeId
             ? (await resolveRelationNames([base._representativeId]))[0] || undefined
             : undefined;
+          const batchName = base.batchId
+            ? (await resolveRelationNames([base.batchId]))[0] || undefined
+            : undefined;
           const { _industryRelationIds, _representativeId, ...rest } = base;
-          return { ...rest, ceoName } as Company;
+          return { ...rest, ceoName, batchName } as Company;
         })
       );
       return companies.sort((a, b) => a.id - b.id);

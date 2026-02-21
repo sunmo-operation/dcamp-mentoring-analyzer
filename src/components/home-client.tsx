@@ -88,7 +88,7 @@ export function HomeClient({
   const groupedByBatch = useMemo(() => {
     const groups = new Map<string, Company[]>();
     for (const c of filtered) {
-      const label = c.batchLabel || "기타";
+      const label = c.batchName || "기타";
       if (!groups.has(label)) groups.set(label, []);
       groups.get(label)!.push(c);
     }

@@ -23,7 +23,8 @@ export interface Company {
   hasSerialFounder?: boolean; // 연쇄 창업자 보유
   hasDomainExpert?: boolean; // 도메인 전문가 보유
   hasFounderExp?: boolean; // 창업 경험자 보유
-  batchLabel?: string; // 배치 구분 (formula)
+  batchLabel?: string; // 배치 구분 (formula) — 프로그램 유형 (딥테크/IT 등)
+  batchName?: string; // 배치 이름 (relation title) — 기수 (3기/4기 등)
   batchId?: string; // 배치 relation pageId
   batchStartDate?: string; // 기수 시작일 (2단계 조회)
   batchEndDate?: string; // 기수 종료일
