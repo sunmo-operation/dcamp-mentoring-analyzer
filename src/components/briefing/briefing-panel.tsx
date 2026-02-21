@@ -197,6 +197,31 @@ export function BriefingPanel({
     return () => { abortRef.current?.abort(); };
   }, []);
 
+  // ── 브리핑 데이터 파싱 (훅은 조건부 return 위에 위치해야 함!) ──
+  // React의 Rules of Hooks: 훅 개수가 렌더 간 변하면 에러 #310 발생
+  const executiveSummary = briefing?.executiveSummary;
+  const okrDiagnosis = briefing?.okrDiagnosis;
+  const repeatPatterns = briefing?.repeatPatterns;
+  const unspokenSignals = briefing?.unspokenSignals;
+  const mentorInsights = briefing?.mentorInsights;
+  const meetingStrategy = briefing?.meetingStrategy;
+  const pmActions = briefing?.pmActions;
+
+  const safeReportBody = typeof executiveSummary?.reportBody === "string" ? executiveSummary.reportBody : "";
+  const safeRepeatedAdvice = typeof mentorInsights?.repeatedAdvice === "string" ? mentorInsights.repeatedAdvice : "";
+  const safeIgnoredAdvice = typeof mentorInsights?.ignoredAdvice === "string" ? mentorInsights.ignoredAdvice : "";
+  const safeGapAnalysis = typeof mentorInsights?.gapAnalysis === "string" ? mentorInsights.gapAnalysis : "";
+  const safeExpertRequests = typeof mentorInsights?.currentExpertRequests === "string" ? mentorInsights.currentExpertRequests : "";
+
+  const keyNumbers = useMemo(() => parseBulletLines(safeReportBody), [safeReportBody]);
+  const repeatedAdviceLines = useMemo(() => parseBulletLines(safeRepeatedAdvice), [safeRepeatedAdvice]);
+  const ignoredAdviceLines = useMemo(() => parseBulletLines(safeIgnoredAdvice), [safeIgnoredAdvice]);
+  const dcampCanDoLines = useMemo(() => parseBulletLines(safeGapAnalysis), [safeGapAnalysis]);
+  const { primaryNeed, resourceReasoning } = useMemo(() => {
+    const lines = safeExpertRequests.split("\n").filter(Boolean);
+    return { primaryNeed: lines[0] || "", resourceReasoning: lines.slice(1).join(" ") };
+  }, [safeExpertRequests]);
+
   // ── 첫 생성 로딩 (토스 스타일 로딩 UX) ────────
   if (loading && !briefing) {
     return (
@@ -307,35 +332,6 @@ export function BriefingPanel({
       </div>
     );
   }
-
-  const {
-    executiveSummary,
-    okrDiagnosis,
-    repeatPatterns,
-    unspokenSignals,
-    mentorInsights,
-    meetingStrategy,
-    pmActions,
-  } = briefing;
-
-  // 개조식 파싱 (브리핑 데이터가 바뀔 때만 재계산)
-  // safeStr로 감싸서 객체가 들어왔을 때 React #310 방지
-  const safeReportBody = typeof executiveSummary?.reportBody === "string" ? executiveSummary.reportBody : "";
-  const safeRepeatedAdvice = typeof mentorInsights?.repeatedAdvice === "string" ? mentorInsights.repeatedAdvice : "";
-  const safeIgnoredAdvice = typeof mentorInsights?.ignoredAdvice === "string" ? mentorInsights.ignoredAdvice : "";
-  const safeGapAnalysis = typeof mentorInsights?.gapAnalysis === "string" ? mentorInsights.gapAnalysis : "";
-  const safeExpertRequests = typeof mentorInsights?.currentExpertRequests === "string" ? mentorInsights.currentExpertRequests : "";
-
-  const keyNumbers = useMemo(() => parseBulletLines(safeReportBody), [safeReportBody]);
-  const repeatedAdviceLines = useMemo(() => parseBulletLines(safeRepeatedAdvice), [safeRepeatedAdvice]);
-  const ignoredAdviceLines = useMemo(() => parseBulletLines(safeIgnoredAdvice), [safeIgnoredAdvice]);
-  const dcampCanDoLines = useMemo(() => parseBulletLines(safeGapAnalysis), [safeGapAnalysis]);
-
-  // 리소스 진단 파싱
-  const { primaryNeed, resourceReasoning } = useMemo(() => {
-    const lines = safeExpertRequests.split("\n").filter(Boolean);
-    return { primaryNeed: lines[0] || "", resourceReasoning: lines.slice(1).join(" ") };
-  }, [safeExpertRequests]);
 
   return (
     <div className="space-y-6">
