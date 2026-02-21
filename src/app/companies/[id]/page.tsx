@@ -83,19 +83,11 @@ export default async function CompanyPage({ params, searchParams }: Props) {
   // ── 분석 히스토리 탭 콘텐츠 ─────────────────────
   const analysisContent = (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-bold">AI 분석 이력</h2>
-          <p className="text-sm text-muted-foreground">
-            총 {analyses.length}건의 멘토링 분석
-          </p>
-        </div>
-        <Link
-          href={`/analyze?companyId=${company.notionPageId}`}
-          className="rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#1B6EF3] hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(49,130,246,0.3)]"
-        >
-          새 분석
-        </Link>
+      <div className="mb-6">
+        <h2 className="text-xl font-bold">AI 분석 이력</h2>
+        <p className="text-sm text-muted-foreground">
+          총 {analyses.length}건의 멘토링 분석
+        </p>
       </div>
       {analyses.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">

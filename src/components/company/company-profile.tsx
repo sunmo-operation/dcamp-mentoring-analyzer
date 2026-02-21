@@ -40,18 +40,6 @@ export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }:
       ? `${company.batchStartDate} ~ ${company.batchEndDate}`
       : company.batchStartDate || null;
 
-  // 핵심 비즈니스 지표 (값이 있는 것만 노출)
-  const businessMetrics: { label: string; value: string }[] = [];
-  if (company.investmentStage) businessMetrics.push({ label: "투자 단계", value: company.investmentStage });
-  if (company.dealType?.length) businessMetrics.push({ label: "거래 유형", value: company.dealType.join(", ") });
-  if (company.serviceType?.length) businessMetrics.push({ label: "서비스 유형", value: company.serviceType.join(", ") });
-  if (company.marketSize) businessMetrics.push({ label: "시장 규모", value: company.marketSize });
-  if (company.customerScaleRaw) businessMetrics.push({ label: "고객 규모", value: company.customerScaleRaw });
-  if (company.growthStageRaw) businessMetrics.push({ label: "성장 단계", value: company.growthStageRaw });
-  if (company.productMaturity) businessMetrics.push({ label: "제품 성숙도", value: company.productMaturity });
-  if (company.techMaturity) businessMetrics.push({ label: "기술 성숙도", value: company.techMaturity });
-  if (company.achievementRate !== undefined) businessMetrics.push({ label: "OKR 달성율", value: `${company.achievementRate}%` });
-
   // 팀 기본 정보 (보조 정보로 하단에 배치)
   const teamInfo: string[] = [];
   if (company.teamSize) teamInfo.push(`${company.teamSize}명`);
@@ -155,18 +143,6 @@ export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }:
             <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
               {kptSummary}
             </p>
-          </div>
-        )}
-
-        {/* 핵심 비즈니스 지표 */}
-        {businessMetrics.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {businessMetrics.map(({ label, value }) => (
-              <div key={label} className="rounded-2xl bg-muted p-4">
-                <p className="text-xs text-muted-foreground mb-1">{label}</p>
-                <p className="text-sm font-bold text-foreground">{value}</p>
-              </div>
-            ))}
           </div>
         )}
 
