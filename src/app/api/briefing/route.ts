@@ -418,8 +418,11 @@ export async function POST(request: Request) {
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
+      "Cache-Control": "no-cache, no-transform",
       "Connection": "keep-alive",
+      // Vercel Edge / Nginx 프록시의 응답 버퍼링 비활성화
+      // SSE 스트림이 실시간으로 클라이언트에 전달되도록 보장
+      "X-Accel-Buffering": "no",
     },
   });
 }

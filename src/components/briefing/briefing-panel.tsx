@@ -86,8 +86,15 @@ export function BriefingPanel({
   }, [loading]);
 
   // SSE 스트리밍으로 브리핑 생성
+  const abortRef = useRef<AbortController | null>(null);
+
   const generateBriefing = useCallback(
     async (force: boolean = false) => {
+      // 이전 요청이 있으면 취소
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       setLoading(true);
       setError(null);
       setProgress("연결 중...");
@@ -99,10 +106,11 @@ export function BriefingPanel({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ companyId, force }),
+          signal: controller.signal,
         });
 
         if (!res.ok || !res.body) {
-          const text = await res.text();
+          const text = await res.text().catch(() => "");
           try {
             const data = JSON.parse(text);
             setError(data.error || `서버 오류 (${res.status})`);
@@ -119,38 +127,47 @@ export function BriefingPanel({
         let receivedComplete = false;
         let receivedError = false;
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n\n");
-          buffer = lines.pop() || "";
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n\n");
+            buffer = lines.pop() || "";
 
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            try {
-              const data = JSON.parse(line.slice(6));
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              try {
+                const data = JSON.parse(line.slice(6));
 
-              // heartbeat는 연결 유지용이므로 무시
-              if (data.type === "heartbeat") continue;
+                // heartbeat는 연결 유지용이므로 무시
+                if (data.type === "heartbeat") continue;
 
-              if (data.type === "status" || data.type === "progress") {
-                setProgress(data.message);
-                if (data.step) setStep(data.step);
-                if (data.detail) setDetail(data.detail);
+                if (data.type === "status" || data.type === "progress") {
+                  setProgress(data.message);
+                  if (data.step) setStep(data.step);
+                  if (data.detail) setDetail(data.detail);
+                }
+                if (data.type === "complete") {
+                  setBriefing(data.briefing);
+                  receivedComplete = true;
+                }
+                if (data.type === "error") {
+                  setError(data.message);
+                  receivedError = true;
+                }
+              } catch {
+                // SSE 메시지 파싱 실패 무시
               }
-              if (data.type === "complete") {
-                setBriefing(data.briefing);
-                receivedComplete = true;
-              }
-              if (data.type === "error") {
-                setError(data.message);
-                receivedError = true;
-              }
-            } catch {
-              // 파싱 실패 무시
             }
+          }
+        } catch (streamErr) {
+          // 스트림 읽기 도중 네트워크 에러 (Vercel 타임아웃 등)
+          if (!receivedComplete && !receivedError) {
+            console.warn("[BriefingPanel] 스트림 읽기 중단:", streamErr);
+            setError("서버 연결이 끊어졌습니다. 브리핑 생성에 시간이 오래 걸릴 수 있습니다. 다시 시도해주세요.");
+            return;
           }
         }
 
@@ -159,6 +176,8 @@ export function BriefingPanel({
           setError("브리핑 생성이 중단되었습니다. 서버 시간 초과일 수 있습니다. 다시 시도해주세요.");
         }
       } catch (err) {
+        // AbortController에 의한 취소는 에러로 표시하지 않음
+        if (err instanceof DOMException && err.name === "AbortError") return;
         console.warn("[BriefingPanel] 브리핑 생성 실패:", err);
         setError("서버에 연결할 수 없습니다. 다시 시도해주세요.");
       } finally {
@@ -170,6 +189,11 @@ export function BriefingPanel({
     },
     [companyId]
   );
+
+  // 컴포넌트 언마운트 시 진행 중인 요청 취소
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
 
   // ── 첫 생성 로딩 (토스 스타일 로딩 UX) ────────
   if (loading && !briefing) {
