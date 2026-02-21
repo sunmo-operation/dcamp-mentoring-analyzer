@@ -127,18 +127,12 @@ export default async function AnalysisResultPage({ params }: Props) {
       )}
 
       {/* 하단 액션 */}
-      <div className="mt-10 flex items-center justify-between border-t border-border/50 pt-6">
+      <div className="mt-10 border-t border-border/50 pt-6">
         <Link
           href={company ? `/companies/${company.notionPageId}` : "/"}
           className="rounded-xl px-3 py-1.5 text-sm text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
         >
           &larr; {company ? `${company.name} 페이지로` : "홈으로"}
-        </Link>
-        <Link
-          href="/analyze"
-          className="rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#1B6EF3] hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(49,130,246,0.3)]"
-        >
-          새 분석
         </Link>
       </div>
     </div>

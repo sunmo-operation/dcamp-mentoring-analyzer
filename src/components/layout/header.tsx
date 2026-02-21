@@ -17,12 +17,6 @@ export function Header() {
           >
             홈
           </Link>
-          <Link
-            href="/analyze"
-            className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#1B6EF3] hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(49,130,246,0.3)] active:translate-y-0"
-          >
-            새 분석
-          </Link>
         </nav>
       </div>
     </header>
