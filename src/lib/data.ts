@@ -13,6 +13,7 @@ import type {
   CompanyBriefing,
   BatchDashboardData,
   KptReview,
+  ExecutiveSnapshot,
 } from "@/types";
 import {
   dbGetAnalyses,
@@ -25,6 +26,7 @@ import {
 } from "@/lib/db";
 import { sanitizeForReact } from "@/lib/safe-render";
 import { getClaudeClient } from "@/lib/claude";
+import { getExcelDataByName } from "@/lib/excel-data";
 
 const useDB = !!process.env.POSTGRES_URL;
 import {
@@ -266,6 +268,116 @@ ${yearMilestone ? `[배치 기간 핵심 목표 원문]\n${yearMilestone}\n` : "
   }
 }
 
+// ── Executive Snapshot AI 요약 (2시간 캐시) ──────
+const snapshotCache = new Map<string, { data: ExecutiveSnapshot; expires: number }>();
+
+/**
+ * 엑셀 사전설문 + 투자현황 데이터를 맥킨지 수석 컨설턴트 스타일로 요약
+ * 6개 핵심 필드: 대표자, 제품소개, 투자현황, 배치목표, 핵심차별성, 이상적 비전
+ */
+export async function generateExecutiveSnapshot(
+  company: Company,
+): Promise<ExecutiveSnapshot | null> {
+  const excel = company.excel;
+  if (!excel) return null;
+
+  const survey = excel.survey;
+  const investment = excel.investment;
+
+  // 원문이 충분하지 않으면 스킵
+  const hasData = survey?.productIntro || survey?.yearGoal || survey?.idealSuccess ||
+    company.description || investment?.latestRound;
+  if (!hasData) return null;
+
+  // 캐시 확인
+  const cacheKey = company.notionPageId || company.name;
+  const cached = snapshotCache.get(cacheKey);
+  if (cached && cached.expires > Date.now()) return cached.data;
+
+  // 원문 소스 수집 (AI에 전달할 컨텍스트)
+  const rawSources: string[] = [];
+  rawSources.push(`[기업명] ${company.name}`);
+  rawSources.push(`[대표자] ${company.ceoName || excel.pmPrimary || "미확인"}`);
+  if (company.description) rawSources.push(`[기업소개(Notion)] ${company.description}`);
+  if (survey?.productIntro) rawSources.push(`[제품/서비스 소개(설문)] ${survey.productIntro}`);
+  if (survey?.businessModel) rawSources.push(`[비즈니스 모델(설문)] ${survey.businessModel}`);
+  if (survey?.revenueModel) rawSources.push(`[수익 모델(설문)] ${survey.revenueModel}`);
+  if (survey?.investmentStatus) rawSources.push(`[투자유치 현황(설문)] ${survey.investmentStatus}`);
+  if (investment) {
+    const invParts: string[] = [];
+    if (investment.latestRound) invParts.push(`최근라운드: ${investment.latestRound}`);
+    if (investment.preMoneyValuation) invParts.push(`Pre-money: ${investment.preMoneyValuation}`);
+    if (investment.cumulativeFunding) invParts.push(`누적: ${investment.cumulativeFunding}`);
+    if (investment.leadInvestor) invParts.push(`리드: ${investment.leadInvestor}`);
+    if (investment.nextRound) invParts.push(`다음라운드: ${investment.nextRound}`);
+    if (investment.revenue2025) invParts.push(`25년결산: ${investment.revenue2025}억`);
+    if (invParts.length) rawSources.push(`[투자현황(엑셀)] ${invParts.join(" | ")}`);
+  }
+  if (survey?.yearGoal) rawSources.push(`[배치 기간 목표(설문)] ${survey.yearGoal}`);
+  if (survey?.moat) rawSources.push(`[핵심 차별성/해자(설문)] ${survey.moat}`);
+  if (survey?.valueProposition) rawSources.push(`[핵심 가치 제안(설문)] ${survey.valueProposition}`);
+  if (survey?.competitors) rawSources.push(`[경쟁 현황(설문)] ${survey.competitors}`);
+  if (survey?.idealSuccess) rawSources.push(`[이상적 성공 모습(설문)] ${survey.idealSuccess}`);
+  if (survey?.targetCustomer) rawSources.push(`[타겟 고객(설문)] ${survey.targetCustomer}`);
+  if (survey?.currentFocus) rawSources.push(`[현재 집중 영역(설문)] ${survey.currentFocus}`);
+  if (survey?.biggestChallenge) rawSources.push(`[최대 과제(설문)] ${survey.biggestChallenge}`);
+  if (survey?.ipStatus) rawSources.push(`[IP 현황(설문)] ${survey.ipStatus}`);
+  if (survey?.trlStage) rawSources.push(`[TRL 단계(설문)] ${survey.trlStage}`);
+
+  try {
+    const client = getClaudeClient();
+    const msg = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 600,
+      messages: [{
+        role: "user",
+        content: `당신은 맥킨지 수석 파트너입니다. 아래 스타트업의 원시 데이터를 보고 6개 항목을 경영진 브리핑용으로 요약하세요.
+
+## 규칙
+- 각 항목 1~2문장, 최대 80자
+- 맥킨지 톤: 팩트 기반, 정량적, 임팩트 중심
+- "~입니다" 금지. 명사구 또는 "~중/~예정/~확보" 같은 간결체
+- 숫자·지표가 있으면 반드시 유지
+- 데이터가 없는 항목은 관련 정보로 유추. 유추 불가 시 "확인 필요"
+- 억/만 단위 금액은 읽기 쉽게 변환 (예: 16063474000 → "약 160억")
+
+## 원시 데이터
+${rawSources.join("\n")}
+
+## 출력 (JSON만)
+{"productSummary":"제품/서비스 한줄 요약","investmentSummary":"투자 현황 요약","batchGoal":"배치 기간 핵심 목표","moat":"핵심 차별성/해자","idealVision":"이상적 성공 모습"}`,
+      }],
+    });
+    const text = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const json = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || "{}");
+
+    const snapshot: ExecutiveSnapshot = {
+      ceoName: company.ceoName || "확인 필요",
+      productSummary: json.productSummary || company.description?.slice(0, 80) || "확인 필요",
+      investmentSummary: json.investmentSummary || investment?.latestRound || "확인 필요",
+      batchGoal: json.batchGoal || survey?.yearGoal?.slice(0, 80) || "확인 필요",
+      moat: json.moat || survey?.moat?.slice(0, 80) || survey?.valueProposition?.slice(0, 80) || "확인 필요",
+      idealVision: json.idealVision || survey?.idealSuccess?.slice(0, 80) || "확인 필요",
+    };
+
+    snapshotCache.set(cacheKey, { data: snapshot, expires: Date.now() + 7_200_000 });
+    return snapshot;
+  } catch (error) {
+    console.warn("[data] Executive Snapshot 생성 실패:", error);
+    // 폴백: 원문 truncate
+    const fallback: ExecutiveSnapshot = {
+      ceoName: company.ceoName || "확인 필요",
+      productSummary: survey?.productIntro?.slice(0, 80) || company.description?.slice(0, 80) || "확인 필요",
+      investmentSummary: investment?.latestRound ? `${investment.latestRound} 단계` : "확인 필요",
+      batchGoal: survey?.yearGoal?.slice(0, 80) || "확인 필요",
+      moat: survey?.moat?.slice(0, 80) || survey?.valueProposition?.slice(0, 80) || "확인 필요",
+      idealVision: survey?.idealSuccess?.slice(0, 80) || "확인 필요",
+    };
+    snapshotCache.set(cacheKey, { data: fallback, expires: Date.now() + 300_000 });
+    return fallback;
+  }
+}
+
 // ── KPT 회고 AI 요약 (30분 캐시) ──────────────
 const kptSummaryCache = new Map<string, { data: string; count: number; expires: number }>();
 
@@ -380,6 +492,23 @@ export async function getCompanyAllData(
   ]);
 
   if (!company) return null;
+
+  // 엑셀 마스터 시트 데이터 병합 (PM, 투자현황, 사전설문 등)
+  const excelData = getExcelDataByName(company.name);
+  if (excelData) {
+    company.excel = excelData;
+  }
+
+  // Executive Snapshot: 사전설문 데이터를 맥킨지 스타일 AI 요약
+  if (company.excel) {
+    const snapshot = await generateExecutiveSnapshot(company).catch((error) => {
+      console.warn("[data] Executive Snapshot 생성 실패:", error);
+      return null;
+    });
+    if (snapshot) {
+      company.executiveSnapshot = snapshot;
+    }
+  }
 
   // 사전 설문 데이터 → AI 요약 후 company 객체에 merge
   if (surveyData) {

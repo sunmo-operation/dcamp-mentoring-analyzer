@@ -39,6 +39,76 @@ export interface Company {
   orgStatus?: string; // 조직 현황 및 주요 인력
   dcampExpectation?: string; // 디캠프 기대/요청사항
   valuation?: number; // 기업 가치 (Post value, 원)
+  // 엑셀 마스터 시트 연동 필드
+  excel?: ExcelEnrichedData;
+  executiveSnapshot?: ExecutiveSnapshot;
+}
+
+// ── 기업 엑셀 사전설문 AI 요약 (맥킨지 스타일) ────
+export interface ExecutiveSnapshot {
+  ceoName: string; // 대표자명
+  productSummary: string; // 제품/서비스 소개 요약
+  investmentSummary: string; // 투자 현황 요약
+  batchGoal: string; // 배치 기간 핵심 목표
+  moat: string; // 핵심 차별성/해자
+  idealVision: string; // 이상적 성공 모습
+}
+
+// ── 엑셀 마스터 시트 보강 데이터 ─────────────────
+export interface ExcelEnrichedData {
+  // 참여기업정보
+  managementId?: string; // 관리번호
+  participationDate?: string; // 참여일자
+  graduationDate?: string; // 졸업일자
+  pmPrimary?: string; // PM(정)
+  pmSecondary?: string; // PM(부)
+  dedicatedMentor?: string; // 전담멘토
+  expertMentor?: string; // 전문가멘토
+  staff?: string; // 실무진
+  email?: string; // 이메일
+  phone?: string; // 연락처
+  field?: string; // 분야
+  // 투자현황
+  investment?: ExcelInvestmentData;
+  // 사전설문
+  survey?: ExcelSurveyData;
+}
+
+export interface ExcelInvestmentData {
+  fundingStatus?: string; // 최근 펀딩 현황
+  latestRound?: string; // 최근 라운드
+  preMoneyValuation?: string; // Pre-money Valuation
+  latestFundingAmount?: string; // 최근 펀딩 금액
+  latestFundingDate?: string; // 최근 펀딩 일자
+  leadInvestor?: string; // 리드 투자자
+  participatingInvestors?: string; // 참여 투자자
+  cumulativeFunding?: string; // 누적 펀딩 금액
+  nextRound?: string; // 다음 라운드
+  targetAmount?: string; // 목표 금액
+  progress?: string; // 진행 상황
+  revenue2025?: string; // '25년 결산액
+}
+
+export interface ExcelSurveyData {
+  surveyBatch?: string;
+  productIntro?: string;
+  orgStatus?: string;
+  investmentStatus?: string;
+  targetCustomer?: string;
+  businessModel?: string;
+  revenueModel?: string;
+  valueProposition?: string;
+  idealSuccess?: string;
+  yearGoal?: string;
+  biggestChallenge?: string;
+  currentFocus?: string;
+  desiredSupport?: string;
+  dcampExpectation?: string;
+  competitors?: string;
+  trlStage?: string;
+  ipStatus?: string;
+  painPoints?: string;
+  moat?: string;
 }
 
 // ── 멘토 ──────────────────────────────────────────
