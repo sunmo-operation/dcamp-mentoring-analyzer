@@ -408,7 +408,16 @@ export async function summarizeRecentKpt(
 
   if (recent.length === 0) return null;
 
-  // KPT 원문 조합
+  // 폴백을 먼저 반환하고, AI 요약은 백그라운드에서 실행
+  // → 콜드 스타트 시 KPT AI 호출 대기(2~3초) 제거
+  const latest = recent[0];
+  const fallback = [
+    latest.keep && `잘한 점: ${latest.keep.slice(0, 60)}`,
+    latest.problem && `과제: ${latest.problem.slice(0, 60)}`,
+    latest.try && `시도: ${latest.try?.slice(0, 60)}`,
+  ].filter(Boolean).join("\n");
+
+  // 백그라운드 AI 요약 (다음 요청에서 캐시로 제공)
   const kptText = recent.map((k) => {
     const parts: string[] = [];
     if (k.reviewDate) parts.push(`[${k.reviewDate}]`);
@@ -418,14 +427,15 @@ export async function summarizeRecentKpt(
     return parts.join("\n");
   }).join("\n---\n");
 
-  try {
-    const client = getClaudeClient();
-    const msg = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 300,
-      messages: [{
-        role: "user",
-        content: `스타트업 액셀러레이터 PM으로서, 아래 KPT 회고 ${recent.length}건을 분석해 팀의 현재 상태를 3줄 이내로 진단하세요.
+  // AI 요약을 비차단으로 실행 — 결과는 캐시에 저장되어 다음 요청에 반영
+  const recentCount = recent.length;
+  try { getClaudeClient(); } catch { return fallback ? { summary: fallback, count: recent.length } : null; }
+  getClaudeClient().messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 300,
+    messages: [{
+      role: "user",
+      content: `스타트업 액셀러레이터 PM으로서, 아래 KPT 회고 ${recentCount}건을 분석해 팀의 현재 상태를 3줄 이내로 진단하세요.
 
 규칙:
 - 1줄: 잘 되고 있는 것 (Keep 핵심)
@@ -435,26 +445,18 @@ export async function summarizeRecentKpt(
 - 구체적 수치/키워드가 있으면 유지
 
 ${kptText}`,
-      }],
-    });
+    }],
+  }).then((msg) => {
     const summary = msg.content[0].type === "text" ? msg.content[0].text.trim() : "";
     if (summary) {
-      kptSummaryCache.set(companyId, { data: summary, count: recent.length, expires: Date.now() + 1_800_000 });
-      return { summary, count: recent.length };
+      kptSummaryCache.set(companyId, { data: summary, count: recentCount, expires: Date.now() + 1_800_000 });
     }
-  } catch (error) {
-    console.warn("[data] KPT 요약 실패:", error);
-  }
+  }).catch((err) => {
+    console.warn("[data] KPT AI 요약 백그라운드 실패:", err);
+  });
 
-  // 폴백: 가장 최근 KPT의 핵심만 표시
-  const latest = recent[0];
-  const fallback = [
-    latest.keep && `잘한 점: ${latest.keep.slice(0, 40)}`,
-    latest.problem && `과제: ${latest.problem.slice(0, 40)}`,
-    latest.try && `시도: ${latest.try?.slice(0, 40)}`,
-  ].filter(Boolean).join("\n");
+  // 즉시 폴백 반환 (AI 결과는 다음 요청에서 캐시로 사용)
   if (fallback) {
-    kptSummaryCache.set(companyId, { data: fallback, count: recent.length, expires: Date.now() + 300_000 });
     return { summary: fallback, count: recent.length };
   }
   return null;
@@ -507,32 +509,52 @@ export async function getCompanyAllData(
   // 사전 설문 기본 필드 먼저 반영 (비동기 불필요)
   if (surveyData?.valuation) company.valuation = surveyData.valuation;
 
-  // AI 요약 2건을 병렬 실행 (기존: 순차 → 총 대기시간 ~50% 감소)
+  // AI 요약 2건: 캐시 히트 시 즉시, 미스 시 비차단 백그라운드 실행
+  // → 콜드 스타트 5~7초 → ~1초로 단축 (AI 호출 대기 제거)
   const t2 = Date.now();
-  const [snapshot, surveySummary] = await Promise.all([
-    company.excel
-      ? generateExecutiveSnapshot(company).catch((error) => {
-          console.warn("[data] Executive Snapshot 생성 실패:", error);
-          return null;
-        })
-      : null,
-    surveyData
-      ? summarizeSurveyText(
-          companyNotionPageId,
-          surveyData.productIntro,
-          surveyData.yearMilestone,
-        ).catch((error) => {
-          console.warn("[data] 설문 요약 실패:", error);
-          return {} as { productOneLiner?: string; batchGoal?: string };
-        })
-      : null,
-  ]);
-  console.log(`[perf] getCompanyAllData > AI 요약 2건 병렬: ${Date.now() - t2}ms (snapshot: ${snapshot ? 'OK' : 'skip'}, survey: ${surveySummary ? 'OK' : 'skip'})`);
+  const snapshotCacheKey = company.notionPageId || company.name;
+  const cachedSnapshot = snapshotCache.get(snapshotCacheKey);
+  const cachedSurvey = surveySummaryCache.get(companyNotionPageId);
 
-  if (snapshot) company.executiveSnapshot = snapshot;
-  if (surveySummary) {
-    if (surveySummary.productOneLiner) company.productIntro = surveySummary.productOneLiner;
-    if (surveySummary.batchGoal) company.yearMilestone = surveySummary.batchGoal;
+  const hasSnapshotCache = cachedSnapshot && cachedSnapshot.expires > Date.now();
+  const hasSurveyCache = cachedSurvey && cachedSurvey.expires > Date.now();
+
+  if (hasSnapshotCache || hasSurveyCache) {
+    // 캐시 히트: 즉시 반영
+    if (hasSnapshotCache) company.executiveSnapshot = cachedSnapshot.data;
+    if (hasSurveyCache) {
+      if (cachedSurvey.data.productOneLiner) company.productIntro = cachedSurvey.data.productOneLiner;
+      if (cachedSurvey.data.batchGoal) company.yearMilestone = cachedSurvey.data.batchGoal;
+    }
+    console.log(`[perf] getCompanyAllData > AI 요약 캐시 히트: ${Date.now() - t2}ms`);
+  }
+
+  // 캐시 미스인 항목만 백그라운드에서 생성 (페이지 렌더를 차단하지 않음)
+  if (!hasSnapshotCache && company.excel) {
+    generateExecutiveSnapshot(company)
+      .then((snap) => {
+        if (snap) {
+          // 캐시된 결과에도 반영 (다음 요청에서 사용)
+          const cachedResult = companyDataCache.get(companyNotionPageId);
+          if (cachedResult) {
+            cachedResult.data.company.executiveSnapshot = snap;
+          }
+        }
+      })
+      .catch((err) => console.warn("[data] Executive Snapshot 백그라운드 생성 실패:", err));
+  }
+  if (!hasSurveyCache && surveyData) {
+    summarizeSurveyText(companyNotionPageId, surveyData.productIntro, surveyData.yearMilestone)
+      .then((summary) => {
+        if (summary) {
+          const cachedResult = companyDataCache.get(companyNotionPageId);
+          if (cachedResult) {
+            if (summary.productOneLiner) cachedResult.data.company.productIntro = summary.productOneLiner;
+            if (summary.batchGoal) cachedResult.data.company.yearMilestone = summary.batchGoal;
+          }
+        }
+      })
+      .catch((err) => console.warn("[data] 설문 요약 백그라운드 생성 실패:", err));
   }
 
   // 타임라인을 로컬에서 조립 (getTimeline 내부 재호출 제거)

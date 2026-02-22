@@ -125,18 +125,55 @@ export function HomeClient({
           포트폴리오 기업 현황
         </h1>
         <p className="mt-1 text-muted-foreground">
-          멘토링 원문을 AI로 분석하여 근본 과제와 액션을 도출합니다
+          포트폴리오 기업의 현재 상황과 핵심 아젠다를 한눈에 파악할 수 있습니다
         </p>
       </div>
 
-      {/* 사용 가이드 */}
-      <div className="mb-6 rounded-xl border border-border/60 bg-muted/30 px-5 py-4">
-        <div className="flex items-start gap-3">
-          <span className="mt-0.5 text-muted-foreground text-sm shrink-0">사용법</span>
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
-            <span><span className="font-medium text-foreground">1.</span> 아래 기업 카드를 클릭하여 상세 정보 확인</span>
-            <span><span className="font-medium text-foreground">2.</span> 상세 페이지에서 AI 브리핑 생성 클릭</span>
-            <span><span className="font-medium text-foreground">3.</span> 멘토링 기록·KPT·전문가 투입 교차 분석 확인</span>
+      {/* 데이터 파이프라인 가이드 — 토스 스타일 */}
+      <div className="mb-8 rounded-2xl border border-border/40 bg-gradient-to-br from-gray-50/80 to-white dark:from-gray-900/40 dark:to-gray-950 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gray-900 dark:bg-gray-100">
+            <svg className="h-3.5 w-3.5 text-white dark:text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <span className="text-sm font-bold text-foreground">어떻게 작동하나요?</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Step 1 */}
+          <div className="rounded-xl bg-white dark:bg-gray-900/60 border border-border/30 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/40 text-[11px] font-bold text-blue-700 dark:text-blue-300">1</span>
+              <span className="text-xs font-semibold text-foreground">데이터 수집</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Notion DB에서 멘토링 기록, KPT 회고, 전문가 투입, OKR 등을 자동 수집합니다
+            </p>
+            <div className="flex flex-wrap gap-1">
+              <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-300">Notion</span>
+              <span className="inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Slack</span>
+              <span className="inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Gmail</span>
+            </div>
+          </div>
+          {/* Step 2 */}
+          <div className="rounded-xl bg-white dark:bg-gray-900/60 border border-border/30 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-[11px] font-bold text-indigo-700 dark:text-indigo-300">2</span>
+              <span className="text-xs font-semibold text-foreground">AI 교차 분석</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              수집된 데이터를 AI가 교차 검증하여 반복 패턴, 숨겨진 신호, 멘토 피드백 이행 여부를 진단합니다
+            </p>
+          </div>
+          {/* Step 3 */}
+          <div className="rounded-xl bg-white dark:bg-gray-900/60 border border-border/30 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40 text-[11px] font-bold text-green-700 dark:text-green-300">3</span>
+              <span className="text-xs font-semibold text-foreground">인사이트 도출</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              기업 카드 클릭 후 AI 브리핑 생성을 누르면, 배치 프로그램에서 다루는 아젠다와 현재 상황을 한눈에 파악할 수 있습니다
+            </p>
           </div>
         </div>
       </div>

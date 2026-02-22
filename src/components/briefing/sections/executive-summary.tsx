@@ -64,13 +64,16 @@ export function ExecutiveSummary({
           {safeStr(momentumReason)}
         </p>
         {keyNumbers.length > 0 && (
-          <div className="rounded-lg bg-muted/50 p-3 space-y-1.5">
-            <p className="text-[11px] font-semibold text-muted-foreground mb-2 uppercase tracking-wider">멘토링 핵심 인사이트</p>
-            {keyNumbers.map((line, i) => (
-              <div key={i} className="border-l-2 border-primary/40 pl-2.5">
-                <p className="text-sm">{safeStr(line)}</p>
-              </div>
-            ))}
+          <div className="rounded-xl bg-muted/40 p-4">
+            <p className="text-[11px] font-semibold text-muted-foreground mb-3 uppercase tracking-wider">멘토링 핵심 인사이트</p>
+            <ul className="space-y-2">
+              {keyNumbers.map((line, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
+                  <span>{safeStr(line)}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </CardContent>

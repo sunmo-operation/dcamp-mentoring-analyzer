@@ -65,6 +65,17 @@ export function parseBulletLines(text: string | undefined | null): string[] {
     lines = text.split(/(?=\(\d+\))/).map((l) => l.trim()).filter(Boolean);
   }
 
+  // 줄바꿈 없이 한 줄로 온 긴 텍스트 → 문장 단위로 분리
+  // "키워드: 설명. 키워드: 설명." 패턴 감지
+  if (lines.length <= 1 && text.length > 100) {
+    // ". " 뒤에 한글/영문 대문자가 오면 문장 경계로 판단
+    const sentenceSplit = text.split(/\.\s+(?=[가-힣A-Z])/).map((l) => l.trim()).filter(Boolean);
+    if (sentenceSplit.length >= 2) {
+      // 마지막 문장에 마침표 없으면 추가하지 않음 (원본 유지)
+      lines = sentenceSplit.map((s) => s.endsWith(".") ? s : s + ".");
+    }
+  }
+
   return lines.map((line) =>
     line
       .replace(/^[\s]*[•▪▸►·‣⁃\-\*]\s*/, "")  // 불릿 기호 제거
