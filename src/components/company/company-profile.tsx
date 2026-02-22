@@ -29,16 +29,54 @@ function formatWon(value: number): string {
   return `${value.toLocaleString()}원`;
 }
 
-// 문자열 내 원 단위 숫자를 억원으로 자동 변환
+// 문자열 내 모든 금액을 억원 단위로 자동 변환
+// 엑셀 원본의 다양한 포맷을 처리:
+// - 순수 숫자: "2800000000.0" → "28억원"
+// - 콤마 숫자: "6,000,000,000" → "60억원"
+// - 원 단위: "5,679,998,232 원" → "56.8억원"
+// - 이미 억: "170억" → "170억원"
 function formatMoneyStr(text: string): string {
-  // "50억" → "50억원", "1.7억" → "1.7억원" (이미 억 단위면 원 붙이기)
-  return text
-    .replace(/(\d[\d,]*)원/g, (_, num) => {
-      const val = parseInt(num.replace(/,/g, ""), 10);
-      if (isNaN(val)) return `${num}원`;
-      return formatWon(val);
-    })
-    .replace(/(\d+(?:\.\d+)?)억(?!원)/g, "$1억원");
+  const trimmed = text.trim();
+
+  // Case 1: 순수 숫자 문자열 (예: "2800000000.0", "15000000000.0")
+  if (/^[\d,.]+$/.test(trimmed)) {
+    const val = parseFloat(trimmed.replace(/,/g, ""));
+    if (!isNaN(val) && val >= 10_000_000) return formatWon(val);
+    // ".0" 엑셀 변환 아티팩트 제거
+    if (trimmed.endsWith(".0")) return trimmed.replace(/\.0$/, "");
+    return trimmed;
+  }
+
+  let result = text;
+
+  // Case 2: "100억 원" → "100억원" (공백 통합)
+  result = result.replace(/억\s+원/g, "억원");
+
+  // Case 3: "숫자원" / "숫자 원" → 억원 변환 (1000만 이상만)
+  result = result.replace(/(\d[\d,]*)(\s*)원/g, (full, num) => {
+    const val = parseInt(num.replace(/,/g, ""), 10);
+    if (isNaN(val) || val < 10_000_000) return full;
+    return formatWon(val);
+  });
+
+  // Case 4: "50억" → "50억원" (원 누락 보정)
+  result = result.replace(/(\d+(?:\.\d+)?)억(?!원)/g, "$1억원");
+
+  // Case 5: 텍스트 내 콤마 포함 대형 숫자 (1억+) → 억원
+  result = result.replace(/(\d{1,3}(?:,\d{3}){2,})(?:\.\d+)?(?![\d억만원])/g, (match) => {
+    const val = parseFloat(match.replace(/,/g, ""));
+    if (isNaN(val) || val < 100_000_000) return match;
+    return formatWon(val);
+  });
+
+  // Case 6: 텍스트 내 콤마 없는 대형 숫자 (9자리+, 10억+) → 억원
+  result = result.replace(/(?<![.\d])(\d{9,})(?:\.\d+)?(?![\d억만원])/g, (match) => {
+    const val = parseFloat(match);
+    if (isNaN(val) || val < 100_000_000) return match;
+    return formatWon(val);
+  });
+
+  return result;
 }
 
 // 투자유치 현황 포맷: "Series A 50억원" / "Series A" / "50억원"
