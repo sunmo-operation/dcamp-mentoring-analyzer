@@ -151,8 +151,8 @@ async function callClaudeAndParse(
 
   const response = await claude.messages.stream({
     model: process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001",
-    // 실제 브리핑 JSON은 3000~5000 토큰이면 충분. 8192에서 줄여 속도 개선.
-    max_tokens: 5000,
+    // Sonnet 4.6은 상세한 응답을 생성하므로 넉넉하게 설정. 잘림 방지.
+    max_tokens: 16384,
     system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
     messages: [
       { role: "user", content: userPrompt },
