@@ -1,4 +1,5 @@
 import { Suspense, cache } from "react";
+import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -21,11 +22,24 @@ import {
 export const revalidate = 300;
 export const maxDuration = 120;
 
+// ── unstable_cache: Vercel Data Cache에 명시적 등록 ──
+// Notion SDK가 node-fetch를 사용하므로 Next.js가 자동 추적 불가
+// unstable_cache로 감싸야 ISR 캐시(s-maxage)가 활성화됨
+const persistedGetCompanyLight = unstable_cache(
+  getCompanyLight,
+  ["company-light"],
+  { revalidate: 300 }
+);
+const persistedGetBriefing = unstable_cache(
+  getBriefingByCompany,
+  ["briefing"],
+  { revalidate: 300 }
+);
+
 // ── React cache: 같은 요청 내 동일 함수 호출 중복 제거 ──
-// ProfileSection과 BriefingSection이 동시에 getCompanyLight를 호출해도
-// 실제 Notion API는 1번만 호출됨
-const cachedGetCompanyLight = cache(getCompanyLight);
-const cachedGetBriefing = cache(getBriefingByCompany);
+// ProfileSection과 BriefingSection이 동시에 호출해도 실제 1번만 실행
+const cachedGetCompanyLight = cache(persistedGetCompanyLight);
+const cachedGetBriefing = cache(persistedGetBriefing);
 
 interface Props {
   params: Promise<{ id: string }>;
