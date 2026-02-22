@@ -114,17 +114,20 @@ export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }:
           {company.description || "기업 소개가 없습니다"}
         </p>
 
-        {/* Executive Snapshot — AI 요약 또는 원본 데이터 폴백 */}
+        {/* Executive Snapshot — 배치 지원 시점 기준 데이터 */}
         {company.executiveSnapshot ? (
           <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <p className="text-xs font-bold text-primary tracking-wide uppercase">Executive Snapshot</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <p className="text-xs font-bold text-primary tracking-wide uppercase">Executive Snapshot</p>
+              </div>
+              <span className="text-[10px] text-muted-foreground/60">배치 지원 당시 기준</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <SnapshotField label="대표자" value={company.executiveSnapshot.ceoName} />
               <SnapshotField label="제품/서비스" value={company.executiveSnapshot.productSummary} />
-              <SnapshotField label="투자 현황" value={company.executiveSnapshot.investmentSummary} />
+              <SnapshotField label="투자 단계 (지원 당시)" value={company.executiveSnapshot.investmentSummary} />
               <SnapshotField label="배치 핵심 목표" value={company.executiveSnapshot.batchGoal} />
               <SnapshotField label="핵심 차별성" value={company.executiveSnapshot.moat} />
               <SnapshotField label="이상적 성공 모습" value={company.executiveSnapshot.idealVision} />
@@ -132,14 +135,17 @@ export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }:
           </div>
         ) : company.excel?.survey && (
           <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <p className="text-xs font-bold text-primary tracking-wide uppercase">Executive Snapshot</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <p className="text-xs font-bold text-primary tracking-wide uppercase">Executive Snapshot</p>
+              </div>
+              <span className="text-[10px] text-muted-foreground/60">배치 지원 당시 기준</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <SnapshotField label="대표자" value={company.ceoName || company.excel.pmPrimary || ""} />
               <SnapshotField label="제품/서비스" value={company.excel.survey.productIntro?.slice(0, 80) || ""} />
-              <SnapshotField label="투자 현황" value={company.excel.survey.investmentStatus?.slice(0, 80) || (company.investmentStage || "")} />
+              <SnapshotField label="투자 단계 (지원 당시)" value={company.excel.survey.investmentStatus?.slice(0, 80) || (company.investmentStage || "")} />
               <SnapshotField label="배치 핵심 목표" value={company.excel.survey.yearGoal?.slice(0, 80) || ""} />
               <SnapshotField label="핵심 차별성" value={company.excel.survey.moat?.slice(0, 80) || ""} />
               <SnapshotField label="이상적 성공 모습" value={company.excel.survey.idealSuccess?.slice(0, 80) || ""} />
@@ -217,7 +223,10 @@ export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }:
         {/* 투자현황 상세 (엑셀 마스터 시트) */}
         {company.excel?.investment && (
           <div className="rounded-xl border border-border/60 px-4 py-3 space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground">투자 현황 상세</p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-muted-foreground">투자 현황 상세</p>
+              <span className="text-[10px] text-muted-foreground/50">배치 지원 당시 기준</span>
+            </div>
             <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
               {company.excel.investment.latestRound && (
                 <div><span className="text-muted-foreground">최근 라운드:</span> <span className="font-medium">{company.excel.investment.latestRound}</span></div>
