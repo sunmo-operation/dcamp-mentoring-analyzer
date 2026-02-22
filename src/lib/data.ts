@@ -468,13 +468,17 @@ ${kptText}`,
 export async function getCompanyAllData(
   companyNotionPageId: string
 ): Promise<CompanyAllData | null> {
+  const t0 = Date.now();
+
   // 캐시 확인
   const cached = companyDataCache.get(companyNotionPageId);
   if (cached && cached.expires > Date.now()) {
+    console.log(`[perf] getCompanyAllData(${companyNotionPageId.slice(0,8)}): 캐시 히트 (${Date.now() - t0}ms)`);
     return cached.data;
   }
 
   // 기업 정보 + 세션 + 전문가 요청 + 사전 설문을 모두 병렬 호출
+  const t1 = Date.now();
   const [company, sessions, expertRequests, surveyData] = await Promise.all([
     notionGetCompany(companyNotionPageId),
     notionGetSessions(companyNotionPageId).catch((error) => {
@@ -490,6 +494,7 @@ export async function getCompanyAllData(
       return null;
     }),
   ]);
+  console.log(`[perf] getCompanyAllData > Notion 병렬호출: ${Date.now() - t1}ms (company + sessions ${sessions.length}건 + expertRequests ${expertRequests.length}건 + survey)`);
 
   if (!company) return null;
 
@@ -503,6 +508,7 @@ export async function getCompanyAllData(
   if (surveyData?.valuation) company.valuation = surveyData.valuation;
 
   // AI 요약 2건을 병렬 실행 (기존: 순차 → 총 대기시간 ~50% 감소)
+  const t2 = Date.now();
   const [snapshot, surveySummary] = await Promise.all([
     company.excel
       ? generateExecutiveSnapshot(company).catch((error) => {
@@ -521,6 +527,7 @@ export async function getCompanyAllData(
         })
       : null,
   ]);
+  console.log(`[perf] getCompanyAllData > AI 요약 2건 병렬: ${Date.now() - t2}ms (snapshot: ${snapshot ? 'OK' : 'skip'}, survey: ${surveySummary ? 'OK' : 'skip'})`);
 
   if (snapshot) company.executiveSnapshot = snapshot;
   if (surveySummary) {
@@ -565,7 +572,9 @@ export async function getCompanyAllData(
   // 날짜 내림차순 정렬
   timeline.sort((a, b) => b.date.localeCompare(a.date));
 
+  const t3 = Date.now();
   const analyses = await getAnalysesByCompany(companyNotionPageId);
+  console.log(`[perf] getCompanyAllData > analyses 조회: ${Date.now() - t3}ms (${analyses.length}건)`);
 
   // Notion API에서 반환된 데이터에 예상치 못한 객체 타입이 포함될 수 있으므로
   // JSON round-trip으로 직렬화 안전성을 보장 (React #310 근본 방지)
@@ -577,6 +586,7 @@ export async function getCompanyAllData(
     expires: Date.now() + 900_000,
   });
 
+  console.log(`[perf] getCompanyAllData(${companyNotionPageId.slice(0,8)}): 전체 ${Date.now() - t0}ms`);
   return result;
 }
 

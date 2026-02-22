@@ -76,7 +76,7 @@ dcamp PM이 멘토 미팅 직전 5분 안에 읽을 브리핑을 작성하세요
     "currentPhase": "현재 단계 (예: PMF 탐색 / 채널 검증 / 스케일업 초입)",
     "momentum": "positive | neutral | negative | critical",
     "momentumReason": "모멘텀 판단 근거 1문장",
-    "reportBody": "핵심 지표/수치를 줄바꿈으로 구분하여 나열. 형식: 지표명: 수치 또는 상태",
+    "reportBody": "최근 멘토링·회의·전문가 투입에서 도출된 핵심 인사이트 3~5건을 줄바꿈으로 구분. 기업 기본정보(산업, 투자단계, 팀규모 등) 중복 금지. 회의에서 논의된 전략적 판단, 멘토 피드백의 핵심, 전문가 투입 결과, 팀의 실행 상황 등 '미팅에서만 알 수 있는' 인사이트를 담을 것. 형식: 키워드: 인사이트 내용",
     "pmfStage": "pre-pmf | approaching | achieved | scaling",
     "vocStrength": "strong | moderate | weak (고객 데이터 기반 의사결정 강도)"
   },

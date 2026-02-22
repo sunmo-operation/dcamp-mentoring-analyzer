@@ -65,6 +65,7 @@ export function ExecutiveSummary({
         </p>
         {keyNumbers.length > 0 && (
           <div className="rounded-lg bg-muted/50 p-3 space-y-1.5">
+            <p className="text-[11px] font-semibold text-muted-foreground mb-2 uppercase tracking-wider">멘토링 핵심 인사이트</p>
             {keyNumbers.map((line, i) => (
               <div key={i} className="border-l-2 border-primary/40 pl-2.5">
                 <p className="text-sm">{safeStr(line)}</p>

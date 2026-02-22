@@ -89,17 +89,21 @@ export default async function CompanyPage({ params, searchParams }: Props) {
 // 섹션 1: 기업 프로필 + KPT 요약
 // ══════════════════════════════════════════════════
 async function ProfileSection({ companyId }: { companyId: string }) {
+  const t0 = Date.now();
   // allData + kptReviews 병렬 fetch (cache로 다른 섹션과 중복 방지)
   const [allData, kptReviews] = await Promise.all([
     cachedGetAllData(companyId),
     cachedGetKptReviews(companyId),
   ]);
   if (!allData) notFound();
+  console.log(`[perf] ProfileSection > 데이터 로드: ${Date.now() - t0}ms`);
 
   const { company, expertRequests } = allData;
 
   // KPT AI 요약 (자체 30분 캐시 보유)
+  const t1 = Date.now();
   const kptResult = await summarizeRecentKpt(companyId, kptReviews);
+  console.log(`[perf] ProfileSection > KPT 요약: ${Date.now() - t1}ms | 전체: ${Date.now() - t0}ms`);
 
   // 전문가 요청 요약
   const expertSummary = {
@@ -128,12 +132,14 @@ async function ProfileSection({ companyId }: { companyId: string }) {
 // 섹션 2: AI 브리핑 패널
 // ══════════════════════════════════════════════════
 async function BriefingSection({ companyId }: { companyId: string }) {
+  const t0 = Date.now();
   const [allData, existingBriefing, kptReviews, okrItems] = await Promise.all([
     cachedGetAllData(companyId),
     cachedGetBriefing(companyId),
     cachedGetKptReviews(companyId),
     cachedGetOkrItems(companyId),
   ]);
+  console.log(`[perf] BriefingSection > 데이터 로드: ${Date.now() - t0}ms`);
   if (!allData) return null;
 
   const { company, sessions, expertRequests, analyses } = allData;
@@ -181,7 +187,9 @@ async function TabsSection({
   companyId: string;
   filter?: string;
 }) {
+  const t0 = Date.now();
   const allData = await cachedGetAllData(companyId);
+  console.log(`[perf] TabsSection > 데이터 로드: ${Date.now() - t0}ms`);
   if (!allData) return null;
 
   const { sessions, expertRequests, timeline, analyses } = allData;

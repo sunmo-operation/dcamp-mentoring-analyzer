@@ -129,6 +129,18 @@ export function HomeClient({
         </p>
       </div>
 
+      {/* 사용 가이드 */}
+      <div className="mb-6 rounded-xl border border-border/60 bg-muted/30 px-5 py-4">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 text-muted-foreground text-sm shrink-0">사용법</span>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+            <span><span className="font-medium text-foreground">1.</span> 아래 기업 카드를 클릭하여 상세 정보 확인</span>
+            <span><span className="font-medium text-foreground">2.</span> 상세 페이지에서 AI 브리핑 생성 클릭</span>
+            <span><span className="font-medium text-foreground">3.</span> 멘토링 기록·KPT·전문가 투입 교차 분석 확인</span>
+          </div>
+        </div>
+      </div>
+
       {/* 검색 */}
       <CompanySearch onSearch={handleSearch} initialQuery={searchQuery} />
 

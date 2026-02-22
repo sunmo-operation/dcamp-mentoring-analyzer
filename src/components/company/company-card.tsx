@@ -17,7 +17,16 @@ interface CompanyCardProps {
 // 토스 스타일 기업 카드: 호버 시 살짝 떠오르는 효과 + 넉넉한 여백
 export function CompanyCard({ company, analysisCount = 0 }: CompanyCardProps) {
   return (
-    <Link href={`/companies/${company.notionPageId}`}>
+    <Link
+      href={`/companies/${company.notionPageId}`}
+      onClick={() => {
+        // 네비게이션 시작 타이밍 기록 (dev 콘솔에서 성능 측정용)
+        if (typeof performance !== "undefined") {
+          performance.mark("nav-start");
+          console.log(`[perf] 네비게이션 시작: ${company.name} (${new Date().toISOString()})`);
+        }
+      }}
+    >
       <Card className="cursor-pointer h-full hover:-translate-y-1 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.1)]">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-3">
