@@ -46,7 +46,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="toss-shadow rounded-2xl bg-card p-8">
           <h1 className="mb-2 text-xl font-bold text-foreground">
-            AI 멘토링 분석기
+            AI Mentoring Analyzer
           </h1>
           <p className="mb-6 text-sm text-muted-foreground">
             내부 도구입니다. 비밀번호를 입력해주세요.

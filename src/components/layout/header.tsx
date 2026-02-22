@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 // 토스 스타일 헤더: 깨끗한 배경 + 블루 포인트
@@ -5,9 +6,10 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-xl supports-[backdrop-filter]:bg-card/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold tracking-tight text-foreground">
-            AI <span className="text-primary">멘토링 분석기</span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <Image src="/dcamp-logo.png" alt="dcamp" width={80} height={24} className="h-6 w-auto" />
+          <span className="text-lg font-bold tracking-tight text-foreground">
+            AI <span className="text-primary">Mentoring Analyzer</span>
           </span>
         </Link>
         <nav className="flex items-center gap-3">

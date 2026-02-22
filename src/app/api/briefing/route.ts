@@ -145,19 +145,25 @@ async function callClaudeAndParse(
   userPrompt: string,
   onProgress: (text: string) => void
 ): Promise<{ parsed: unknown; stopReason: string }> {
-  // assistant prefill: Claude가 반드시 JSON으로 시작하도록 강제
-  // 이 기법은 Claude 공식 문서에서 권장하는 structured output 보장 방법
-  const JSON_PREFILL = "{";
+  const model = process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001";
+
+  // Sonnet 4.6+ 모델은 assistant prefill 미지원 → prefill 사용 불가
+  const supportsPrefill = !model.includes("sonnet-4") && !model.includes("opus-4");
+  const JSON_PREFILL = supportsPrefill ? "{" : "";
+
+  const messages: { role: "user" | "assistant"; content: string }[] = [
+    { role: "user", content: userPrompt },
+  ];
+  if (supportsPrefill) {
+    messages.push({ role: "assistant", content: JSON_PREFILL });
+  }
 
   const response = await claude.messages.stream({
-    model: process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001",
+    model,
     // Sonnet 4.6은 상세한 응답을 생성하므로 넉넉하게 설정. 잘림 방지.
     max_tokens: 16384,
     system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
-    messages: [
-      { role: "user", content: userPrompt },
-      { role: "assistant", content: JSON_PREFILL },
-    ],
+    messages,
   });
 
   let fullText = "";
@@ -350,7 +356,8 @@ export async function POST(request: Request) {
             break; // 성공하면 루프 종료
           } catch (e) {
             lastError = e instanceof Error ? e : new Error(String(e));
-            console.warn(`[브리핑] 시도 ${attempt} 실패:`, lastError.message);
+            console.error(`[브리핑] 시도 ${attempt} 실패:`, lastError.message, lastError.stack);
+            console.error(`[브리핑] 에러 상세:`, JSON.stringify(e, Object.getOwnPropertyNames(e as object), 2));
           }
         }
 
