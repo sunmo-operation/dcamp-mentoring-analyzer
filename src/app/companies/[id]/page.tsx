@@ -8,6 +8,7 @@ import {
 } from "@/lib/data";
 import { CompanyProfile } from "@/components/company/company-profile";
 import { BriefingPanel } from "@/components/briefing/briefing-panel";
+import { FloatingChat } from "@/components/chat/floating-chat";
 import { Separator } from "@/components/ui/separator";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { LiveRefreshGuard } from "@/components/live-refresh-guard";
@@ -81,6 +82,11 @@ export default async function CompanyPage({ params }: Props) {
 
       <Separator className="my-8" />
 
+      {/* 플로팅 AI 챗 — 화면 우하단 고정 버튼 + 슬라이드업 패널 */}
+      <Suspense fallback={null}>
+        <ChatSection companyId={id} />
+      </Suspense>
+
       {/* 온디맨드 섹션: 멘토링 기록 + 타임라인 + 분석 (버튼 클릭 시 로드) */}
       {/* tab/filter는 클라이언트에서 useSearchParams로 읽어 ISR 캐시 보존 */}
       <LazyTabsSection companyId={id} />
@@ -140,5 +146,18 @@ async function BriefingSection({ companyId }: { companyId: string }) {
       isStale={briefingIsStale}
       staleReason={briefingStaleReason}
     />
+  );
+}
+
+// ══════════════════════════════════════════════════
+// 섹션 3: 플로팅 AI 챗 (우하단 고정 버튼 + 슬라이드업 패널)
+// 서버에서 companyName만 조회하여 FloatingChat에 전달
+// ══════════════════════════════════════════════════
+async function ChatSection({ companyId }: { companyId: string }) {
+  const company = await cachedGetCompanyLight(companyId);
+  if (!company) return null;
+
+  return (
+    <FloatingChat companyId={companyId} companyName={company.name} />
   );
 }
