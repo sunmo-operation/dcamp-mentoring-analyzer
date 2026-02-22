@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifyAuthToken, AUTH_COOKIE_NAME } from "@/lib/auth";
 
 // ── Rate Limiting (in-memory sliding window) ──────────
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1분
@@ -25,31 +26,68 @@ function isRateLimited(ip: string): boolean {
   return recent.length > RATE_LIMIT_MAX;
 }
 
+// ── 사이트 비밀번호 인증이 필요 없는 경로 ──────────
+const PUBLIC_PATHS = ["/login", "/api/auth/login"];
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(p + "/"),
+  );
+}
+
 /**
- * API 엔드포인트 보호 미들웨어
+ * 미들웨어
  *
- * 1. Rate Limiting: IP 기반 분당 20회 제한 (Claude API 비용 폭주 방지)
- * 2. 인증: API_SECRET 환경변수 설정 시 Bearer/x-api-key 검증
+ * 1. SITE_PASSWORD 설정 시: 쿠키 기반 사이트 전체 비밀번호 보호
+ * 2. Rate Limiting: IP 기반 분당 20회 제한 (API만)
+ * 3. API_SECRET 설정 시: Bearer/x-api-key 인증 (API만)
  */
-export function middleware(request: NextRequest) {
-  // API 라우트만 보호
-  if (!request.nextUrl.pathname.startsWith("/api/")) {
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // ── 사이트 비밀번호 보호 ─────────────────────
+  const sitePassword = process.env.SITE_PASSWORD;
+
+  if (sitePassword && !isPublicPath(pathname)) {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    const isValid = token ? await verifyAuthToken(token, sitePassword) : false;
+
+    if (!isValid) {
+      // API 요청이면 401 JSON, 페이지 요청이면 로그인으로 리다이렉트
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json(
+          { success: false, error: "인증이 필요합니다" },
+          { status: 401 },
+        );
+      }
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("from", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // ── 이하 API 전용 보호 로직 ──────────────────
+  if (!pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
   // ── Rate Limiting ──────────────────────────────
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    || request.headers.get("x-real-ip")
-    || "unknown";
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
 
   if (isRateLimited(ip)) {
     return NextResponse.json(
-      { success: false, error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
-      { status: 429 }
+      {
+        success: false,
+        error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+      },
+      { status: 429 },
     );
   }
 
-  // ── 인증 ───────────────────────────────────────
+  // ── API 인증 ───────────────────────────────────
   const apiSecret = process.env.API_SECRET;
 
   // API_SECRET 미설정 시 인증 건너뜀 (개발 환경)
@@ -61,14 +99,14 @@ export function middleware(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   const apiKeyHeader = request.headers.get("x-api-key");
 
-  const token = authHeader?.startsWith("Bearer ")
+  const apiToken = authHeader?.startsWith("Bearer ")
     ? authHeader.slice(7)
     : apiKeyHeader;
 
-  if (token !== apiSecret) {
+  if (apiToken !== apiSecret) {
     return NextResponse.json(
       { success: false, error: "인증이 필요합니다" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -76,5 +114,11 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/api/:path*",
+  matcher: [
+    /*
+     * 정적 파일과 Next.js 내부 경로를 제외한 모든 라우트를 매칭
+     * - _next/static, _next/image, favicon.ico 등 제외
+     */
+    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };
