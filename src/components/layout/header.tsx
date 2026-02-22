@@ -12,12 +12,18 @@ export function Header() {
             AI <span className="text-primary">Mentoring Analyzer</span>
           </span>
         </Link>
-        <nav className="flex items-center gap-3">
+        <nav className="flex items-center gap-1">
           <Link
             href="/"
             className="rounded-xl px-4 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
           >
             홈
+          </Link>
+          <Link
+            href="/about"
+            className="rounded-xl px-4 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
+          >
+            About
           </Link>
         </nav>
       </div>
