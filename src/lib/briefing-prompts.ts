@@ -157,7 +157,7 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 
 // ── 데이터 포맷팅 헬퍼 ──────────────────────────────
 
-function truncate(text: string, maxLen: number): string {
+export function truncate(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text;
   return text.slice(0, maxLen - 3) + "...";
 }
@@ -165,7 +165,7 @@ function truncate(text: string, maxLen: number): string {
 /**
  * 세션 유형별 분류
  */
-function categorizeSessionType(sessionTypes: string[]): string {
+export function categorizeSessionType(sessionTypes: string[]): string {
   const types = sessionTypes.join(", ");
   if (types.includes("멘토")) return "멘토 세션";
   if (types.includes("전문가투입")) return "전문가 투입";
@@ -177,7 +177,7 @@ function categorizeSessionType(sessionTypes: string[]): string {
 /**
  * 최근 세션을 유형별로 그룹화하여 포맷
  */
-function formatRecentSessionsGrouped(sessions: MentoringSession[]): string {
+export function formatRecentSessionsGrouped(sessions: MentoringSession[]): string {
   if (sessions.length === 0) return "최근 3개월간 멘토링 기록 없음";
 
   // 유형별 그룹화
@@ -211,7 +211,7 @@ function formatRecentSessionsGrouped(sessions: MentoringSession[]): string {
 /**
  * 이전 세션 간략 요약 (타임라인 맥락용)
  */
-function formatOlderSessionsBrief(sessions: MentoringSession[]): string {
+export function formatOlderSessionsBrief(sessions: MentoringSession[]): string {
   if (sessions.length === 0) return "이전 기록 없음";
 
   // 최대 8건만 (프롬프트 축소)
@@ -224,7 +224,7 @@ function formatOlderSessionsBrief(sessions: MentoringSession[]): string {
     .join("\n");
 }
 
-function formatExpertRequests(requests: ExpertRequest[]): string {
+export function formatExpertRequests(requests: ExpertRequest[]): string {
   if (requests.length === 0) return "전문가 요청 없음";
 
   // 최대 5건만 (프롬프트 축소)
@@ -241,7 +241,7 @@ function formatExpertRequests(requests: ExpertRequest[]): string {
     .join("\n");
 }
 
-function formatAnalyses(analyses: AnalysisResult[]): string {
+export function formatAnalyses(analyses: AnalysisResult[]): string {
   if (analyses.length === 0) return "AI 분석 결과 없음";
 
   return analyses
@@ -255,7 +255,7 @@ function formatAnalyses(analyses: AnalysisResult[]): string {
     .join("\n");
 }
 
-function formatKptReviews(reviews: KptReview[]): string {
+export function formatKptReviews(reviews: KptReview[]): string {
   if (reviews.length === 0) return "데이터 없음";
 
   // 최대 3건만 (프롬프트 축소)
@@ -271,7 +271,7 @@ function formatKptReviews(reviews: KptReview[]): string {
     .join("\n");
 }
 
-function formatOkrItems(items: OkrItem[]): string {
+export function formatOkrItems(items: OkrItem[]): string {
   if (items.length === 0) return "데이터 없음";
 
   const order: Record<string, number> = { "오브젝티브": 0, "마일스톤": 1, "액션아이템": 2 };
@@ -291,7 +291,7 @@ function formatOkrItems(items: OkrItem[]): string {
     .join("\n");
 }
 
-function formatOkrValues(values: OkrValue[]): string {
+export function formatOkrValues(values: OkrValue[]): string {
   if (values.length === 0) return "데이터 없음";
 
   // 최대 8건만 (프롬프트 축소)
