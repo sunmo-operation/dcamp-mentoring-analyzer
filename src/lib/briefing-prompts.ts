@@ -23,6 +23,12 @@ export function buildBriefingSystemPrompt(): string {
 가장 적은 단어로 가장 치명적인 비즈니스 인사이트를 도출해야 합니다. 출력 토큰을 최소화하여 응답 속도를 극대화할 것.
 dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하는 브리핑을 작성하세요.
 
+[시의성 원칙 — ★ 최우선 적용]
+- 오늘 날짜가 user prompt에 명시됨. 반드시 참조하여 시간 맥락을 판단할 것.
+- 3개월 이상 지난 이벤트/마일스톤은 "이미 완료" 또는 "결과 확인 필요"로 처리. 미래 이벤트처럼 서술 금지.
+- Executive Summary는 "지금 이 순간 PM이 알아야 할 것"만 담을 것. 기본 회사 정보(투자단계, 팀규모, 산업분야 등)는 이미 화면에 표시되므로 절대 반복 금지.
+- reportBody에는 멘토링·회의록·KPT·전문가 요청에서 도출된 전략적 인사이트와 액션 현황만 기재. 정적 회사 프로필 정보 기재 금지.
+
 [절대 엄수: 4가지 서술 제약]
 
 1. 압도적 헤드라인 (Synthesis Headline):
@@ -69,11 +75,11 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 
 {
   "executiveSummary": {
-    "oneLiner": "(최대 60자. [임팩트] 현상+결과 구조. ~임/~함 종결. 전문 용어(뜻풀이) 필수)",
+    "oneLiner": "(최대 60자. 멘토링/회의에서 드러난 핵심 이슈 기반. [임팩트] 현상+결과 구조. ~임/~함 종결)",
     "currentPhase": "(최대 20자. 예: PMF 탐색기, 스케일업 초입)",
     "momentum": "positive | neutral | negative | critical",
-    "momentumReason": "(최대 50자. 수치 근거 필수. ~임/~함 종결)",
-    "reportBody": "(줄바꿈\\n 구분 5~7건. 각 항목 최대 50자. 형식: 지표명: 수치+의미. 억원 단위. 전문 용어(뜻풀이) 필수)",
+    "momentumReason": "(최대 50자. 최근 멘토링/KPT에서 확인된 수치 근거 필수. ~임/~함 종결)",
+    "reportBody": "(줄바꿈\\n 구분 5~7건. 각 항목 최대 50자. ★ 멘토링·KPT·전문가요청에서 도출된 전략 인사이트·진행 현황·핵심 이슈만 기재. 회사 기본정보(투자단계·팀규모·산업 등) 기재 금지. 형식: 키워드: 인사이트. 전문 용어(뜻풀이) 필수)",
     "pmfStage": "pre-pmf | approaching | achieved | scaling",
     "vocStrength": "strong | moderate | weak"
   },
@@ -395,7 +401,12 @@ export function buildBriefingUserPrompt(
     }
   }
 
-  return `## 기업 기본 정보 (Notion DB 최신 데이터)
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+  return `## 오늘 날짜: ${today}
+(이 날짜를 기준으로 모든 이벤트의 시의성을 판단할 것. 이미 지난 마일스톤은 "완료/결과 확인 필요"로 처리.)
+
+## 기업 기본 정보 (Notion DB 최신 데이터 — 화면에 이미 표시됨, 브리핑에 반복 금지)
 ${companyFields.join("\n")}
 ${batchSection}
 ## OKR 현황
@@ -422,6 +433,13 @@ ${formatAnalyses(analyses)}
 
 [지시사항]
 위 데이터를 종합하여 JSON 형식의 심층 브리핑을 생성해주세요.
+
+★ Executive Summary 핵심 규칙:
+- oneLiner: 멘토링/회의록에서 드러난 가장 임팩트 있는 현재 이슈를 한 문장으로. 회사 소개 금지.
+- reportBody: 멘토링·KPT·전문가요청에서 발견된 전략 인사이트, 핵심 진행 현황, 해결해야 할 이슈만. 기업 기본 정보(투자단계, 팀규모, 산업분야, 설립일 등) 절대 금지.
+- 오늘(${today}) 기준 3개월 이상 지난 마일스톤은 "완료됨" 또는 "결과 추적 필요"로 처리. 과거 이벤트를 현재/미래처럼 서술 금지.
+
+일반 규칙:
 - 가장 최근 3회 미팅(세션)에 가장 높은 가중치를 두고 분석할 것. 그 외 세션은 맥락/추세 파악용.
 - 모든 날짜에 반드시 연도를 포함할 것 (예: 2025년 3월, 2026년 1월).
 - OKR 정량 데이터 또는 KPT 회고 데이터가 하나라도 있으면 okrDiagnosis를 채울 것. 둘 다 없을 때만 null.

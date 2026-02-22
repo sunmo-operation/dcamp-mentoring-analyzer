@@ -7,7 +7,7 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-tight text-foreground">
-            dcamp <span className="text-primary">멘토링 분석기</span>
+            AI <span className="text-primary">멘토링 분석기</span>
           </span>
         </Link>
         <nav className="flex items-center gap-3">

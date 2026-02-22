@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/header";
 import { SWRProvider } from "@/lib/swr-provider";
 
 export const metadata: Metadata = {
-  title: "dcamp 멘토링 분석기",
+  title: "AI 멘토링 분석기",
   description:
     "멘토링 원문을 AI로 분석하여 근본 과제와 액션을 도출하는 내부 도구",
 };
