@@ -21,14 +21,31 @@ interface CompanyProfileProps {
   kptCount?: number; // 원본 KPT 건수
 }
 
-// 투자유치 현황 포맷: "Series A ₩50억" / "Series A" / "₩50억"
+// 금액을 억원 단위로 변환 (100,000,000원 → 1억원)
+function formatWon(value: number): string {
+  const billions = value / 100_000_000;
+  if (billions >= 1) return `${billions % 1 === 0 ? billions.toFixed(0) : billions.toFixed(1)}억원`;
+  if (value >= 10_000) return `${(value / 10_000).toFixed(0)}만원`;
+  return `${value.toLocaleString()}원`;
+}
+
+// 문자열 내 원 단위 숫자를 억원으로 자동 변환
+function formatMoneyStr(text: string): string {
+  // "50억" → "50억원", "1.7억" → "1.7억원" (이미 억 단위면 원 붙이기)
+  return text
+    .replace(/(\d[\d,]*)원/g, (_, num) => {
+      const val = parseInt(num.replace(/,/g, ""), 10);
+      if (isNaN(val)) return `${num}원`;
+      return formatWon(val);
+    })
+    .replace(/(\d+(?:\.\d+)?)억(?!원)/g, "$1억원");
+}
+
+// 투자유치 현황 포맷: "Series A 50억원" / "Series A" / "50억원"
 function formatInvestment(company: Company): string | null {
   const parts: string[] = [];
   if (company.investmentStage) parts.push(company.investmentStage);
-  if (company.valuation) {
-    const billions = company.valuation / 100_000_000;
-    parts.push(billions >= 1 ? `₩${billions.toFixed(0)}억` : `₩${(company.valuation / 10_000).toFixed(0)}만`);
-  }
+  if (company.valuation) parts.push(formatWon(company.valuation));
   return parts.length > 0 ? parts.join(" ") : null;
 }
 
@@ -97,8 +114,8 @@ export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }:
           {company.description || "기업 소개가 없습니다"}
         </p>
 
-        {/* Executive Snapshot — 맥킨지 스타일 사전설문 AI 요약 */}
-        {company.executiveSnapshot && (
+        {/* Executive Snapshot — AI 요약 또는 원본 데이터 폴백 */}
+        {company.executiveSnapshot ? (
           <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-5 space-y-4">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -111,6 +128,21 @@ export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }:
               <SnapshotField label="배치 핵심 목표" value={company.executiveSnapshot.batchGoal} />
               <SnapshotField label="핵심 차별성" value={company.executiveSnapshot.moat} />
               <SnapshotField label="이상적 성공 모습" value={company.executiveSnapshot.idealVision} />
+            </div>
+          </div>
+        ) : company.excel?.survey && (
+          <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <p className="text-xs font-bold text-primary tracking-wide uppercase">Executive Snapshot</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <SnapshotField label="대표자" value={company.ceoName || company.excel.pmPrimary || ""} />
+              <SnapshotField label="제품/서비스" value={company.excel.survey.productIntro?.slice(0, 80) || ""} />
+              <SnapshotField label="투자 현황" value={company.excel.survey.investmentStatus?.slice(0, 80) || (company.investmentStage || "")} />
+              <SnapshotField label="배치 핵심 목표" value={company.excel.survey.yearGoal?.slice(0, 80) || ""} />
+              <SnapshotField label="핵심 차별성" value={company.excel.survey.moat?.slice(0, 80) || ""} />
+              <SnapshotField label="이상적 성공 모습" value={company.excel.survey.idealSuccess?.slice(0, 80) || ""} />
             </div>
           </div>
         )}
@@ -191,10 +223,10 @@ export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }:
                 <div><span className="text-muted-foreground">최근 라운드:</span> <span className="font-medium">{company.excel.investment.latestRound}</span></div>
               )}
               {company.excel.investment.preMoneyValuation && (
-                <div><span className="text-muted-foreground">Pre-money:</span> <span className="font-medium">{company.excel.investment.preMoneyValuation}</span></div>
+                <div><span className="text-muted-foreground">Pre-money:</span> <span className="font-medium">{formatMoneyStr(company.excel.investment.preMoneyValuation)}</span></div>
               )}
               {company.excel.investment.cumulativeFunding && (
-                <div><span className="text-muted-foreground">누적 투자:</span> <span className="font-medium">{company.excel.investment.cumulativeFunding}</span></div>
+                <div><span className="text-muted-foreground">누적 투자:</span> <span className="font-medium">{formatMoneyStr(company.excel.investment.cumulativeFunding)}</span></div>
               )}
               {company.excel.investment.leadInvestor && (
                 <div><span className="text-muted-foreground">리드 투자자:</span> <span className="font-medium">{company.excel.investment.leadInvestor}</span></div>
@@ -203,7 +235,7 @@ export function CompanyProfile({ company, expertSummary, kptSummary, kptCount }:
                 <div><span className="text-muted-foreground">다음 라운드:</span> <span className="font-medium">{company.excel.investment.nextRound}</span></div>
               )}
               {company.excel.investment.revenue2025 && (
-                <div><span className="text-muted-foreground">&apos;25 결산:</span> <span className="font-medium">{company.excel.investment.revenue2025}억</span></div>
+                <div><span className="text-muted-foreground">&apos;25 결산:</span> <span className="font-medium">{company.excel.investment.revenue2025}억원</span></div>
               )}
             </div>
           </div>

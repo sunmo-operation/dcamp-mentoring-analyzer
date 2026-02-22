@@ -176,7 +176,7 @@ const cache = new Map<string, { data: unknown; expires: number }>();
 function cached<T>(
   key: string,
   fetcher: () => Promise<T>,
-  ttl = 300_000 // 기본 5분
+  ttl = 900_000 // 기본 15분 (Notion 데이터는 자주 변경되지 않음)
 ): Promise<T> {
   const entry = cache.get(key);
   if (entry && entry.expires > Date.now()) {
