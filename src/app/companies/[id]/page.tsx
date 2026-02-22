@@ -29,7 +29,8 @@ const cachedGetBriefing = cache(getBriefingByCompany);
 
 interface Props {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string; filter?: string }>;
+  // searchParams를 서버에서 읽지 않음 → ISR 캐시 활성화
+  // tab/filter는 LazyTabsSection(클라이언트)에서 useSearchParams()로 읽음
 }
 
 // ══════════════════════════════════════════════════
@@ -37,9 +38,8 @@ interface Props {
 // 프로필 + 브리핑은 Suspense 스트리밍 (Notion 1회 + DB 1회)
 // 멘토링 기록은 온디맨드 로드 (버튼 클릭 시)
 // ══════════════════════════════════════════════════
-export default async function CompanyPage({ params, searchParams }: Props) {
+export default async function CompanyPage({ params }: Props) {
   const { id } = await params;
-  const { tab, filter } = await searchParams;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -68,11 +68,8 @@ export default async function CompanyPage({ params, searchParams }: Props) {
       <Separator className="my-8" />
 
       {/* 온디맨드 섹션: 멘토링 기록 + 타임라인 + 분석 (버튼 클릭 시 로드) */}
-      <LazyTabsSection
-        companyId={id}
-        filter={filter}
-        autoLoad={!!(filter || (tab && tab !== "mentoring"))}
-      />
+      {/* tab/filter는 클라이언트에서 useSearchParams로 읽어 ISR 캐시 보존 */}
+      <LazyTabsSection companyId={id} />
     </div>
   );
 }

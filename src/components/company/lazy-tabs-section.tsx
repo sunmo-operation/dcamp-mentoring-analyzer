@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { CompanyTabs } from "./company-tabs";
 import { AnalysisCard } from "@/components/analysis/analysis-card";
 import { TimelineTab } from "@/components/timeline/timeline-tab";
@@ -34,16 +35,15 @@ interface CompanyDetailData {
 
 interface LazyTabsSectionProps {
   companyId: string;
-  filter?: string;
-  /** URL에 tab/filter가 있을 때 자동 로드 */
-  autoLoad?: boolean;
 }
 
-export function LazyTabsSection({
-  companyId,
-  filter,
-  autoLoad,
-}: LazyTabsSectionProps) {
+export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
+  // URL 파라미터를 클라이언트에서 읽어 ISR 캐시 보존
+  const searchParams = useSearchParams();
+  const filter = searchParams.get("filter") ?? undefined;
+  const tab = searchParams.get("tab");
+  const autoLoad = !!(filter || (tab && tab !== "mentoring"));
+
   const [data, setData] = useState<CompanyDetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
