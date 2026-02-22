@@ -463,6 +463,36 @@ ${kptText}`,
 }
 
 /**
+ * 경량 기업 조회: Notion 1회 + 로컬 엑셀 병합
+ * getCompanyAllData(4 Notion calls)와 달리 1 Notion call로 즉시 반환
+ * → 기업 상세 페이지 초기 로드용 (프로필 + AI 브리핑만 표시)
+ */
+export async function getCompanyLight(
+  companyNotionPageId: string
+): Promise<Company | null> {
+  const t0 = Date.now();
+  const company = await notionGetCompany(companyNotionPageId);
+  if (!company) return null;
+
+  // 엑셀 마스터 시트 데이터 병합 (로컬 JSON → 즉시)
+  const excelData = getExcelDataByName(company.name);
+  if (excelData) company.excel = excelData;
+
+  // AI 스냅샷 캐시 히트 시 즉시 반영 (미스 시 건너뜀 — 페이지 차단 없음)
+  const snapshotCacheKey = company.notionPageId || company.name;
+  const cachedSnapshot = snapshotCache.get(snapshotCacheKey);
+  if (cachedSnapshot && cachedSnapshot.expires > Date.now()) {
+    company.executiveSnapshot = cachedSnapshot.data;
+  } else if (company.excel) {
+    // 캐시 미스: 백그라운드에서 생성 (다음 요청에 반영)
+    generateExecutiveSnapshot(company).catch(() => {});
+  }
+
+  console.log(`[perf] getCompanyLight(${companyNotionPageId.slice(0,8)}): ${Date.now() - t0}ms`);
+  return sanitizeForReact(company);
+}
+
+/**
  * 기업의 모든 데이터를 통합 조회 (캐시 적용)
  * Notion API: company(1회) + sessions(1회) + expertRequests(1회) = 최대 3회
  * 캐시 히트 시 0회
