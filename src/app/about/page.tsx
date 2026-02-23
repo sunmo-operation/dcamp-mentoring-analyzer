@@ -103,17 +103,12 @@ export default function AboutPage() {
         <div className="space-y-3">
           <Phase
             label="현재"
-            title="Phase 2 — 데이터 연동 + AI 분석"
-            desc="노션 API 실시간 연동, AI 브리핑 자동 생성, 검색·조회 기능"
+            title="Phase 3 — AI 고도화"
+            desc="자연어 챗 인터페이스, 멘토링 녹취 기반 인사이트, 유사 기업 추천"
             active
           />
           <Phase
             label="다음"
-            title="Phase 3 — AI 고도화"
-            desc="자연어 챗 인터페이스, 멘토링 녹취 기반 인사이트, 유사 기업 추천"
-          />
-          <Phase
-            label="이후"
             title="Phase 4 — 외부 데이터 통합"
             desc="슬랙·지메일·구글 드라이브 연동으로 커뮤니케이션 맥락까지 반영, 점점 더 똑똑해지는 분석"
           />
