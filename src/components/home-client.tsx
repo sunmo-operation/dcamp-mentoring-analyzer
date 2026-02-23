@@ -125,7 +125,8 @@ export function HomeClient({
           AI Mentoring Analyzer
         </h1>
         <p className="mt-1 text-muted-foreground">
-          멘토링 기록·KPT·OKR 데이터를 AI가 교차 분석해 기업별 핵심 아젠다를 도출합니다
+          배치 프로그램 참여 팀의 멘토링 기록과 진행 상황을 AI가 종합 분석해,
+          지금 어떤 상황이고 어디에 집중해야 하는지 빠르게 파악할 수 있는 dcamp 내부 도구입니다.
         </p>
       </div>
 
