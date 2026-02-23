@@ -49,6 +49,10 @@ export default function AboutPage() {
             분석 결과가 구조화된 브리핑으로 정리됩니다. 이전에 생성된 브리핑은 캐시되어
             빠르게 조회할 수 있고, 데이터가 변경되면 자동으로 갱신이 필요하다고 표시됩니다.
           </Step>
+          <Step n={4} title="AI 챗">
+            브리핑을 읽다가 궁금한 점이 생기면 우하단 챗 버튼으로 바로 질문할 수 있습니다.
+            해당 기업의 전체 데이터를 컨텍스트로 가지고 있어 브리핑에 없는 세부 사항도 답변합니다.
+          </Step>
         </ol>
       </Section>
 
@@ -101,6 +105,16 @@ export default function AboutPage() {
       {/* 로드맵 */}
       <Section title="앞으로의 계획">
         <div className="space-y-3">
+          <Phase
+            label="완료"
+            title="Phase 1 — MVP"
+            desc="정보 구조 + UI 검증, 샘플 기업 데이터 기반 정적 검색·조회"
+          />
+          <Phase
+            label="완료"
+            title="Phase 2 — 데이터 연동 + AI 분석"
+            desc="노션 API 실시간 연동, AI 브리핑 자동 생성, 검색·조회 기능"
+          />
           <Phase
             label="현재"
             title="Phase 3 — AI 고도화"
