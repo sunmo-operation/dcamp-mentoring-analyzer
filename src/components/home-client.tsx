@@ -119,13 +119,13 @@ export function HomeClient({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* 헤더 섹션 */}
+      {/* 헤더 섹션 — 도구 소개 */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight">
-          어떤 기업이 궁금하세요?
+          AI Mentoring Analyzer
         </h1>
         <p className="mt-1 text-muted-foreground">
-          기업명을 검색하면 멘토링 현황과 핵심 아젠다를 바로 확인할 수 있어요
+          멘토링 기록·KPT·OKR 데이터를 AI가 교차 분석해 기업별 핵심 아젠다를 도출합니다
         </p>
       </div>
 
@@ -179,6 +179,12 @@ export function HomeClient({
       </div>
 
       {/* 검색 */}
+      <div className="mb-1">
+        <h2 className="text-lg font-semibold tracking-tight">어떤 기업이 궁금하세요?</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          아래 목록에서 직접 찾거나, 검색창에 기업명·산업·배치를 입력해보세요
+        </p>
+      </div>
       <CompanySearch onSearch={handleSearch} initialQuery={searchQuery} />
 
       {/* 기업 목록 — 기수별 그룹 */}
