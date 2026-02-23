@@ -119,17 +119,14 @@ export function HomeClient({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* 헤더 + 검색 히어로 */}
+      {/* 헤더 섹션 */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight">
-          포트폴리오 기업 현황
+          어떤 기업이 궁금하세요?
         </h1>
         <p className="mt-1 text-muted-foreground">
-          포트폴리오 기업의 현재 상황과 핵심 아젠다를 한눈에 파악할 수 있습니다
+          기업명을 검색하면 멘토링 현황과 핵심 아젠다를 바로 확인할 수 있어요
         </p>
-        <div className="mt-5">
-          <CompanySearch onSearch={handleSearch} initialQuery={searchQuery} />
-        </div>
       </div>
 
       {/* 데이터 파이프라인 가이드 — 토스 스타일 */}
@@ -140,7 +137,7 @@ export function HomeClient({
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <span className="text-sm font-bold text-foreground">어떻게 작동하나요?</span>
+          <span className="text-base font-bold text-foreground">어떻게 작동하나요?</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Step 1 */}
@@ -180,6 +177,9 @@ export function HomeClient({
           </div>
         </div>
       </div>
+
+      {/* 검색 */}
+      <CompanySearch onSearch={handleSearch} initialQuery={searchQuery} />
 
       {/* 기업 목록 — 기수별 그룹 */}
       {groupedByBatch.map(([batchLabel, batchCompanies]) => (
