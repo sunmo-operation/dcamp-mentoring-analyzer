@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { getClaudeClient } from "@/lib/claude";
+import { getClaudeClient, classifyClaudeError } from "@/lib/claude";
 import {
   buildBriefingSystemPrompt,
   buildBriefingUserPrompt,
@@ -414,19 +414,9 @@ export async function POST(request: Request) {
         const totalElapsed = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({ type: "complete", briefing, cached: false, elapsed: totalElapsed }));
       } catch (error) {
-        const msg = error instanceof Error ? error.message : "알 수 없는 오류";
-        console.error("브리핑 스트리밍 오류:", msg);
+        console.error("브리핑 스트리밍 오류:", error instanceof Error ? error.message : error);
 
-        let userMsg = `브리핑 생성 중 문제가 발생했습니다. 다시 시도해주세요.`;
-        if (msg.includes("API key") || msg.includes("apiKey") || msg.includes("authentication")) {
-          userMsg = "ANTHROPIC_API_KEY가 설정되지 않았거나 유효하지 않습니다.";
-        } else if (msg.includes("JSON") || msg.includes("parse") || msg.includes("PARSE") || msg.includes("FORMAT") || msg.includes("형식")) {
-          userMsg = "AI 응답을 처리하지 못했습니다. '다시 시도' 버튼을 눌러주세요.";
-        } else if (msg.includes("timeout") || msg.includes("ETIMEDOUT")) {
-          userMsg = "AI 서버 응답 시간 초과. 다시 시도해주세요.";
-        } else if (msg.includes("rate") || msg.includes("429")) {
-          userMsg = "AI 서버가 바쁩니다. 잠시 후 다시 시도해주세요.";
-        }
+        const userMsg = classifyClaudeError(error);
 
         try {
           controller.enqueue(encode({ type: "error", message: userMsg }));
