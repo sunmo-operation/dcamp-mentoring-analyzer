@@ -119,7 +119,7 @@ export function HomeClient({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* 헤더 섹션 */}
+      {/* 헤더 + 검색 히어로 */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight">
           포트폴리오 기업 현황
@@ -127,6 +127,9 @@ export function HomeClient({
         <p className="mt-1 text-muted-foreground">
           포트폴리오 기업의 현재 상황과 핵심 아젠다를 한눈에 파악할 수 있습니다
         </p>
+        <div className="mt-5">
+          <CompanySearch onSearch={handleSearch} initialQuery={searchQuery} />
+        </div>
       </div>
 
       {/* 데이터 파이프라인 가이드 — 토스 스타일 */}
@@ -177,9 +180,6 @@ export function HomeClient({
           </div>
         </div>
       </div>
-
-      {/* 검색 */}
-      <CompanySearch onSearch={handleSearch} initialQuery={searchQuery} />
 
       {/* 기업 목록 — 기수별 그룹 */}
       {groupedByBatch.map(([batchLabel, batchCompanies]) => (
