@@ -64,7 +64,7 @@ export async function POST(request: Request) {
           return;
         }
 
-        const { company, sessions, expertRequests, kptReviews, okrItems, okrValues } = packet;
+        const { company, sessions, expertRequests, kptReviews, okrItems, okrValues, coachingRecords } = packet;
 
         // 2. PulseReport + AnalystReport 생성 (즉시 반환, AI 호출 없음)
         let agentContext = "";
@@ -86,6 +86,7 @@ export async function POST(request: Request) {
           okrItems,
           okrValues,
           existingBriefing,
+          coachingRecords,
         );
 
         const fullSystemPrompt = `${systemPrompt}\n\n[기업 컨텍스트 데이터]\n${context}${agentContext}`;

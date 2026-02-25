@@ -1,0 +1,4724 @@
+{
+  "extractedAt": "2026-02-25T13:39:52.776Z",
+  "companies": {
+    "딥메트릭스": {
+      "coachingPlans": [
+        {
+          "expert": "정성훈",
+          "company": "딥메트릭스",
+          "timeBudget": "미팅 총 10회 (2주 1회)",
+          "period": "2025.12.15~",
+          "objective": "팀빌딩, 조직관리",
+          "teamRequest": "※ 팀은 멘토에게 현재 상황과 필요한 도움, 그리고 희망하는 총 투입 시간을 명확하게 전달하기 위해 이 섹션을 작성합니다.\n1. 기본 정보\n1-1. 요청 팀 (소속): 딥메트릭스\n1-2. 요청 총 시간 (Time Budget): 미팅 총 10회 (2주 1회)\n1-3. 희망 투입 기간: 2025.12.15~\n2. 핵심 목표 (Objective)\n2-1. 팀의 최우선 오브젝티브:\n팀빌딩, 조직관리\n2-2. 현재 집중 중인 마일스톤 (Milestone):\n현 연구소장의 리더쉽, 책임 강화 및 권한 부여. 교수창업의 로드 분담\n3. 해결할 문제\n3-1. 현상 (As-Is):\n교수창업 특성상 대표가 회사에 풀로 있기가 힘들어서 조직관리에 무리가 있음\n3-2. 문제 정의 (Problem):\n풀로 상주하는 인원중에 대표를 보좌하여 리더쉽을 발휘할 리더 필요\n4. 선행 시도 및 결과 요약:\n4-1. 선행시도\n4-2. 결과/한계\n5. 전문가에게 기대하는 역할 및 기여\n5-1. 요청 사항 (Request):\n교수창업 기업에서 다른 리더가 가져야할 태도와 역량은 무엇인지 필요한 사항과 방향에 대한 구체적인 가이드 제시를 요청드립니다.\n리더가 해당 태도와 역량를 확보하기 위해 어떠한 방식과 확보해야 하는지, 그리고 이를 달성하기위해 대표가 해줘야하는것은 무엇인지에 대한 전략 제시를 요청드립니다.\n5-2. 예상 기여도 (Expected Outcome):\n멘토링을 통해 1. 대표가 부담을 덜고 미국 인허가 마일스톤에 더 집중하고 또 위임하는 방법을 배우고, 2. 위임받은 리더가 더 성장하기를 바랍니다.",
+          "expertPlan": "※ 전문가는 Part 1을 검토 후, *총 예상 시간(기준 시간)'을 산출하고, 해당 시간 내에서 수행 가능한 '업무 범위(Scope)'와 '핵심 산출물'을 정의하여 팀과 합의함.\n1. 목표 및 역할 확인 (Alignment)\n1-1.이해한 목표\n창업자가 교수겸직으로 인해서 회사에 풀타임으로 임할 수 없는 한계가 있음. 이로 인해서 팀빌딩이나 조직운영에 여러 어려움이 발생하고 있는 상태임. 처음에는 외부에서 경험많은 COO를 영입하려고 했으나, 먼저 내부의 연구소장(창업멤버)에게  일부 업무를 위임하기로 함. 이에 연구소장이 COO업무를  충분히 이해하고 수행할 수 있도록 멘토링을 하는 것이 목표임. \n1. 외부 영입보다 내부 인력에게 맡기는 현실적인 이유\n* 외부 COO가 들어오면 기술과 팀을 이해하기까지 초기 혼란이 발생할 위험\n* 딥테크 분야에서 COO 외부 영입은 매우 어렵고 적합한 인재 찾기가 시간이 오래 걸림\n* 이미 조직,기술,팀,상황을 잘 알고 있어 온보딩 시간이 거의 필요 없음\n2. 외부 영입보다 내부 인력에게 맡기는 본질적인 이유\n* 창업멤버로서 이미 오너십과 책임감이 강함\n* 기술,R&D,팀 상황을 가장 깊이 이해하고 있어 운영 판단의 질이 높음\n* 회사의 정체성·문화·비전을 자연스럽게 공유하고 있어 조직 문화적 일관성 유지\n* COO를 성급히 외부에서 데려오면 오히려 리더십 충돌이나 역할 모호성 등 조직적 리스크가 커짐\n* 무엇보다 창업자와의 신뢰가 중요함\n1-2. 본인의 핵심 역할(Role) 및 기여 범위:\n핵심 역할\n1. 운영 역량에 대한 코칭 및 의사결정 프레임 제공\n* 조직 운영, 인사, 자원 배분, 팀 커뮤니케이션 등 운영적 역량을 코칭\n* 초기 COO에게 필요한 의사결정  방법 제공\n* 문제 상황이 발생했을 때 해결을 위한 사고 구조를 만들어줌\n2. 조직운영, 팀빌딩 관련 실전 코칭\n* 팀 구성, 채용 프로세스, 조직문화 설정에 대한 실전 조언 \n* 연구소장이 기술 중심 사고에서 조직 운영자 사고로 확장하는 데 필요한 코칭\n* 구성원 갈등 해결, 커뮤니케이션 방식 개선  코칭 \n3.실행력 강화를 위한 루틴 구축\n* 주간 혹은 월간 미팅 구조 및 보고 체계 같은 실행 프레임을 구축\n4. 대표이사(교수)와 연구소장 사이의 가교 역할 수행\n* 대표가 상시 전념하기 어려운 상황에서 전략,실행 간 간극을 줄이는 조정자 역할\n* 대표의 전략적 방향을 연구소장이 명확히 이해하고 실행할 수 있도록 방향성,우선순위를 해석하여 전달하는 역할\n* 대표 - 연구소장 간 얼라인 문제를 중간에서 풀어주는 조력자 역할\n예측되는 기여범위\n1. 창업자의 부재로 인한 리스크가 크게 감소\n* 대표가 교수로 인해 회사에 상시 전념하기 어려운 상황에서도 사업이 흔들리지 않고 안정적으로 굴러가는 구조가 만들어짐\n* 대표의 의사결정 공백을 연구소장이 자연스럽게 보완할 수 있게 됨\n2. 내부 리더십 성장과 함께 조직문화의 성숙\n* 연구소장이 단순 기술리더에서 조직운영 리더로 성장하게 되고 이 변화가 팀 전체의 성숙도를 높이는 효과로 확산됨\n* 팀원들도 명확한 리더십 아래에서 더 안정적으로 일할 수 있음\n3. COO 외부 영입 시 성공 확률 극대화\n* 내부 운영 체계가 정비된 상태에서 COO를 영입하면 역할 충돌도 줄고 조직 적응 속도도 빨라짐\n4. 투자자 신뢰도 상승\n* 투자자 입장에서 다음과 같은 시그널로 해석될 가능성이 높음\n- 내부 리더십 구조가 강화되고 있음\n- 운영 체계가 성숙해지고 있음\n- 창업자의 부재로 인한 불확실성이 해소되고 있음\n5. 회사 전체의 속도와 실행력이 올라감\n* R&D 중심 스타트업에서 흔히 발생하는 문제인 기술은 좋은데 실행이 느린 회사에서 벗어남\n* 연구소장이 운영을 리드하고 멘토가 방향을 잡아주면 기술,운영 및 비즈니스가 하나의 축으로 자연스럽게 얼라인됨\n1-3. 예상 총 투입 시간: 본 과업(Part 1) 수행에 필요한 '총 예상 시간' (예산 책정 기준)\n- 전문가(본인): 60시간 (1회 3시간, 총 20회)\n1-4. 기타 추가 요청 리소스\n2. 세부 활동 계획 및 산출물\n첫 미팅후 팀"
+        }
+      ],
+      "sessions": [],
+      "expertDeployments": []
+    },
+    "캐비지": {
+      "coachingPlans": [],
+      "sessions": [
+        {
+          "date": "2025-01-10",
+          "company": "캐비지",
+          "location": "프론트원 20층",
+          "mentor": "임승현",
+          "attendeesCompany": "최현주 대표, 이정현 CTO, 이은진 물류팀장, 박유경 소싱팀장",
+          "attendeesDcamp": "우혜진, 은수미",
+          "issues": "• 미션은 못난이 농산물에서 출발하여 비합리적인 유통 문제 해결\r\n• 25년 핵심 목표는 연매출 280억, 핵심고객 리텐션 20%, 공헌이익률 15% 달성\r\n• 현재 고민은 마케팅 효율 개선을 위한 고객 seg 분류 및 장기고객 전환 전략",
+          "followUp": "- 1) 유저 인터뷰 [액션아이템 1 참고 (클릭)]\n- 2) 신규/리타게팅 분리하여 광고비, 성과 확인\n- 3) 2차 점검미팅 아젠다 고민\n    - 비즈니스모델, 수익모델\n    - 경쟁사\n    - GTM (마케팅전략)\n- 1) 와 3)은 병렬적으로 진행\n    - 서베이는 2차 미팅까지 고민한 사항 정도 공유\n- 다음 미팅 일정 : 1/17(금) 18-20시 @프론트원 20층",
+          "meetingUrl": "https://wise-tamarillo-2be.notion.site/1-1687563d3dc0801ca134e39ddd4990c5?pvs=4"
+        },
+        {
+          "date": "2025-01-20",
+          "company": "캐비지",
+          "location": "프론트원 20층",
+          "mentor": "임승현",
+          "attendeesCompany": "최현주 대표, 이정현 CTO, 이은진 물류팀장, 박유경 소싱팀장",
+          "attendeesDcamp": "우혜진, 은수미",
+          "issues": "[비즈니스 모델]\r\n• 정기배송 모델: 채소박스(집밥박스, 샐러드박스) 정기배송으로 고객의 다양한 채소 섭취 및 가치소비 니즈 충족.\r\n• 싱싱마켓: 상시 구매\r\n• 레시피 오더: 신규 고객 및 이탈 유저 타겟, 요리 장벽을 줄이고 간편하게 레시피 기반 구매 제공 예정.\r\n•  LTV, 리텐션 증가를 위해 기존 고객들을 클러스터링 하여 유형별 세분화된 전략필요\r\n\r\n[수익 모델]\r\n• 구독료: 회당 18,500원(배송비 포함), 점보박스(28,000원) 옵션 제공.\r\n• 공헌이익률 : 현재 10%, 목표는 15%로 설정.\r\n\r\n[유저 세그먼트]\r\n•  세분화 필요성: 랜덤 선호/커마 선호 등 다양한 고객 행동과 니즈, 지표 기반으로 유저 세그멘테이션 필요. (예_채소의 중복률이 높아지면 이탈률이 높아짐)\r\n• 고객 조사 계획: 고객의 라이프스타일 및 니즈를 구체화하여 데이터 기반 전략 수립",
+          "followUp": "- Metrics structure & 퍼널 분석 결과공유\n    - 추적 가능한 지표 전체\n    - 리텐션에 상관관계가 있는 지표 (선후행 연관도 가능하면 파악)\n        - 구독 기간별 그루핑하여 잔존율, ARPPU, 공헌이익, 잔존율  이탈율\n    - 고객 seg와 발견된 인사이트\n        - 이용기간별(1~4초기 고객, 4~29 중기고객, 30회차 이상 장기고객 으로 구분중)\n        - 가격 민감도 고저별 (낮은 가격에 반응하는 그룹/안하는 그룹)\n        - 다양성 추구 유무별(알파고 그룹/콜럼버스 그룹-새로운 품목 구매율이 높음)\n        - 수령 주기별(수령 주기가 짧은 그룹, 수령 주기가 긴 그룹-미루기 이용율 높음)\n        - 커마 유무별(커스터마이징을 하는 그룹, 안 하는 그룹, 왔다갔다 그룹)\n        - etc",
+          "meetingUrl": "https://wise-tamarillo-2be.notion.site/2-1797563d3dc080788567ebe55dd4d994?pvs=74"
+        },
+        {
+          "date": "2025-01-31",
+          "company": "캐비지",
+          "location": "프론트원 20층",
+          "mentor": "임승현",
+          "attendeesCompany": "최현주 대표, 이정현 CTO, 이은진 물류팀장, 박유경 소싱팀장",
+          "attendeesDcamp": "우혜진",
+          "issues": "[논의 내용 요약]\n• 핵심 지표 확인\n    ◦  매출에 가장 큰 영향을 주는 선행 지표는 구독자 수  \n    ◦  24년부터 구독자 순감소 기간 증가함. 리텐션 제고하여 이탈을 줄이고자 함\n• 리텐션 분석:\n    ◦ 유저 세그먼트별 리텐션 분석 필요.\n    ◦ 커마 유저, 품목 중복률이 낮을 수록 높은 리텐션을 보임.\n    ◦ 핵심 이탈 사유 : 소진을 못함 (디테일한 분석 필요)\n\n• 후속 조치\n  ◦ 주 or 월 이탈, 잔존 유저 데이터 (구독 회차별로 나누어 분석)\n  ◦  다음 미팅 : 2/7(금) 18:30",
+          "followUp": "- 다음 미팅까지 준비사항\n    - 주 or 월 이탈, 잔존 유저 데이터 (구독 회차별로 나누어 분석)\n        - AOV의 평균수치(3개 그루핑)별, 커마여부, 미루기 횟수 별로도 볼 수 있음\n        - 어느 구간, 어떤 유저들의 리텐션이 문제인 지 알기 위함\n- 다음 미팅 : 2/7(금) 18:30",
+          "meetingUrl": "https://wise-tamarillo-2be.notion.site/3-1797563d3dc080b0848bdcab14bc4bbd?pvs=74"
+        },
+        {
+          "date": "2025-02-07",
+          "company": "캐비지",
+          "location": "프론트원 20층",
+          "mentor": "임승현",
+          "attendeesCompany": "최현주 대표, 이정현 CTO",
+          "attendeesDcamp": "우혜진",
+          "issues": "[논의 내용]\n• 주차별 리텐션 분석\n    ◦ 0회차 이탈 약 18%, 0~4회차 이탈 62% → 초기이탈 최근 가속화\n• 코호트 리텐션 추가 분석 방향 논의 \n• 유저 세그멘테이션의 목적\n    ◦ 유저 특성에 따른 반응 분석 및 인풋 대비 아웃풋 최적화\n    ◦ 리텐션 개선을 위한 세분화된 전략\n",
+          "followUp": "\n• 액션 아이템\n    ◦ 잔존 유저를 쪼개서 분석 (AOV, 미루기, 커마 여부 등)\n• 다음 미팅 일정\n    ◦ 2/24(월) 18:00-20:00 (DA님 함께 참석)",
+          "meetingUrl": "https://wise-tamarillo-2be.notion.site/4-d409e79612b94c8bb050fa73927c22b9?pvs=74"
+        },
+        {
+          "date": "2025-02-24",
+          "company": "캐비지",
+          "location": "프론트원 20층",
+          "mentor": "임승현",
+          "attendeesCompany": "최현주 대표, 주디(DA)",
+          "attendeesDcamp": "우혜진, 김금미",
+          "issues": "o 유저리서치 결과 공유\r\n• 30대가 가장 많고 장기일수록 1-2인 가구 높은 비중 \r\n• 장기유저들은 브랜드 추구성이 높고(가성비x) 친환경소비 관심, 적극성이 뚜렷함 \r\n• 초,중,장기 모두 요리를 어느 정도 잘한다는 답변이 75%이상으로 다수.\r\n\r\no 핵심유저 트리거(커마여부, 객단가, 미루기여부)에 따른 전환율 분석 리뷰\r\n• 커마를 할 수록 장기로 갈 확률이 높음 \r\n• 객단가 높은 그룹이 낮은 그룹 대비  ‘달걀, 두부, 과일류, 과채류’를 더 많이 담음 등\r\n → 채소 품목을 선호/비선호 , 엽채류 여부 등에 따라 그룹핑 필요 \r",
+          "followUp": "ㅇ채소 품목 그룹핑 \nㅇ 객단가&미루기, 커마&미루기 간의 상관관계 확인 \nㅇ 다음 미팅 일정 : 3/10(월) 18:30 ~ 프론트원",
+          "meetingUrl": "https://wise-tamarillo-2be.notion.site/5-35116edab96f4465b1abc45372f6bc07?pvs=4"
+        },
+        {
+          "date": "2025-03-14",
+          "company": "캐비지",
+          "location": "프론트원 20층",
+          "mentor": "임승현",
+          "attendeesCompany": "최현주 대표, 주디(DA), 누누(CTO)",
+          "attendeesDcamp": "우혜진,은수미, 김금미",
+          "issues": "[주요 논의 내용]\no 초기 리텐션 개선을 위한 문제 정의 심화\n• 0회차 이탈, 가격불만족 이슈\n\no 커마와 리텐션\n•  적극 커마와 적극 랜덤이 아닌 그룹 \n•  개선 아이디어 논의 (커마 UX 개선, 선호 품목 조합 제공 등)\n•  커마 외에 다른 가설들도 열어 놓고 논의 필요\n\no 품목 관련\n•  중복 아이템\n•  비선호 품목 분석 방법 논의",
+          "followUp": "\n[후속조치]\nㅇ 다음 미팅 아젠다\n   - 초기 이탈 관련 문제 정의 심화 고민\n   - 레시피 오더 preview\n   - 샐러드 박스 문제정의 \nㅇ 다음 미팅 일정 : 4/4(금) 14:00 - 18:00 @ 프론트원 20층",
+          "meetingUrl": "https://wise-tamarillo-2be.notion.site/6-1a57563d3dc080168695ca7ab0913590?pvs=74"
+        },
+        {
+          "date": "2025-04-04",
+          "company": "캐비지",
+          "location": "온라인",
+          "mentor": "임승현",
+          "attendeesCompany": "최현주 대표",
+          "attendeesDcamp": "우혜진,은수미",
+          "issues": "[주요 논의 내용]\no 프리오더(바로장보기) 리뷰\n• 비구독 유저 흡수를 위한 신규 BM\n• 레시피오더로 콘텐츠 기반 커머스 동시 실험\n\no 구독 유저 가치 제고\n• 구독유저에게만 제공하는 차별화된 혜택 제공 필요\n• 단건 구매와 정기배송의 베네핏을 차별화 하여 신규 유저의 카니발라이제이션 방지 필요",
+          "followUp": "- 다음 미팅 전 준비사항\n    - 구독의 가치 제고를 위한 방법 아이디에이션\n    - 이 중 운영(물류, 발주예측 등)상 어려움 파악, 운영이 난이도 쉬운 방법들 리스트업\n- 후속 미팅 일정 : TBD\n    - 아젠다(안) : 구독 유저 대상 베네핏 아이디어 임팩트 사이징",
+          "meetingUrl": "https://wise-tamarillo-2be.notion.site/7-1b97563d3dc080099065c0584cab2316"
+        },
+        {
+          "date": "2025-10-28",
+          "company": "캐비지",
+          "location": "온라인",
+          "mentor": "심슨, 엘리스, 할리",
+          "attendeesCompany": "최현주 대표",
+          "attendeesDcamp": "우혜진, 김도완",
+          "issues": "[탑라인 스쿼드 중간 점검]\nhttps://www.notion.so/251028-29a8574b70a5807d8e7ae88c01f73303",
+          "followUp": "",
+          "meetingUrl": "https://callabo.ai/ko/w/dcamp/s/7f356895-f4fd-5c64-853e-d16e29bbd6a2?pw=ZGV6dXhuNWI%253D"
+        }
+      ],
+      "expertDeployments": [
+        {
+          "date": "2024-12-30",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 1,
+          "activity": "사전미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-01-10",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 2,
+          "activity": "1차 점검미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-01-20",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 2,
+          "activity": "2차 점검미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-01-31",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 3,
+          "activity": "3차 점검미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-02-04",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 0.5,
+          "activity": "유선 통화 (의견요청) ",
+          "settled": true
+        },
+        {
+          "date": "2025-02-07",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 2.5,
+          "activity": "4차 점검미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-02-24",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 2.5,
+          "activity": "5차 점검미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-03-14",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 2,
+          "activity": "6차 점검미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-04-02",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 1,
+          "activity": "유선 통화 (의견요청) ",
+          "settled": true
+        },
+        {
+          "date": "2025-04-04",
+          "company": "캐비지",
+          "expert": "임승현",
+          "hours": 1,
+          "activity": "7차 점검미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-04-29",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1.5,
+          "activity": "코칭 개요 및 킥오프",
+          "settled": true
+        },
+        {
+          "date": "2025-04-30",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2.2,
+          "activity": "스프린트 플래닝",
+          "settled": true
+        },
+        {
+          "date": "2025-05-07",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2.2,
+          "activity": "스프린트 플래닝",
+          "settled": true
+        },
+        {
+          "date": "2025-05-13",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "슬랙 응대",
+          "settled": true
+        },
+        {
+          "date": "2025-05-14",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "슬랙 응대",
+          "settled": true
+        },
+        {
+          "date": "2025-05-15",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2.5,
+          "activity": "스프린트",
+          "settled": true
+        },
+        {
+          "date": "2025-05-16",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.2,
+          "activity": "슬랙 응대",
+          "settled": true
+        },
+        {
+          "date": "2025-05-22",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.5,
+          "activity": "슬랙 응대 및 허들",
+          "settled": true
+        },
+        {
+          "date": "2025-05-27",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "노티플라이 custom HTML in-web message 를 통해 NPS 수집 플로우 제작",
+          "settled": true
+        },
+        {
+          "date": "2025-05-28",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2.2,
+          "activity": "오프라인 그로스 스프린트",
+          "settled": true
+        },
+        {
+          "date": "2025-06-02",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.5,
+          "activity": "노티플라이 팀과 함께 custom HTML 제작",
+          "settled": true
+        },
+        {
+          "date": "2025-06-03",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "prediction modeling 실험 제안 및 노티플라이 커뮤니케이션 ",
+          "settled": true
+        },
+        {
+          "date": "2025-06-09",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.5,
+          "activity": "코라 (전 채널톡 CX lead) 와 줄리 연결 컴케",
+          "settled": true
+        },
+        {
+          "date": "2025-06-10",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "코라와 인터뷰",
+          "settled": true
+        },
+        {
+          "date": "2025-06-10",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "코칭 앞으로 방향성 관련 주디와 혜진님 3자 컨콜",
+          "settled": true
+        },
+        {
+          "date": "2025-06-11",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "구출패스 CRM 자동화 개발 없이 구현 가능성 관련 컨콜 및 노티플라이와 대응",
+          "settled": true
+        },
+        {
+          "date": "2025-06-12",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "구출패스, Custom HTML in web message 개발",
+          "settled": true
+        },
+        {
+          "date": "2025-06-13",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.5,
+          "activity": "구출패스 테스트 캠페인 제작",
+          "settled": true
+        },
+        {
+          "date": "2025-06-18",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.3,
+          "activity": "구출패스 테스트 중간 성과 분석 및 제안 (LMS 가 아닌 인웹메세지)",
+          "settled": true
+        },
+        {
+          "date": "2025-06-24",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.4,
+          "activity": "혜진님과 앞으로 컨설팅 방향성 논의",
+          "settled": true
+        },
+        {
+          "date": "2025-06-26",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "대표님과 컨설팅 방향성 논의. 리텐션팀 프로젝트 논의",
+          "settled": true
+        },
+        {
+          "date": "2025-07-01",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "바이브코딩으로 spotify wrapped 랜딩 제작",
+          "settled": true
+        },
+        {
+          "date": "2025-07-02",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.2,
+          "activity": "바이브코딩 컴케",
+          "settled": true
+        },
+        {
+          "date": "2025-07-09",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 6,
+          "activity": "바이브코딩",
+          "settled": true
+        },
+        {
+          "date": "2025-07-14",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "바이브코딩",
+          "settled": true
+        },
+        {
+          "date": "2025-07-18",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.5,
+          "activity": "데이터 정합성 분석",
+          "settled": true
+        },
+        {
+          "date": "2025-07-21",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1.5,
+          "activity": "스프린트 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-07-22",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 4.5,
+          "activity": "첫 스프린트 전 hopes and fears 리추얼 및 팔로업",
+          "settled": true
+        },
+        {
+          "date": "2025-07-25",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 4,
+          "activity": "쥴리 121. 미니대시보드 캠페인 세팅",
+          "settled": true
+        },
+        {
+          "date": "2025-07-26",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "미니대시보드 노티플라이 캠페인 세팅 및 노티플라이 팀 컴케",
+          "settled": true
+        },
+        {
+          "date": "2025-07-29",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "스프린트",
+          "settled": true
+        },
+        {
+          "date": "2025-07-30",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 7,
+          "activity": "스프린트 팔로업",
+          "settled": true
+        },
+        {
+          "date": "2025-07-31",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.5,
+          "activity": "스프린트 팔로업",
+          "settled": true
+        },
+        {
+          "date": "2025-08-07",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "스프린트 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-08-08",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 3,
+          "activity": "스프린트 및 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-08-12",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "앨리스와 스프린트 리뷰",
+          "settled": true
+        },
+        {
+          "date": "2025-08-13",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 3,
+          "activity": "Claude MCP setting",
+          "settled": true
+        },
+        {
+          "date": "2025-08-14",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "그린 미팅, 끌로드 세팅",
+          "settled": true
+        },
+        {
+          "date": "2025-08-18",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "스프린트 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-08-19",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "스프린트 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-08-24",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "앨리스와 스프린트 리뷰 및 액션 아이템 도출",
+          "settled": true
+        },
+        {
+          "date": "2025-08-26",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "CRM 방향성 논의",
+          "settled": true
+        },
+        {
+          "date": "2025-08-27",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "믹스패널 MCP 세팅, CRM 툴 비딩 연결",
+          "settled": true
+        },
+        {
+          "date": "2025-09-09",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 3,
+          "activity": "CRM 툴 비딩 연결",
+          "settled": true
+        },
+        {
+          "date": "2025-09-10",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 3,
+          "activity": "CRM 툴 + 캐리 미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-09-12",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "브레이즈 계약 관련 컴케 (CSM 을 통해 서비스 받기. 5000 USD 이상 아낌)",
+          "settled": true
+        },
+        {
+          "date": "2025-08-12",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "0812 스프린트 미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-08-12",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "CRM 프로젝트 회의 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-08-12",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "그린 X 심슨 X 앨리스 CRM 프로젝트 논의",
+          "settled": true
+        },
+        {
+          "date": "2025-08-15",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 5,
+          "activity": "어글리어스 0회차 ~ 6회차 온보딩 기획 ",
+          "settled": true
+        },
+        {
+          "date": "2025-08-17",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "온보딩 CRM 소재제작 (알림톡)",
+          "settled": true
+        },
+        {
+          "date": "2025-08-18",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 4,
+          "activity": "고객 여정 데이터 분석 + CRM 프로젝트 아이데이션 ",
+          "settled": true
+        },
+        {
+          "date": "2025-08-18",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "그린 X 앨리스 CRM 프로젝트 킥오프 회의",
+          "settled": true
+        },
+        {
+          "date": "2025-08-18",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "스프린트 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-08-19",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "0819 스프린트 진행 ",
+          "settled": true
+        },
+        {
+          "date": "2025-08-20",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3.5,
+          "activity": "회원가입 to 구독신청완료 소재제작",
+          "settled": true
+        },
+        {
+          "date": "2025-08-21",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3.5,
+          "activity": "미로그인 to 회원가입 유도 팝업 소구 및 소재제작",
+          "settled": true
+        },
+        {
+          "date": "2025-08-22",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "온보딩 캠페인 세팅 ",
+          "settled": true
+        },
+        {
+          "date": "2025-08-24",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 0.5,
+          "activity": "스프린트 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-09-16",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "브레이즈 커뮤니케이션 & 캐비지 팀 브레이즈 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-09-17",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 3,
+          "activity": "미팅 준비&미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-09-18",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.3,
+          "activity": "슬랙 컴케. 콘마 컴케",
+          "settled": true
+        },
+        {
+          "date": "2025-09-22",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "티켓 처리 (GA4 분석 및 액션 아이템 도출)",
+          "settled": true
+        },
+        {
+          "date": "2025-09-24",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1.5,
+          "activity": "미팅&준비",
+          "settled": true
+        },
+        {
+          "date": "2025-09-30",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1.2,
+          "activity": "미팅 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-10-10",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.6,
+          "activity": "방향성 점검",
+          "settled": true
+        },
+        {
+          "date": "2025-08-25",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "정기배송 정지 후 재구매유도 캠페인 기획 & 세팅",
+          "settled": true
+        },
+        {
+          "date": "2025-08-27",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "CRM 온보딩퍼널 중간점검",
+          "settled": true
+        },
+        {
+          "date": "2025-08-28",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "바로장보기 구매 후 재구매 캠페인 기획 & 세팅",
+          "settled": true
+        },
+        {
+          "date": "2025-09-10",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "CRM 툴 + 캐리 미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-09-17",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "미팅 준비&미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-09-18",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "킥오프 노션 / 프로젝트 구조화",
+          "settled": true
+        },
+        {
+          "date": "2025-09-22",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 0.2,
+          "activity": "브레이즈 개발 및 프로젝트 진행상황 체크",
+          "settled": true
+        },
+        {
+          "date": "2025-09-24",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "외부 컨마 섭외 미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-09-29",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "보영님 온보딩 &데스크리서치 및 기획 사전 논의",
+          "settled": true
+        },
+        {
+          "date": "2025-09-30",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "CRO 킥오프 미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-10-01",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "braze 이관 작업 논의",
+          "settled": true
+        },
+        {
+          "date": "2025-10-02",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 5,
+          "activity": "노티플라이 to 브레이즈 이관작업",
+          "settled": true
+        },
+        {
+          "date": "2025-10-08",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 4,
+          "activity": "광고페이지 상세페이지 기획",
+          "settled": true
+        },
+        {
+          "date": "2025-08-26",
+          "company": "캐비지",
+          "expert": "하용호",
+          "hours": 1,
+          "activity": "리텐션 데이터 분석 및 제언",
+          "settled": true
+        },
+        {
+          "date": "2025-10-22",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 3,
+          "activity": "미팅 & 방향성",
+          "settled": true
+        },
+        {
+          "date": "2025-10-27",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.4,
+          "activity": "앨리스 퀵싱크",
+          "settled": true
+        },
+        {
+          "date": "2025-10-28",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1.5,
+          "activity": "중간점검",
+          "settled": true
+        },
+        {
+          "date": "2025-10-29",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.5,
+          "activity": "보영님과 이유식 LMF 중간 점검",
+          "settled": true
+        },
+        {
+          "date": "2025-10-13",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "어글리어스 미팅 & 프로젝트 진행상황 확인",
+          "settled": true
+        },
+        {
+          "date": "2025-10-14",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2.5,
+          "activity": "어글리어스 브레이즈 교육자료제작",
+          "settled": true
+        },
+        {
+          "date": "2025-10-14",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "어글리어스 전환데이터 분석",
+          "settled": true
+        },
+        {
+          "date": "2025-10-14",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "어글리어스 내부자 교육",
+          "settled": true
+        },
+        {
+          "date": "2025-10-14",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "광고 기획전 페이지 기획안 컨펌 미팅",
+          "settled": true
+        },
+        {
+          "date": "2025-10-14",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "광고 기획전페이지 수정사항 반영작업",
+          "settled": true
+        },
+        {
+          "date": "2025-10-14",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "모달 캠페인 런칭",
+          "settled": true
+        },
+        {
+          "date": "2025-10-15",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "어글리어스 설문조사 세팅 및 응답확인",
+          "settled": true
+        },
+        {
+          "date": "2025-10-16",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "설문조사 인터뷰 배정 & 커뮤니케이션",
+          "settled": true
+        },
+        {
+          "date": "2025-10-16",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2.5,
+          "activity": "인터뷰 진행 (오후3시/오후6시)",
+          "settled": true
+        },
+        {
+          "date": "2025-10-16",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 5,
+          "activity": "상세페이지 작업",
+          "settled": true
+        },
+        {
+          "date": "2025-10-17",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 0.5,
+          "activity": "인터뷰 일정 조정",
+          "settled": true
+        },
+        {
+          "date": "2025-10-17",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "인터뷰 진행 (오후 1시)",
+          "settled": true
+        },
+        {
+          "date": "2025-10-17",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 5,
+          "activity": "상세페이지 작업",
+          "settled": true
+        },
+        {
+          "date": "2025-10-20",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 0.5,
+          "activity": "어글리어스 퀵싱크 (w. 할리) - 랜딩페이지 최종안 확정",
+          "settled": true
+        },
+        {
+          "date": "2025-10-20",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "어글리어스 퀵싱크 (w. 그린) - 실험 구조 내부 리소스 확인",
+          "settled": true
+        },
+        {
+          "date": "2025-10-20",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "어글리어스 CRO 1차 실험 최종 싱크",
+          "settled": true
+        },
+        {
+          "date": "2025-10-21",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "IP warming 준비 (이메일 캠페인)",
+          "settled": true
+        },
+        {
+          "date": "2025-10-22",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "어글리어스 정기 스프린트",
+          "settled": true
+        },
+        {
+          "date": "2025-10-22",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "어글리어스 - 구독 접수단계 이탈실험 기획",
+          "settled": true
+        },
+        {
+          "date": "2025-10-23",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "어글리어스 - 구독 접수단계 이탈실험 세팅",
+          "settled": true
+        },
+        {
+          "date": "2025-10-23",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "어글리어스 인터뷰 추가 모객 & 스케줄 배정",
+          "settled": true
+        },
+        {
+          "date": "2025-10-24",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "고객 인터뷰",
+          "settled": true
+        },
+        {
+          "date": "2025-10-24",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "정기배송 예정 유저 당기기 유도 캠페인 기획",
+          "settled": true
+        },
+        {
+          "date": "2025-10-26",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "고객 인터뷰",
+          "settled": true
+        },
+        {
+          "date": "2025-10-26",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "고객 인터뷰",
+          "settled": true
+        },
+        {
+          "date": "2025-10-27",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 0.5,
+          "activity": "어글리어스 - 구독 접수단계 이탈실험 성과 분석 및 공유",
+          "settled": true
+        },
+        {
+          "date": "2025-10-27",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "1차~ 2차 고객인터뷰 정리",
+          "settled": true
+        },
+        {
+          "date": "2025-10-28",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "이유식 인터뷰 인사이트 회고",
+          "settled": true
+        },
+        {
+          "date": "2025-10-28",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "스프린트  (w. 그린)",
+          "settled": true
+        },
+        {
+          "date": "2025-10-28",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "lmf 진행 일정 및 2차 cro 프로젝트 논의",
+          "settled": true
+        },
+        {
+          "date": "2025-10-28",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "멘토링 중간문서 미팅 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-10-28",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "캐비지 멘토링 중간점검 (w.디캠프)",
+          "settled": true
+        },
+        {
+          "date": "2025-10-28",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "모달캠페인 2차 런칭 (10.28 ~ 11.2) ",
+          "settled": true
+        },
+        {
+          "date": "2025.09.29",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1,
+          "activity": "내부 자료 파악, todo 리스트업, 회의일정 픽스",
+          "settled": true
+        },
+        {
+          "date": "2025.09.29",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1,
+          "activity": "고객사 미팅 전 사전 논의, 역할 분배, 내일 미팅 목표 설정",
+          "settled": true
+        },
+        {
+          "date": "2025.09.29",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 4.75,
+          "activity": "프로젝트 대시보드 정리, 데스크리서치 (메타 성과 최근 1년 분석)",
+          "settled": true
+        },
+        {
+          "date": "2025.09.30",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.5,
+          "activity": "실험 논의 w.앨리스,심슨 (실험 구조 및 방식, 목표 등)",
+          "settled": true
+        },
+        {
+          "date": "2025.09.30",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.75,
+          "activity": "그린, 앨리스, 베리, 할리 실험",
+          "settled": true
+        },
+        {
+          "date": "2025.09.30",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.65,
+          "activity": "운영 대시보드 정리, 미팅내용 정리 및 액션아이템 정리",
+          "settled": true
+        },
+        {
+          "date": "2025.10.01",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.75,
+          "activity": "인터뷰 오퍼레이션 (업무 분배 및 액션아이템 전달)",
+          "settled": true
+        },
+        {
+          "date": "2025.10.02",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1,
+          "activity": "목표치 확인, 이유식 타겟 관련 리서치 및 유저 리서치 설계 (진행중)",
+          "settled": true
+        },
+        {
+          "date": "2025.10.03",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.75,
+          "activity": "구독캠페인 데이터 확인(월별 데모데이터)",
+          "settled": true
+        },
+        {
+          "date": "2025.10.07",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.4166666666666667,
+          "activity": "상세페이지 테스트 액션아이템 논의, 일정 싱크(w/앨리스)",
+          "settled": true
+        },
+        {
+          "date": "2025.10.07",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2,
+          "activity": "상세페이지 기획, 레퍼런스 리서치",
+          "settled": true
+        },
+        {
+          "date": "2025.10.07",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "기획 싱크, 큰 기획/흐름 확정, 역할분배 (w/앨리스)",
+          "settled": true
+        },
+        {
+          "date": "2025.10.08",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.6666666666666667,
+          "activity": "상세페이지 기획",
+          "settled": true
+        },
+        {
+          "date": "2025.10.09",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5833333333333334,
+          "activity": "상세페이지 기획 싱크 및 확정 (w/d앨리스)",
+          "settled": true
+        },
+        {
+          "date": "2025.10.09",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2.75,
+          "activity": "고객 설문조사 링크 생성, 인터뷰 질문지 설계, 인터뷰 계획 정비, 내일 미팅 준비",
+          "settled": true
+        },
+        {
+          "date": "2025.10.19",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.25,
+          "activity": "랜딩페이지 피드백, 인터뷰 준비, CRO 전반적 진행상황 확인 ",
+          "settled": true
+        },
+        {
+          "date": "2025.10.20",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5833333333333334,
+          "activity": "랜딩페이지, 인터뷰 관련 논의",
+          "settled": true
+        },
+        {
+          "date": "2025.10.20",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1,
+          "activity": "랜딩페이지 피드백 반영 및 마무리",
+          "settled": true
+        },
+        {
+          "date": "2025.10.20",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.25,
+          "activity": "랜딩페이지 최종 확정 (프라이스 베네핏) (w/ 앨리스, 베리, 그린)",
+          "settled": true
+        },
+        {
+          "date": "2025.10.20",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.25,
+          "activity": "랜딩페이지 삽입할 영상 편집 및 전달",
+          "settled": true
+        },
+        {
+          "date": "2025.10.20",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.3333333333333333,
+          "activity": "인터뷰 진행 + 내용 정리",
+          "settled": true
+        },
+        {
+          "date": "2025.10.21",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "랜딩 퍼블리싱 관련 컴케 + 랜딩 링크 디버깅",
+          "settled": true
+        },
+        {
+          "date": "2025.10.24",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1,
+          "activity": "인터뷰 오퍼레이션, 인터뷰 1건 진행, 인터뷰 진행건 요약 및 정리",
+          "settled": true
+        },
+        {
+          "date": "2025.10.24",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "CRO 결과 중간 논의",
+          "settled": true
+        },
+        {
+          "date": "2025.10.25",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.25,
+          "activity": "인터뷰 2건 진행, 내용 정리 및 요약, 오퍼레이션",
+          "settled": true
+        },
+        {
+          "date": "2025.10.27",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.25,
+          "activity": "슬랙 컴케 (CRO 결과 중간 보고)",
+          "settled": true
+        },
+        {
+          "date": "2025.10.27",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "인터뷰 인사이트 정리, 내일 회의록 준비 ",
+          "settled": true
+        },
+        {
+          "date": "2025.10.28",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1,
+          "activity": "중간점검 미팅",
+          "settled": true
+        },
+        {
+          "date": "2025.10.28",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.25,
+          "activity": "cro 논의 + 인터뷰 인사이트 공유 + 후속 컴케",
+          "settled": true
+        },
+        {
+          "date": "2025.10.29",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.65,
+          "activity": "2차 CRO 기획안 작성",
+          "settled": true
+        },
+        {
+          "date": "2025.10.29",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 3,
+          "activity": "이유식 LMF 기획, 기획안 작성 (소재 개수 픽스, 예산 시뮬레이션 등)",
+          "settled": true
+        },
+        {
+          "date": "2025.10.29",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.1666666666666667,
+          "activity": "이유식 LMF 기획 피드백 요청 to심슨, 피드백 반영, 그린과 미팅",
+          "settled": true
+        },
+        {
+          "date": "2025.10.29",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2.25,
+          "activity": "2차 CRO 랜딩페이지 기획",
+          "settled": true
+        },
+        {
+          "date": "2025.10.30",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 3,
+          "activity": "2차 CRO 랜딩페이지 제작",
+          "settled": true
+        },
+        {
+          "date": "2025.10.31",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1,
+          "activity": "이유식 LMF 소재 테스트 퍼소나/USP 확정",
+          "settled": true
+        },
+        {
+          "date": "2025-11-04",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "IP warming 준비",
+          "settled": true
+        },
+        {
+          "date": "2025-11-05",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 2,
+          "activity": "IP warming 준비 & 위클리",
+          "settled": true
+        },
+        {
+          "date": "2025-11-07",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.5,
+          "activity": "앨리스 퀵싱크",
+          "settled": true
+        },
+        {
+          "date": "2025-11-11",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.5,
+          "activity": "앨리스 퀵싱크",
+          "settled": true
+        },
+        {
+          "date": "2025-11-19",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1.5,
+          "activity": "미팅 & 팔로업",
+          "settled": true
+        },
+        {
+          "date": "2025-11-27",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1.5,
+          "activity": "미팅 & 팔로업",
+          "settled": true
+        },
+        {
+          "date": "2025-11-03",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "모달 미노출 사항 확인 (대응)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-04",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "3차 CRO 기획 (09:00~10:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-04",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "이메일 제작 (16:00~19:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-05",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "알림톡  API 템플릿 제작 (14:00~16:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-06",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "이유식 CRO 페북 데이터 확인 (16:00~17:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-06",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "이유식 CRO 기획 초안 제작 (17:00~18:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-06",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "비활성 유저 캠페인 세팅 (18:00~19:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-07",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "랜딩페이지 개선 기획 (13:00~14:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-07",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "모달 테스트 캠페인 런칭 (15:30~17:30)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-05",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "정기배송 Top Line 멘토링 (16:00~18:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-10",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "최근 정지 유저 캔버스 캠페인 세팅 (10:00~12:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-10",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "랜딩페이지 성과분석 (13:00~15:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-10",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "모달 미노출 이슈 확인 (에어) (17:00~18:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-11",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "인앱 설문조사 모달캠페인 분석 (13:00~14:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-12",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "이메일 IP warming 재 라이브 (13:00~16:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-11",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "정기배송 Top Line 멘토링 (내부) (16:00~18:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-18",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2.5,
+          "activity": "챙겨드림 푸시 (1) 캠페인 기획&세팅 (09:30~12:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-18",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "정기배송 중지 유저 CRM 캠페인 런칭 (16:00~18:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-20",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2.5,
+          "activity": "주소 미등록 유저 대상 LMS/푸시 캠페인 세팅 (15:00~17:30)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-21",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "상세페이지 인터뷰 (1)(2) (15:00~17:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-19",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "정기배송 Top Line 멘토링 (16:00~18:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-24",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "IP 워밍 컨텐츠 제작 (18:00~21:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-26",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "IP 워밍 캠페인 재라이브 (13:00~16:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-27",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "IP 워밍 캠페인 세팅 (10:00~12:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-27",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "IP 워밍 포스트마스터 권한 (13:00~14:00)",
+          "settled": true
+        },
+        {
+          "date": "2025-11-26",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "정기배송_Top Line_멘토링 (16:00~18:00)",
+          "settled": true
+        },
+        {
+          "date": "2025.11.02",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 4.833333333333333,
+          "activity": "LMF 소재 카피라이팅",
+          "settled": true
+        },
+        {
+          "date": "2025.11.02",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.3333333333333333,
+          "activity": "슬랙 업무 요청 (LMF 검토요청, 2차 랜딩 퍼블리싱 요청, 2주 뒤 랜딩 퍼블리싱 업무요청)",
+          "settled": true
+        },
+        {
+          "date": "2025.11.03",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2.5,
+          "activity": "광고소재 제작",
+          "settled": true
+        },
+        {
+          "date": "2025.11.04",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "셋팅요청서 작성 및 전달",
+          "settled": true
+        },
+        {
+          "date": "2025.11.06",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "이유식 CRO 랜딩페이지 기획 ",
+          "settled": true
+        },
+        {
+          "date": "2025.11.07",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.1666666666666667,
+          "activity": "2차 테스트 성과 확인 및 3차 랜딩페이지 테스트 기획안 작성",
+          "settled": true
+        },
+        {
+          "date": "2025.11.07",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.4166666666666667,
+          "activity": "이유식 랜딩페이지 기획안 마무리 및 오렌지에게 전달",
+          "settled": true
+        },
+        {
+          "date": "2025.11.10",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2,
+          "activity": "LMF 성과 분석, 인사이트 발굴, 리포트 작성",
+          "settled": true
+        },
+        {
+          "date": "2025.11.10",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "CRO 업무 싱크 w앨리스",
+          "settled": true
+        },
+        {
+          "date": "2025.11.11",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "랜딩페이지 QA, CRO 업무 싱크 w그린베리앨리스",
+          "settled": true
+        },
+        {
+          "date": "2025.11.12",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.75,
+          "activity": "11월 액션플랜 재수립, 협업 요청사항 정리 및 전달",
+          "settled": true
+        },
+        {
+          "date": "2025.11.13",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2,
+          "activity": "랜딩페이지 유저인터뷰 기획, 유저인터뷰(4명)",
+          "settled": true
+        },
+        {
+          "date": "2025.11.14",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 3.75,
+          "activity": "인사이트 정리, 액션아이템 수립 및 랜딩페이지 기획 + 제작, 기획안작성",
+          "settled": true
+        },
+        {
+          "date": "2025.11.14",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.5,
+          "activity": "4차 실험 기획안 작성, 인터뷰 인사이트와 실험 기획안 전달 + 컴케 및 4차 실험 최종안 완료",
+          "settled": true
+        },
+        {
+          "date": "2025.11.20",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2.5,
+          "activity": "1-4차 실험 결과 총정리, 5차 실험 기획안 작성, 11월 액션 플랜 정리하여 검토요청",
+          "settled": true
+        },
+        {
+          "date": "2025.12.12",
+          "company": "캐비지",
+          "expert": "이율희",
+          "hours": 2.5,
+          "activity": "BEP 달성을 위한 전략 논의",
+          "settled": true
+        },
+        {
+          "date": "2025.12.03",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "미팅",
+          "settled": true
+        },
+        {
+          "date": "2025.12.10",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 0.4,
+          "activity": "미팅",
+          "settled": true
+        },
+        {
+          "date": "2025.12.18",
+          "company": "캐비지",
+          "expert": "심규섭",
+          "hours": 1,
+          "activity": "미팅",
+          "settled": true
+        },
+        {
+          "date": "2025.12.03",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "브레이즈 추가 교육 준비",
+          "settled": true
+        },
+        {
+          "date": "2025.12.03",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "챙겨드림푸시 캠페인 세팅",
+          "settled": true
+        },
+        {
+          "date": "2025.12.03",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "브레이즈 교육",
+          "settled": true
+        },
+        {
+          "date": "2025.12.04",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2,
+          "activity": "API 트리거 캠페인 요청서 작성",
+          "settled": true
+        },
+        {
+          "date": "2025.12.09",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 4.5,
+          "activity": "이메일 캠페인 교육안 & 위키 제작 ",
+          "settled": true
+        },
+        {
+          "date": "2025.12.10",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "이메일 캠페인 교육 (두유/성현)",
+          "settled": true
+        },
+        {
+          "date": "2025.12.10",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 0.5,
+          "activity": "정기배송_Top Line_멘토링 (16:00~17:00)",
+          "settled": true
+        },
+        {
+          "date": "2025.12.10",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2.5,
+          "activity": "API 트리거 캠페인 QA",
+          "settled": true
+        },
+        {
+          "date": "2025.12.10",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "배송관련 이벤트 프로퍼티 구조 제안서 작성 ",
+          "settled": true
+        },
+        {
+          "date": "2025.12.09",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "회원가입 쿠폰 모달 캠페인 세팅 ",
+          "settled": true
+        },
+        {
+          "date": "2025.12.11",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "챙겨드림 푸시 개발 커뮤니케이션 (array 방식 논의) ",
+          "settled": true
+        },
+        {
+          "date": "2025.12.12",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "카카오 플친 캐러셀/피드/일반형 API 템플릿 제작",
+          "settled": true
+        },
+        {
+          "date": "2025.12.16",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 3,
+          "activity": "챙겨드림 푸시 캠페인 세팅",
+          "settled": true
+        },
+        {
+          "date": "2025.12.17",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2.5,
+          "activity": "0회차 이탈 캠페인 알림톡 세팅",
+          "settled": true
+        },
+        {
+          "date": "2025.12.17",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1.5,
+          "activity": "프로젝트 결과 보고서 작성",
+          "settled": true
+        },
+        {
+          "date": "2025.12.18",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 1,
+          "activity": "마지막 스프린트 미팅",
+          "settled": true
+        },
+        {
+          "date": "2025.12.19",
+          "company": "캐비지",
+          "expert": "이지현",
+          "hours": 2.5,
+          "activity": "브레이즈 최종 원오원 (기존 자동화 캠페인 내재화) ",
+          "settled": true
+        },
+        {
+          "date": "2025.12.03",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1,
+          "activity": "랜딩페이지 테스트 성과 확인, 방향성 도출",
+          "settled": true
+        },
+        {
+          "date": "2025.12.03",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "상세페이지 실험 논의 회의 참여",
+          "settled": true
+        },
+        {
+          "date": "2025.12.04",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "7차 실험 기획안 작성 및 공유",
+          "settled": true
+        },
+        {
+          "date": "2025.12.08",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2.75,
+          "activity": "8차 실험 상세페이지 기획",
+          "settled": true
+        },
+        {
+          "date": "2025.12.09",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 7.5,
+          "activity": "8차 실험 상세페이지 제작",
+          "settled": true
+        },
+        {
+          "date": "2025.12.10",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2.5,
+          "activity": "8차 실험 상세페이지 제작",
+          "settled": true
+        },
+        {
+          "date": "2025.12.12",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.5,
+          "activity": "7차 실험 성과 분석, 8차 실험 기획안 작성 및 공유, 수정 및 컴케",
+          "settled": true
+        },
+        {
+          "date": "2025.12.16",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 5,
+          "activity": "이유식 상세페이지 제작",
+          "settled": true
+        },
+        {
+          "date": "2025.12.18",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 1.25,
+          "activity": "8차 실험 성과 분석",
+          "settled": true
+        },
+        {
+          "date": "2025.12.23",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 4,
+          "activity": "샐러드 상세페이지 기획",
+          "settled": false
+        },
+        {
+          "date": "2025.12.24",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 4,
+          "activity": "샐러드 상세페이지 제작",
+          "settled": false
+        },
+        {
+          "date": "2025.12.25",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "이유식, 샐러드 상세페이지 수정 및 검토 요청",
+          "settled": false
+        },
+        {
+          "date": "2025.12.28",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 5,
+          "activity": "가격강조 상페 기획 및 제작, 이유식/샐러드 상페 피드백 반영",
+          "settled": false
+        },
+        {
+          "date": "2025.12.29",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 0.5,
+          "activity": "상세페이지 피드백 반영",
+          "settled": false
+        },
+        {
+          "date": "2025.12.30",
+          "company": "캐비지",
+          "expert": "박보영",
+          "hours": 2,
+          "activity": "프로젝트 기간 업무 내역 및 결과보고서 작성",
+          "settled": false
+        }
+      ],
+      "feedback": [
+        {
+          "date": "2025-04-07",
+          "name": "최현주",
+          "company": "캐비지",
+          "satisfaction": 6,
+          "topicReview": "PM님께서 런칭될 프리오더에 대해서 이야기해보자고 제안주셨고, 서비스 목적과 기획은 잡혀있으니 관련한 리스크와 지표 팔로업에 대해 논의하면 좋겠다고 말씀드렸습니다.\n\n'이해'에 대한 부분은 미리 공유한 후 제가 짧게 브리핑하고 '논의'에 대한 아젠다에만 집중하니 확실히 더 생산적인 미팅이 된 것 같아 만족스러웠습니다. ",
+          "talkRatio": "6:4 \n이번에는 제가 설명 + 질문 6정도 하고 멘토님이 4정도로 답변 + 제안 + 추가 질문 주신 것 같습니다.",
+          "goodPoints": "주제가 명확하고 짧고 굵어서 좋았습니다.\n\n개인적으로는 실시간으로 회의록을 적으면서 우리가 어떤 아젠다에 대해서 논의하고 있는지 길을 잡는게 제가 스스로 생각을 수납하고 추가 질의하는데 도움이 된다고 느꼈습니다. (KEEP 해보면 좋겠다 생각했습니다. )\n논의하고 있는 와중에 제가 A로 이해했는데 멘토님은 B였다고 얘기하면 해당 부분에 대한 논쟁 없이 다른 얘기였다보군 줄 긋고 다음으로 이동하거나\n1-1, 1-1-a등 어느 레벨에서 얘기하고 있는지 싱크업하는 등\n서로 백그라운드나 정보레벨이 다른 상태에서 얘기할 때 도움이 되는 것 같습니다. ",
+          "improvements": "마지막에 다음 미팅 주제와 방향에 대한 짧은 이야기가 있어도 좋을 것 같습니다. \n이번에는 오늘 나온 아이디어들을 제가 운영차원에서 더 고민하고 반영해보겠다 끝냈던 것 같습니다.\nex. 이번 프리오더는 다음에 지표나오면 더 이야기해보기로 하고, 다음 시간은 리텐션 논의를 하자 등 다음에 얘기할 주제 싱크업을 잠깐 하고 끝내도 좋을 것 같아요.",
+          "nextAgenda": "리텐션이 안 잡혀 고민입니다. ㅠ\n1분기에는 얻은 학습점들은 있지만 그래서 이렇다 할 성과는 못보고 있는 상태입니다.\n\n신규 BM 런칭과 마케팅 쪽 리딩을 하느라 제가 충분히 고민하거나 시간을 쏟지도 못하고 있고요. \n주디에게 리텐션 스쿼드 PM을 주고 주디와 멘토님이 더 밀접하게 고민을 하는게 좋을지 등 리텐션 문제해결을 어떻게 빠르고 생산적으로 할 수 있을지 고민이 됩니다. "
+        },
+        {
+          "date": "2025-08-31",
+          "name": "최현주",
+          "company": "캐비지",
+          "satisfaction": 7,
+          "topicReview": "유저 행동 그룹과 리텐션 간의 인과관계 파악. 팀원들이 궁금해하던 주제를 직접적으로 질의하는 세션이었고, 중요한 주제였습니다. ",
+          "talkRatio": "기업 3 멘토 7 멘토님이 팀이 궁금했던 주제에 대해 소상히 설명해주셔서 좋았습니다.",
+          "goodPoints": "보는 방법 뿐만아니라, 직접 데이터 분석 결과물까지 가져와주신 점이 도움이 되었습니다. 명쾌했습니다. ",
+          "improvements": "특별히 없었습니다. ",
+          "nextAgenda": "4분기 핵심과제 중 하나로 유저 세그멘테이션을 하려고 합니다. 멘토님과 방법론에 대해 논의할 수 있다면 속도와 정확성에 큰 도움을 받을 수 있을 것 같습니다"
+        }
+      ],
+      "pmNotes": "사전점검설문 | PM Note\n#직매입 #가치소비 #\n전략 | 구독 스케일업, 확장 BM 가설검증 | - 직매입, 직접 소분, 포장하여 중간 마진 줄였으나, 운영 스케일 한계\n정기구독서비스 -> 레시피오더(상시 구매) -> PB -> 오프라인 매장 | - 고객의 니즈가 다른 커머스와는 다름. 빠른 배송x, 신경쓰지 않아도 정기적으로 알아서 배송, 레시피도 동봉. 요리할 의지만 있다면.. 편함\n정기구독 -> 테마형으로 다각화 | - 팀에서 분석한 고객 이탈 원인 / 지인 (너무 특이한 것은 요리할 엄두가 안 난다, 다 빼고나면 매번 비슷한 것이 옴, 20-30대 출산 육아기에 요리할 시간이 없어 구독해지..)\n- 활성구독자 비율이 낮은 것은 해지한 것인지, 활성화를 안 한 것인지\n주요지표 | 알고 싶은 것\n활성구독자수 | 3만(10%?) | 주차별 건너뛰기 가능함. 활성구독자의 월 구매횟수 - 핵심고객 2.8회\n월매출 | 11억  | 구독료 18500원 x 월 60000건 주문 (구독자당 월 평균 2회 주문?) | 구독자 증가율, 3개월째 정체\n회원가입수 | 약 30만 | ㄴ 주 6000건 (기사확인)..? | 팀에서 생각하는 리텐션의 정의\n집중분야\n목표에 맞는 지표 설정 | 선/후행지표\n오퍼레이션 효율화 (공헌이익 달성 목표) | 변동비 구조 | 공헌이익률 21%? (장표) | 23년 말, 매출 81억, 영업이익 -7.2억\n마케팅 | 마케팅 목적\n지금 어글리어스는 구독 BM에서 PMF를 찾았다고 판단하며 NEXT STAGE를 고민하고 있습니다. \n구독에서 스케일을 극대화하고, 다른 BM들을 테스트하려합니다.  \n큰 방향성은 잡혀있지만 지표 중심적으로 팀이 질 높은 실행을 하고 Jump-up을 위한 유효한 실행을 만들어야하는 단계입니다. \n \n이 과정에서, \n1)  멘토님의 경험 자산을 기반으로 팀이 고민하고 있던 부분들을 날렵하게 티키타카 해주셔서 빠르게 확신을 갖고 '실행'에 보다 집중할 수 있겠다는 생각이 듭니다. '혹시 이렇지 않을까?' 찝찝하던 부분들은 논리로 빠르게 부시면서 버릴 것 버리고 챙길 것 챙길 수 있습니다. \n(Acqusition 과 Retention 관리 우선순위, 팀 채용에 대한 고민 등)\n\n2)최근 DA를 채용하고 데이터 분석을 고도화하려는 단계에서 팀이 바로 적용할 수 있는 질 높은 조언들을 받을 수 있을 것이라는 확신이 듭니다. 저희 팀이 TECH ONLY팀은 아니지만, 개인화 구독과 커뮤니티를 키우기 위해 데이터의 중요성을 크게 인식하고 있습니다. 고객 클러스터링을 어떻게 할지, 리텐션이 중요한 구독이라는 서비스에서 리텐션 지표를 어떻게 볼지, 개인화를 위한 데이터들을 어떻게 모으고 가공할지 등의 고민에 대해 제품력을 크게 키울 수 있는 기반이 될 것으로 기대합니다.\n\n3) 어글리어스 서비스에 대한 이해도와 관심도가 있으셨습니다. (가족 중 사용) 서비스나 고객에 대해 길에 설명하지 않아도 빠르게 본론으로 들어갈 수 있었습니다. 대화 스타일 자체도 잘 맞았습니다. 짧은 시간 가장 핵심을 다뤘고, 가장 깊게 들어갔으며 실제적이고 actionable한 인사이트들을 얻었습니다.   | - 구독 스케일을 위한 지표 우선순위, 핵심 드라이버 선별\n- 오퍼레이션 효율화를 위한 비용구조 분석, 프로세스 점검\n- 추가 BM 검증을 위한 데이터기반 가설 설정\n- 구독스케일 v 신규 BM 리소스 배분\n- 엑싯전략 (M&A...?)\n",
+      "resourceConnections": [
+        {
+          "period": "2025-02",
+          "company": "캐비지",
+          "category": "Community",
+          "status": "진행완료",
+          "item": "기타",
+          "detail": "1) 신규 고객 유치\n- 2월 먀포/선릉 디캠프 다이닝 협력 제안 \nㄴ 어글리어스 농산물로 함께 요리하며 입주사 대상 어글리어스 노출 → 신규 고객 유치\n\n2) 재고 처리 이슈\n- 입주사 대상 나눔 이벤트 제안",
+          "followUp": "신규 고객(입주사) 유치, 나눔 이벤트 지속 진행중"
+        },
+        {
+          "period": "2025-03",
+          "company": "캐비지",
+          "category": "PR",
+          "status": "진행중",
+          "item": "PR",
+          "detail": "지구의날 캠페인 홍보 방안 논의\n- 보도자료 배포 4/22 희망\n- 보도자료 초안, 데이터 ITcom 에 전달해 드리기로 함",
+          "followUp": ""
+        },
+        {
+          "period": "2025-04",
+          "company": "캐비지",
+          "category": "기타",
+          "status": "진행완료",
+          "item": "기타",
+          "detail": "박영훈 대표님 물류 전문가 네트워크 연결\nㄴ GS 네트워크 김성일 그룹장(홈플러스, GS 에서 채소, 과채류 물류창고 운영 총괄 )\n\n대표님 메일 보낸 후 growth 에서 미팅 참관 예정",
+          "followUp": "미팅 완료"
+        },
+        {
+          "period": "2025-03",
+          "company": "캐비지",
+          "category": "PR",
+          "status": "진행완료",
+          "item": "PR",
+          "detail": "VC의 홍보대행사 통해 전자신문 인터뷰 문의 들어왔는데 진행 사항 관련 문의하심. 간이 컨설팅 진행 및 질문 답변지 검수 진행 ",
+          "followUp": "https://www.etnews.com/20250410000218"
+        },
+        {
+          "period": "2025-03",
+          "company": "캐비지",
+          "category": "PR",
+          "status": "진행완료",
+          "item": "PR",
+          "detail": "PR 교육 세션 진행. 참여 신청하심 ",
+          "followUp": ""
+        },
+        {
+          "period": "2025-04-01",
+          "company": "캐비지",
+          "category": "PR",
+          "status": "진행완료",
+          "item": "PR",
+          "detail": "대표 인터뷰 기회 연결 ",
+          "followUp": "전자신문 게재 완료"
+        },
+        {
+          "period": "2025-04-01",
+          "company": "캐비지",
+          "category": "Community",
+          "status": "진행완료",
+          "item": "기타",
+          "detail": "콘스탄트(입주사) 대표님 연결 (인플루언서 마케팅 경험을 공유받고자 대표님이 요청하심)",
+          "followUp": "명함 전달"
+        },
+        {
+          "period": "2025-03",
+          "company": "캐비지",
+          "category": "Resource",
+          "status": "진행완료",
+          "item": "HR(채용)",
+          "detail": "스타트업 인턴십 리쿠르터 참여",
+          "followUp": "2명 채용 완료"
+        },
+        {
+          "period": "2025-04-01",
+          "company": "캐비지",
+          "category": "Resource",
+          "status": "진행완료",
+          "item": "PR",
+          "detail": "오피스아워 홍보콘텐츠 출연",
+          "followUp": "유튜버 및 디캠프 채널 업로드 예정(5.15.)"
+        },
+        {
+          "period": "2025-04-01",
+          "company": "캐비지",
+          "category": "PR",
+          "status": "진행완료",
+          "item": "PR",
+          "detail": "유튜브 콘텐츠 검수 및 회사 소개 문구 확인 ",
+          "followUp": "조언 반영 완료. 유튜브 콘텐츠 제작 완료 "
+        },
+        {
+          "period": "2025-04-01",
+          "company": "캐비지",
+          "category": "PR",
+          "status": "진행완료",
+          "item": "PR",
+          "detail": "취재 연결 ",
+          "followUp": "전자 신문 및 5곳 게재 완료"
+        },
+        {
+          "period": "2025-09-21",
+          "company": "캐비지",
+          "category": "PR",
+          "status": "진행완료",
+          "item": "PR",
+          "detail": "대표 인터뷰 기회 연결",
+          "followUp": "한국경제 게재 완료"
+        },
+        {
+          "period": "2025-09-22",
+          "company": "캐비지",
+          "category": "PR",
+          "status": "진행완료",
+          "item": "PR",
+          "detail": "보도자료 컨설팅 및 배포 지원",
+          "followUp": "뉴스탭, 스타트업 레시피 게재 완료"
+        }
+      ]
+    },
+    "바인드": {
+      "coachingPlans": [],
+      "sessions": [],
+      "expertDeployments": [
+        {
+          "date": "2025-03-06",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "킥오프 미팅 및 Break out session 진행하여 바인드팀의 현재 어려움과 니즈를 파악",
+          "meetingUrl": "https://callabo.ai/ko/w/dcamp/s/d5f0dcbc-42ea-5db9-b691-b2e57b4006a1?pw=OWVtdHVzcG4%253D"
+        },
+        {
+          "date": "2025-03-06",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "바인드팀의 현재 어려움과 니즈를 파악 및 정리. 액션 아이템 도출",
+          "meetingUrl": "https://callabo.ai/ko/w/dcamp/s/30602188-d727-51fb-b800-2ae3099f6289?pw=a295NmJ2ejQ%253D"
+        },
+        {
+          "date": "2025-03-07",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "현재 엑셀로 정리되고 있는 퍼포먼스 마케팅 엑셀 시트 분석",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-03-08",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "태블로로 마이그레이션 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-03-12",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "",
+          "activity": "태블로로 마이그레이션 시작",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-03-14",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "",
+          "activity": "캐리와 컨퍼런스 콜을 통해서 MySQL 을 어떻게 세팅해야 태블로로 에어브릿지를 시각화 할 수 있을지에 대해 논의",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-03-17",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2.5,
+          "type": "",
+          "activity": "태블로로 1st phase 의 1st draft 완료",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-03-18",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "",
+          "activity": "컨콜로 태블로 1st phase 설명",
+          "meetingUrl": "https://callabo.ai/ko/w/dcamp/record/47177"
+        },
+        {
+          "date": "2025-03-21",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 5.5,
+          "type": "",
+          "activity": "태블로 서버 작업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-03-26",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.5,
+          "type": "",
+          "activity": "태블로 faq",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-03-27",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "",
+          "activity": "태블로 faq 이 후 팔로업, EoA with 케이티 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-03-28",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "",
+          "activity": "케이티 daily catchup",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-03-31",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "",
+          "activity": "케이티 daily catchup",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-01",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "데일리 캐치업, 태블로 index, 다미님 섭외",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-02",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "",
+          "activity": "케이티 태블로, MySQL, Amplitude 오프라인 강의",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-03",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "",
+          "activity": "케이티 daily catchup",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-04",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "Daily catchup and crm overview",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-07",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.5,
+          "type": "",
+          "activity": "Daily catchup and call with Toss PL",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-08",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.5,
+          "type": "",
+          "activity": "Daily catchup",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-09",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 6,
+          "type": "",
+          "activity": "offline meeting regarding taxonomy and R&R for Katie. follow up on Slack",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-15",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.5,
+          "type": "",
+          "activity": "Catch up",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-16",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4.5,
+          "type": "",
+          "activity": "Meeting with 캐리 & 케이티 regarding OKRs",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-18",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.5,
+          "type": "",
+          "activity": "Tableau event_log",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-22",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 7,
+          "type": "",
+          "activity": "Catch up, Tableau <> Redash 작업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-24",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "Catch up with Katie & Braze initial meeting with AB180",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-28",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.6,
+          "type": "",
+          "activity": "Braze decision making with Carey",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-29",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "Tableau ad group id 작업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-04-30",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.4,
+          "type": "",
+          "activity": "Discuss on Braze contract ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-05-08",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.3,
+          "type": "",
+          "activity": "Slack 응대",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-05-13",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.3,
+          "type": "",
+          "activity": "Slack 응대",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-05-27",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.2,
+          "type": "",
+          "activity": "Slack 응대 (브레이즈 기능에 대한 리서치 및 제안. 내일 미팅 스케줄링)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-05-28",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3.3,
+          "type": "",
+          "activity": "루크 만나서 앞으로 방향 정리 (심슨이 App growth PM 맡기), 케이티 만나서 퍼포먼스 마케팅 궁금증 해결, 캐리 만나서 브레이즈 임플레멘테이션 논의 및 질의 응답, 슬랙 응대",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-04",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.2,
+          "type": "",
+          "activity": "App Growth Kick off meeting and follow up on Slack",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-04",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.9,
+          "type": "",
+          "activity": "캐리와 브레이즈 임플레멘테이션, SEO, CRM lead scoring, 카카오 메세지 할인에 대해 논의",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-05",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "브레이즈로 카카오 메세지 클릭율 트래킹 방법에 대해 캐리와 논의 및 AB180 에 해당 기능 개발 문의. 케이티와 틱톡 광고 계정 세팅 및 방향성 논의. 앱그로스 논의",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-09",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.2,
+          "type": "",
+          "activity": "Slack 응대 (브레이즈 푸시 토큰 마이그레이션 관련)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-10",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "",
+          "activity": "첫 스프린트 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-10",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "",
+          "activity": "첫 스프린트 & 슬랙 응대",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-11",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "스프린트 노션 제작 및 태스크 배분",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-17",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3.5,
+          "type": "",
+          "activity": "스프린트 준비, 스프린트 진행, 캐리와 브레이즈 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-18",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "",
+          "activity": "Braze API only campaign sample 제작",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-24",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.9,
+          "type": "",
+          "activity": "스프린트 준비 및 진행. 담당자 R&R 명확히함",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-24",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "",
+          "activity": "Braze 친구톡 업그레이드 webhook 샘플 제작 및 에픽 관리 (슬랙 쓰레드)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-24",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "",
+          "activity": "케이티와 CRM follow up",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-26",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 5,
+          "type": "",
+          "activity": "캐리와 브레이즈 최종 점검 (온보딩 CRM, in-app message, email, 카카오 메세지 등 멀티 채널). 케이티/루크와 앱그로스를 위한 크리에이터 협업 브레인스토밍. 댄과 싱크",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-27",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.3,
+          "type": "",
+          "activity": "deferred deeplink ab test 기획",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-27",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.2,
+          "type": "",
+          "activity": "Katie 와 태블로 cost data discrepancy 조사",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-06-27",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.5,
+          "type": "",
+          "activity": "스프린트 태스크 (https://www.notion.so/App-user-acquisition-20fe95501ba280929e4bf56f9011be19) 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-01",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "sprint, sprint prep and follow up",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-01",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "친구톡 업그레이드 개발",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-01",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "",
+          "activity": "크리에이터 인게이지 커뮤니케이션 (인게이지 매니저와 배리 칠 디자이너 및 인터널 컴케)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-02",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.3,
+          "type": "",
+          "activity": "태블로 데이터 정합성 커뮤니케이션",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-03",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "",
+          "activity": "친구톡 업그레이드 개발",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-04",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.5,
+          "type": "",
+          "activity": "친구톡 업그레이드 개발 및 크리에이터 인게이지 커뮤니케이션",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-08",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2.5,
+          "type": "",
+          "activity": "sprint, sprint prep and follow up",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-09",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "앱광고, 메타 광고, 태블로 관련 컴케",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-11",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "앱광고 캠페인 라이브 및 최적화",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-14",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.5,
+          "type": "",
+          "activity": "앱광고 최적화",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-15",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4.5,
+          "type": "",
+          "activity": "오프라인 스프린트 및 개발 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-16",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "",
+          "activity": "시그널 엔지니어링, 스프린트 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-17",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "",
+          "activity": "메타 광고 라이브, 마텤 관련 태스크 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-17",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.2,
+          "type": "",
+          "activity": "캐리 앱그로스, 브레이즈 컨콜",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-18",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "",
+          "activity": "Meta app links 디버깅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-19",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "Braze canvas 제작",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-21",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "스프린트 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-22",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3.5,
+          "type": "",
+          "activity": "스프린트 및 스프린트 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-23",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 6,
+          "type": "",
+          "activity": "미드저니 영상 제작, 카탈로그 관련 컨콜, 메타 광고 라이브",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-24",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 6,
+          "type": "",
+          "activity": "sprint 6-2 오프라인 참석, 미드저니 영상 제작, 광고 라이브",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-25",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "",
+          "activity": "메타 광고 최적화, 캐리 컨콜, 브레이즈 연동",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-26",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "",
+          "activity": "멀티터치 분석",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-28",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.5,
+          "type": "",
+          "activity": "스프린트 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-29",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "",
+          "activity": "스프린트 미팅 + 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-30",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "",
+          "activity": "스프린트 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-07-31",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "",
+          "activity": "메타 광고 세팅, 브레이즈 세팅 및 캐리와 논의, 케이티와 회고 및 액션 플랜",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-01",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 6,
+          "type": "미팅(온/오프라인)",
+          "activity": "메타 광고 세팅, 브레이즈 세팅 및 캐리와 논의",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-06",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3.7,
+          "type": "미팅(온/오프라인)",
+          "activity": "스프린트&followup",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-07",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "Q3 전략짜기, 케이티 휴직 전 인수인계",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-11",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "메타 퍼포먼스 마케팅 운영, 앨리스와 스프린트 리뷰",
+          "meetingUrl": "심슨과 스프린트 리뷰, 브레이즈 팔로업"
+        },
+        {
+          "date": "2025-08-14",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 6,
+          "type": "미팅(온/오프라인)",
+          "activity": "태블로 로데이터, 캐리 컨콜 (로데이터, 빅쿼리, 랜딩 페이지 제작 방법)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-16",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "태블로 시각화",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-20",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 5,
+          "type": "개별 작업",
+          "activity": "브레이즈 ML, 이메일 테스트, 스프린트 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-21",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-23",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "브레이즈 이메일 작업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-24",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "앨리스와 작전회의",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-25",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "퍼포먼스 마케팅 캠페인, 스프린트 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-26",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 6.5,
+          "type": "개별 작업",
+          "activity": "스프린트. 어트리뷰션 전략 플래닝",
+          "meetingUrl": "https://grok.com/chat/16443094-9356-46fe-ac75-5976b06c9291"
+        },
+        {
+          "date": "2025-08-27",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "미팅(온/오프라인)",
+          "activity": "카이, 찬 컨콜 & 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-28",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "개별 작업",
+          "activity": "브레이즈 이메일 작업 & 위키 제작. 어트리뷰션",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-01",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1.3,
+          "type": "미팅(온/오프라인)",
+          "activity": "캐리 컨콜 우선순위 정리",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-02",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "스프린트 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-03",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "미팅(온/오프라인)",
+          "activity": "스프린트 + 카탈로그",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-04",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "개별 작업",
+          "activity": "재훈님 설득 (데이터+엔지니어링+AI. 전 스타일쉐어 그로스리드) 및 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-05",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "퍼포먼스 마케팅 점검 및 sop 작성",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-06",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "MMM 제안 및 퍼포먼스 점검",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-08",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "미팅(온/오프라인)",
+          "activity": "캐리 미팅, 퍼포먼스 마케팅 점검/틱톡 라이브",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-09",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "퍼포먼스 마케팅, 슬랙 컴케, 재훈님 컴케",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-10",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "미팅(온/오프라인)",
+          "activity": "미팅 & 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-11",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "슬랙응대, 리머지 컴케",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-12",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 5,
+          "type": "미팅(온/오프라인)",
+          "activity": "재훈님 이니셜 미팅 및 슬랙 컴케",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-15",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "개별 작업",
+          "activity": "ASO (keyword visibility), 스프린트 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-16",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "퍼포먼스 마케팅 & 미팅 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-17",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "미팅(온/오프라인)",
+          "activity": "미팅 & 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-18",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "슬랙응대, 퍼포먼스 점검",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-19",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "캐리 컨콜 (meta pixel view content for plp)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-22",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "슬랙 응대, 퍼포먼스 점검",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-23",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "슬랙 응대, 태블로 작업 시작",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-24",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 7,
+          "type": "미팅(온/오프라인)",
+          "activity": "미팅 & 팔로업 (프로모션 카탈로그 워크플로우)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-25",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 6,
+          "type": "개별 작업",
+          "activity": "퍼포먼스, 카탈로그, 구글앱캠페인",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-26",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "태블로 대시보딩",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-29",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "메타 <> 에어브릿지 차이 분석",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-30",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 6,
+          "type": "개별 작업",
+          "activity": "캐리 컨콜",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-01",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 7,
+          "type": "개별 작업",
+          "activity": "이메일 템플릿 완성",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-10",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "개별 작업",
+          "activity": "ASO (keyword visibility)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-13",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "개별 작업",
+          "activity": "Tableau, 메타 광고 수정",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-14",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "Tableau, 메타 광고 수정",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-15",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "미팅(온/오프라인)",
+          "activity": "weekly, 카탈로그 논의",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-16",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "개별 작업",
+          "activity": "이메일, 카탈로그",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-17",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "카탈로그",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-20",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "카탈로그",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-21",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "미팅(온/오프라인)",
+          "activity": "캐리 그로스 전환 미팅, 카탈로그, 광고 세팅, AEO",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-22",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "미팅(온/오프라인)",
+          "activity": "카탈로그, 브레이즈, 미팅, 태블로 전수 (핸드오버 모드로 전환)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-23",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 7,
+          "type": "미팅(온/오프라인)",
+          "activity": "ASO전수, 카탈로그, 브레이즈, 이메일",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-24",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "미팅(온/오프라인)",
+          "activity": "recommendation with 재훈님 미팅, 카탈로그",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-27",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "미팅(온/오프라인)",
+          "activity": "찬과 구글 미팅, 캐리 퀵싱크, 태블로 LTV 분석",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-28",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 6,
+          "type": "개별 작업",
+          "activity": "에어브릿지 카탈로그 정합성, DNS 이메일 체크",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-29",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "캐리 에어브릿지 링크 세팅 오류 컨콜, 이메일 DNS",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-30",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "미팅(온/오프라인)",
+          "activity": "찬 메타 전수, Claude Code MMM 분석, 에어브릿지 세팅 ab180 대표님들과 컴케",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-31",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "ab180 컴케, 이메일 인증 컴케",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-03",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 0.2,
+          "type": "개별 작업",
+          "activity": "(<-이 날부터 심슨의 바인드 \"개별 작업\"건은 돈 안 받아도 된다고 컴케 중) 이메일 IP warming 컴케",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-04",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "개별 작업",
+          "activity": "이메일 IP warming 컴케 / ab180 컴케 / mmm",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-05",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "미팅(온/오프라인)",
+          "activity": "위클리, MMM 설명 및 팔로업, 이메일 세팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-07",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "이메일 IP warming 세팅, ab180 컴케",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-12",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "미팅(온/오프라인)",
+          "activity": "",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-20",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "위클리 & MMM",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-27",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 2.2,
+          "type": "미팅(온/오프라인)",
+          "activity": "위클리 & 121",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-12-03",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "위클리 & 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-12-09",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 10,
+          "type": "개별 작업",
+          "activity": "카탈로그 & 카카오 광고 업로드 자동화",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-12-10",
+          "company": "바인드",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "위클리 & 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-07",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "케이티 CRM 운영방식 인수인계 + 기본 구조 논의",
+          "meetingUrl": "https://www.notion.so/Katie-CRM-248e95501ba280fda908e9cf2f15cff6"
+        },
+        {
+          "date": "2025-08-12",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "앱그로스 퍼포먼스 스프린트 미팅 ",
+          "meetingUrl": "https://www.notion.so/20fe95501ba28099b047d1d30810fff2?v=20fe95501ba280b48123000c25a3250a&p=24ce95501ba28094ae5dca4385c6220c&pm=s"
+        },
+        {
+          "date": "2025-08-12",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "앱그로스 CRM 파트 논의 및 온보딩 퍼널 개선 논의",
+          "meetingUrl": "https://www.notion.so/20fe95501ba28099b047d1d30810fff2?v=20fe95501ba280b48123000c25a3250a&p=24ce95501ba28094ae5dca4385c6220c&pm=s"
+        },
+        {
+          "date": "2025-08-14",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "캔버스 이벤트 프로퍼티 미노출 대응",
+          "meetingUrl": "[테스트] 주문 대기 후 이탈 넛징_v2"
+        },
+        {
+          "date": "2025-08-15",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "캔버스 to 슬랙 미발송 이슈 대응",
+          "meetingUrl": "[alice] 주문테스트"
+        },
+        {
+          "date": "2025-08-17",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 3.5,
+          "type": "개별 작업",
+          "activity": "[주문시작 후 이탈] 알림톡 자동화 브레이즈 캔버스 제작 + 캐리 미팅 ",
+          "meetingUrl": "[PROD_TEST]주문 대기 후 이탈 넛징_v2"
+        },
+        {
+          "date": "2025-08-19",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "[장바구니 to 구매] 여정 이탈 브레이즈 캔버스 제작",
+          "meetingUrl": "[PROD_TEST]250819_250824_상품 탐색 후 구매 이탈"
+        },
+        {
+          "date": "2025-08-22",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "캐리 앨리스 1 on 1( 다음 구매여정 + 전체 목표설정) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-22",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "앱설치 후 미구매 캠페인 스텝 분기 ",
+          "meetingUrl": "app session start but not purchase"
+        },
+        {
+          "date": "2025-08-24",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1.5,
+          "type": "개별 작업",
+          "activity": "스프린트 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-26",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "앱그로스 퍼포먼스 스프린트 미팅 + CRM 논의",
+          "meetingUrl": "https://www.notion.so/Sprint-11-250826-257e95501ba280ffae89f81f36f2583b"
+        },
+        {
+          "date": "2025-08-27",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 4,
+          "type": "개별 작업",
+          "activity": "프로모션 페이지 조회 후 이탈 고객여정 기획 & 제작 ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-28",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "CRM 싱크 미팅 (w. 캐리님) ",
+          "meetingUrl": "https://www.notion.so/8-28-CRM-25ce95501ba280b5ba44ebfb92bc05ab"
+        },
+        {
+          "date": "2025-08-29",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "8/30(토) 주말 발송 캠페인 세팅 (w.루크님) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-02",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 4,
+          "type": "개별 작업",
+          "activity": "웹유저 상품 조회 후 이탈 여정 기획 & 제작 / 회원가입 온보딩 캠페인 여정 추가",
+          "meetingUrl": "[prod] 주문클릭 후 미구매"
+        },
+        {
+          "date": "2025-09-03",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "앱그로스 퍼포먼스 스프린트 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-03",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "CRM 싱크 미팅 (w. 캐리님) ",
+          "meetingUrl": "https://www.notion.so/20fe95501ba28099b047d1d30810fff2?v=20fe95501ba280b48123000c25a3250a&p=263e95501ba28065a8f8d203be673567&pm=s"
+        },
+        {
+          "date": "2025-09-03",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "CRM 운영 킥오프미팅 (w. 루크) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-05",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 0.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "주문 시작 후 이탈 알림톡 캠페인 최종 체크 ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-05",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "9/6(토) 주말 발송 캠페인 세팅 ",
+          "meetingUrl": "250906_lms_9월혜택_전체발송_본발송"
+        },
+        {
+          "date": "2025-09-08",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "9/6(토) 주말 대규모 발송 건 데이터 분석",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-10",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "앱그로스 퍼포먼스 스프린트 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-11",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "브레이즈 테스트 캠페인 정규 캠페인 변경",
+          "meetingUrl": "[prod]250903_app_상품조회 후 미구매"
+        },
+        {
+          "date": "2025-09-12",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "브레이즈 모달 캠페인 실험 설계 & 캠페인 세팅 ",
+          "meetingUrl": "250912_IAM_홈진입_아까본 상품 브랜드관 유도_app"
+        },
+        {
+          "date": "2025-09-12",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "케이티 CRM 운영 관련 커피챗",
+          "meetingUrl": "https://www.notion.so/x-1on1-26ce95501ba28007a7e5c7f9db904971"
+        },
+        {
+          "date": "2025-09-15",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "모달캠페인 성과 중간 공유 & 후속 캠페인 세팅 ",
+          "meetingUrl": "250912_IAM_홈진입_아까본 상품 브랜드관 유도_app_v2"
+        },
+        {
+          "date": "2025-09-16",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "개별 작업",
+          "activity": "내부자 교육 커리큘럼 제작 ",
+          "meetingUrl": "https://www.notion.so/Braze-271e95501ba280ddb6f4c574a70f0beb"
+        },
+        {
+          "date": "2025-09-17",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "브레이즈 교육 1차 (w. 케이티) ",
+          "meetingUrl": "https://www.notion.so/1-_-271e95501ba280349287e18089d4d825"
+        },
+        {
+          "date": "2025-09-18",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "브레이즈 <--> 재피어 자동화 세팅",
+          "meetingUrl": "https://dashboard-07.braze.com/dashboard/catalogs/68ca6695770bf3006673873f/6863c2beb6e2460067e767c2?locale=en&name=braze_catalog"
+        },
+        {
+          "date": "2025-09-23",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "온보딩 캠페인 실험 2차 아이데이션 ",
+          "meetingUrl": "https://www.notion.so/271e95501ba2800a8f20e7ee6fa37018"
+        },
+        {
+          "date": "2025-09-24",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "스프린트 15",
+          "meetingUrl": "https://www.notion.so/Sprint15-250924-277e95501ba280e4a214d8042db64316"
+        },
+        {
+          "date": "2025-09-25",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "브레이즈 교육 자료 제작 ",
+          "meetingUrl": "https://www.notion.so/2-_-280e95501ba280369061c9546a4af059"
+        },
+        {
+          "date": "2025-09-25",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "브레이즈 교육 2차 (w. 케이티) ",
+          "meetingUrl": "https://www.notion.so/2-_-280e95501ba280369061c9546a4af059"
+        },
+        {
+          "date": "2025-09-26",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "개별 작업",
+          "activity": "기획전 자동화 푸시캠페인 세팅 ",
+          "meetingUrl": "https://www.notion.so/279e95501ba280e79a04c5448432df24"
+        },
+        {
+          "date": "2025-09-29",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2.5,
+          "type": "개별 작업",
+          "activity": "브레이즈 교육 자료 제작 ",
+          "meetingUrl": "https://www.notion.so/2-_-280e95501ba280369061c9546a4af059"
+        },
+        {
+          "date": "2025-09-30",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "crm 운영 코칭 ",
+          "meetingUrl": "https://www.notion.so/App-Growth-TF-20ee95501ba2801f9249c0469465bb4e?p=27de95501ba2807fad4cc995db9151ae&pm=s"
+        },
+        {
+          "date": "2025-09-30",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 5,
+          "type": "개별 작업",
+          "activity": "페이지 방문 후 이탈유저 캠페인 세팅",
+          "meetingUrl": "https://dashboard-07.braze.com/engagement/campaigns/68ef615e6f19fc0063adad92/6863c2beb6e2460067e767c2?locale=en&page=-2"
+        },
+        {
+          "date": "2025-10-02",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "브레이즈 교육 3차 (w. 케이티) ",
+          "meetingUrl": "https://www.notion.so/2-_-280e95501ba280369061c9546a4af059"
+        },
+        {
+          "date": "2025-10-02",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "10월 블프 CRM x 디자인 미팅 ",
+          "meetingUrl": "https://www.notion.so/CRM-27ee95501ba2808789ace44f6023f6f0"
+        },
+        {
+          "date": "2025-10-15",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2.5,
+          "type": "개별작업",
+          "activity": "캠페인별 성과 쿼리 작성",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-15",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "바인드 스프린트 미팅 ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-15",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2.5,
+          "type": "개별작업",
+          "activity": "바인드 스프린트 미팅 후 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-17",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "개별작업",
+          "activity": "프로모션 진입 후 이탈 소재 제작 / 데이터 분석",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-21",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "바인드 프로모션 피드백 ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-22",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "스프린트 진행 (앱그로스 & crm) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-22",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별작업",
+          "activity": "바인드 - 이탈 고객 대상 실험 기획 & 데이터 분석",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-23",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "개별작업",
+          "activity": "가입 후 프로모션 페이지 조회 이탈 캠페인 세팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-24",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 5.5,
+          "type": "개별작업",
+          "activity": "바인드 블프 티징 프로모션 이벤트 텍소노미 & 세팅 ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-27",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "개별작업",
+          "activity": "바인드 블프 티징 프로모션 대응 (모달/기획전 캠페인 등) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-27",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 4,
+          "type": "개별작업",
+          "activity": "블프 도먼유저 고객 분석 + 추가 캠페인 제안",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-28",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "바인드 추가 캠페인 체크 (케이티 진행상황 확인) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-03",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1.25,
+          "type": "미팅(온/오프라인)",
+          "activity": "케이티 원온원 - 캔버스 질문 미팅 (17:45~19:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-05",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별작업",
+          "activity": "App Growth (10:00~11:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-05",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별작업",
+          "activity": "CRM App Growth (11:00~12:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-06",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별작업",
+          "activity": "푸시 테스트 캠페인 세팅 (15:00~16:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-07",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2.5,
+          "type": "개별작업",
+          "activity": "캠페인 세팅 (09:30~12:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-07",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "브레이즈 - 쿼리 기반 세그멘테이션 설명 (14:00~15:30)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-12",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별작업",
+          "activity": "App Growth (10:00~11:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-12",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "도먼트 유저 실험 결과 분석 후 공유 (11:00~12:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-12",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "첫 구매 후 n일 뒤 넛징 논의 (17:00~18:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-12",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별작업",
+          "activity": "프록시 서버 개발 요청 (18:00~19:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-13",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별작업",
+          "activity": "플친 API Connected Contents 세팅 (10:00~12:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-13",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별작업",
+          "activity": "플친 API 세팅 QA (13:00~15:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-13",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별작업",
+          "activity": "자동화 CRM 캠페인 정리 + 넥스트 액션 제안 (15:00~17:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-19",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "App Growth (10:00~11:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-19",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별작업",
+          "activity": "[애슬러] CRM - 신규 유저 약관 확인 +약관안 작성 (13:00~14:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-24",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별작업",
+          "activity": "[애슬러] 플친 API 최종 캠페인 런칭 (14:00~16:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-26",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별작업",
+          "activity": "미팅 준비 (09:00~10:00)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-26",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "정기 미팅 (10:00~11:30)",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-12-02",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별작업",
+          "activity": "카카오 소재 자동화 봇 제작(1) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-12-02",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 5.5,
+          "type": "개별작업",
+          "activity": "카카오 소재 자동화 봇 제작 (2) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-12-03",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "자동화 봇 실무 파악 & CRM 관련 질문",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-12-03",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "개별 작업",
+          "activity": "운영 crm 데이터 분석 & paid x crm 연계 아이디어 리스트업 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-12-03",
+          "company": "바인드",
+          "expert": "앨리스",
+          "hours": 1.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "브레이즈 내부자 교육",
+          "meetingUrl": ""
+        }
+      ],
+      "feedback": []
+    },
+    "렌트리": {
+      "coachingPlans": [],
+      "sessions": [],
+      "expertDeployments": [
+        {
+          "date": "2025-07-22",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 1.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "- 렌트리 마케팅 전반 전략 논의함.\n- 퍼포먼스 마케팅 의존도가 높아 CAC 개선이 필요하며, SEO와 바이럴 마케팅을 통한 오가닉 트래픽 확보가 핵심 과제로 확인",
+          "meetingUrl": "https://tiro.ooo/s/c7wkYOSQ"
+        },
+        {
+          "date": "2025-07-29",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "- 마케팅 애퀴지션 개선을 위한 스프린트 방식 도입과 랜딩 페이지 최적화 실험을 중심으로 논의함. \n- 현재 퍼포먼스 마케팅 의존도가 높고 신규 고객 획득이 핵심 과제인 상황에서, 광고 소재와 랜딩 페이지 간 메시지 매치 개선을 통한 전환율 향상 방안을 모색하였으며, 일주일 스프린트를 통해 빠른 실험과 검증을 진행하기로 결정함.",
+          "meetingUrl": "https://tiro.ooo/s/mNjR2RKi"
+        },
+        {
+          "date": "2025-08-06",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 3.7,
+          "type": "미팅(온/오프라인)",
+          "activity": "",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-08",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-12",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "앨리스와 스프린트 리뷰",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-17",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "스프린트 운영 및 팀 방안 구상, 유저 인터뷰, 스프린트 준비 및 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-19",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-20",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 5,
+          "type": "개별 작업",
+          "activity": "스프린트 준비 및 메타/MMP audit",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-21",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "개별 작업",
+          "activity": "LMF 스프린트 및 준비 & 오딧",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-24",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 0.5,
+          "type": "개별 작업",
+          "activity": "앨리스와 작전회의",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-29",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "온라인 미팅 with product team",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-01",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "슬랙 팔로업, 스프린트 준비 & 미드저니 영상",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-02",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "미팅(온/오프라인)",
+          "activity": "스프린트, 재만님 121, 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-03",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 8,
+          "type": "미팅(온/오프라인)",
+          "activity": "재만님, 마케팅팀 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-04",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "마케팅팀 제안",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-05",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "유저인터뷰 중간 점검",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-09",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "미팅(온/오프라인)",
+          "activity": "스프린트 및 워크숍 진행",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-16",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 5,
+          "type": "미팅(온/오프라인)",
+          "activity": "스프린트, 재만님 121, 팔로업",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-17",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 1.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "팔로업, 마케팅팀 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-23",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 4,
+          "type": "미팅(온/오프라인)",
+          "activity": "팔로업, 스프린트 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-15",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "미팅, 아정당 중재",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-21",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "인터넷 LMF 킥오프 및 내부 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-24",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "광고 세팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-25",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 0.5,
+          "type": "개별 작업",
+          "activity": "광고 세팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-27",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "LMF진행",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-03",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 0.5,
+          "type": "개별 작업",
+          "activity": "광고 세팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-04",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "광고 세팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-05",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "광고 세팅&매니징",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-11-06",
+          "company": "렌트리",
+          "expert": "심슨",
+          "hours": 2,
+          "type": "미팅(온/오프라인)",
+          "activity": "LMF 스프린트 분석. 그로스 관련 C level 커뮤니케이션",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-11",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "렌트리 스프린트 준비 (서비스 파악 및 기존 진행상황 팔로업) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-12",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "렌트리 3회차 세션",
+          "meetingUrl": "https://www.notion.so/rentre/250812-3-1-24c48a03320880e686caef5bd09ba394"
+        },
+        {
+          "date": "2025-08-14",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 2.5,
+          "type": "개별 작업",
+          "activity": "TPS 전환율 데이터 분석 및 개선 방안 도출 ",
+          "meetingUrl": "https://www.notion.so/simpsonsim/TPS-25317b421a258013a683f6a799a439ef"
+        },
+        {
+          "date": "2025-08-19",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "렌트리 4회차 세션",
+          "meetingUrl": "https://www.notion.so/rentre/250819-4-25348a03320880609244dc16c2c2a542"
+        },
+        {
+          "date": "2025-08-19",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별 작업",
+          "activity": "정수기 LMF 킥오프 미팅 및 스프린트 구조 준비 ",
+          "meetingUrl": "https://www.notion.so/rentre/LMF-1-25448a03320880f69a24e4cefbca1456"
+        },
+        {
+          "date": "2025-08-20",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "개별 작업",
+          "activity": "정수기 LMF 퍼소나-VP별 가설 및 카피 작성",
+          "meetingUrl": "https://docs.google.com/spreadsheets/d/1pD4PJYAr1wG0foYy0MhybI9EgcKMuKEEJq2XW4etvDY/edit?gid=0#gid=0"
+        },
+        {
+          "date": "2025-08-21",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "정수기 LMF 스프린트 진행",
+          "meetingUrl": "https://www.notion.so/rentre/0821_-LMF-1-_-25448a0332088023a587d226bf0f424e"
+        },
+        {
+          "date": "2025-08-21",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별 작업",
+          "activity": "위너소재 카피 워싱 + LMF 발산형 소재 제작 가이드라인 제작",
+          "meetingUrl": "https://www.figma.com/design/LROEyA6hzwo5KAzWMBkEo0/%EB%A9%98%ED%86%A0%EB%A7%81-%EC%8A%A4%ED%94%84%EB%A6%B0%ED%8A%B8-%EA%B4%80%EB%A0%A8-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EB%AA%A8%EC%9D%8C?node-id=303-1558&p=f&t=0uvGgX2od20FeacJ-0"
+        },
+        {
+          "date": "2025-08-24",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 0.5,
+          "type": "개별 작업",
+          "activity": "스프린트 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-08-26",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "렌트리 5회차 세션",
+          "meetingUrl": "https://www.notion.so/rentre/250826-5-25a48a03320880afa46bff5c263b42b0"
+        },
+        {
+          "date": "2025-08-29",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "주차별 중간 점검 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-02",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "렌트리 6회차 세션",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-03",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 0.5,
+          "type": "미팅(온/오프라인)",
+          "activity": "스프린트 구조 방식 변경 논의 (w. 마케팅팀) ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-05",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "주차별 중간 점검 미팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-09",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "렌트리 7회차 세션",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-16",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "렌트리 8회차 세션",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-16",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 0.5,
+          "type": "개별 작업",
+          "activity": "유저 인터뷰 구조화 관련 팀 니즈 취합",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-09-22",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "라포랩스 김은희님 / 고객리서치 자문 ",
+          "meetingUrl": "https://www.notion.so/rentre/250922_-_-27048a033208801fb99ece01b65b33de"
+        },
+        {
+          "date": "2025-09-24",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "미팅(온/오프라인)",
+          "activity": "렌트리 9회차 세션",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-20",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별작업",
+          "activity": "lmf 미팅 준비",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-20",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "미팅(온/오프라인)",
+          "activity": "lmf 미팅 진행 ",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-20",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 2,
+          "type": "개별작업",
+          "activity": "렌트리 리뷰 데이터 분석 + lmf 실험구조 설계",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-21",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 4,
+          "type": "개별작업",
+          "activity": "렌트리 lmf 소재 제작 (1) - 카피라이팅",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-21",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 3,
+          "type": "개별작업",
+          "activity": "렌트리 lmf 소재 제작 (2) - 배치&디자인",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-23",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 1,
+          "type": "개별작업",
+          "activity": "렌트리 lmf 소재 제작 (3) - 소재 공유 & 피드백 반영",
+          "meetingUrl": ""
+        },
+        {
+          "date": "2025-10-27",
+          "company": "렌트리",
+          "expert": "앨리스",
+          "hours": 1.5,
+          "type": "개별작업",
+          "activity": "렌트리 lmf 1차 성과 공유 + 2차 lmf 논의",
+          "meetingUrl": ""
+        }
+      ],
+      "feedback": []
+    },
+    "넥스트그라운드": {
+      "coachingPlans": [
+        {
+          "expert": "심슨",
+          "company": "넥스트그라운드",
+          "timeBudget": "총 72시간",
+          "period": "2025.10.29 ~ 2025.12.31",
+          "objective": "메타 광고 ROI 150% 달성, LMF 전략",
+          "teamRequest": "※ 팀은 멘토에게 현재 상황과 필요한 도움, 그리고 희망하는 총 투입 시간을 명확하게 전달하기 위해 이 섹션을 작성합니다.\n1. 기본 정보\n1-1. 요청 팀 (소속): 넥스트그라운드\n1-2. 요청 총 시간 (Time Budget): 총 72시간\n1-3. 희망 투입 기간: 2025.10.29 ~ 2025.12.31\n2. 핵심 목표 (Objective)\n2-1. 팀의 최우선 오브젝티브:\n2025년 말까지 지속 가능한 광고 채널 발굴 및 ROAS 150% 달성\n2-2. 현재 집중 중인 마일스톤 (Milestone):\n프로덕트 퍼널별 주요 이벤트 트래킹 체계 구축 (현재 써드 파티 툴 셋업이 되어있지 않음)\n핵심 광고 매체 선정 및 입찰 전략 최적화 (현재 네이버 파워링크 테스트 외 광고 집행 없음)\n3. 해결할 문제\n3-1. 현상 (As-Is):\n[현상] 자체 광고 테스트 결과, ROAS가 최소 집행 기준(100% 이상)에 크게 미치지 못하여 광고 집행을 중단한 상태입니다.\n3-2. 문제 정의 (Problem):\n[문제] '리포트 상품' 광고의 ROAS가 15% ~ 70% 수준에 불과하며, 프로덕트와 주요 고객에 적합한 최적의 광고 매체를 선별하고 전략을 수립하는 데 어려움이 있습니다.\n[핵심 과제] 프로덕트 퍼널별 트래킹 체계를 구축하고, 여러 매체에서 광고 테스트를 진행하여 최적 광고 매체를 선정하는 것이 시급합니다.\n4. 전문가에게 기대하는 역할 및 기여\n4-1. 요청 사항 (Request):\n[실행 디테일 개입] 트래킹 체계 구축과 Meta, Google Ads 등 주요 매체 광고 테스트 집행 실무에 디테일한 개입을 요청드립니다.\n[전략 구체화] 프로덕트에 적합한 마케팅 믹스 구성과 광고 매체별 집행 전략 수립이 필요합니다.\n4-2. 예상 기여도 (Expected Outcome):\n멘토의 개입을 통해 트래킹 툴 셋팅을 진행하여 데이터에 기반 광고 운영 구조를 확립하고, 팀 스스로 안정적인 성장 사이클을 만들어 나갈 수 있는 마케팅 역량을 내재화하고자 합니다.",
+          "expertPlan": "앞에 투입되었던 시간은 정산 요청(순모님)\n※ 전문가는 Part 1을 검토 후, *총 예상 시간(기준 시간)'을 산출하고, 해당 시간 내에서 수행 가능한 '업무 범위(Scope)'와 '핵심 산출물'을 정의하여 팀과 합의함.\n1. 목표 및 역할 확인 (Alignment)\n1-1.이해한 목표\n- 정량적 목표: 집품 보증금 리포트 메타 광고 캠페인을 통해 ROI 150% 달성\n- 정성적 목표: 성과가 검증된 소재를 기반으로 예산을 스케일업하여 서비스 Revenue Growth에 기여\n- 현재 현황: 캠페인 ROI 15% ~ 70% 수준으로, 목표 달성을 위한 집중적인 최적화 필요\n1-2. 본인의 핵심 역할(Role) 및 기여 범위:\n- 메타 광고 프로젝트 오너(Project Owner)\n\n- 기여 범위:\n1. 목표(ROI 150%) 달성을 위한 전반적인 전략 수립 및 실행\n2. 내부 리소스(컨텐츠 마케터, 영상 제작자) 및 클라이언트 간의 커뮤니케이션 조율\n3. 데이터 분석 기반의 지속적인 성과 최적화 및 스케일업 담당\n\n- 핵심 전략 프레임워크: Language Market Fit (LMF)\n: 마켓핏랩(Marketfit Lab)이 고안한 LMF 프레임워크를 메인 전략으로 채택\n: LMF의 본질인 '소비자 언어 찾기'에 집중하여, 실제 타겟 고객이 사용하는 표현과 공감대를 자극하는 키워드를 발굴하여 광고 소재 및 카피에 적용\n\n- 전략 실행\n: 단순히 소비자 언어를 찾는 것을 넘어, 발굴된 메시지를 즉각적으로 광고 소재(이미지, 영상)로 제작\n: 인하우스 리소스의 신속한 제작 역량을 활용하여 '가설 -> 제작 -> 테스트 -> 검증' 사이클을 빠르게 실행\n1-3. 예상 총 투입 시간: 본 과업(Part 1) 수행에 필요한 '총 예상 시간' (예산 책정 기준)\n- PO(본인): 48시간\n- 컨텐츠 마케터(실무진1): 12시간\n- 영상 제작자(실무진2): 12시간\n1-4. 기타 추가 요청 리소스\n- 필요 리소스: 실제 ROI 성과를 견인할 수 있는 신속한 소재 제작 실무진\n- 보유 현황: 리텐션 주식회사 인하우스 컨텐츠 및 영상 제작 인력\n- 활용 계획: 11월 말 집품 성수기 시즌 전, 확보된 인력을 통해 다양한 광고 소재를 신속하게 테스트하고 성과를 검증함.\n2. 세부 활동 계획 및 산출물\n(합의된 '총 예상 시간'을 어떻게 활용할지에 대한 '계획'입니다.)\n구분\n전문가\n전문가\n전문가\n48시간\n컨텐츠 마케터\n영상 제작자\n24시간 (각 12시간)\n3. 협업 방식 및 필요 리소스\n3-1. 정기 커뮤니케이션:\n주 1회 온/오프라인 체크인 세션 진행, 슬랙 채널 통한 상시 질의응답\n3-2. 필요 리소스 (팀 지원 필요):\n메타 광고 최적화를 위한 세팅 (e.g. daily spending limit 제한 해제, Meta CAPI 계정 Creation)\n3-3. 성과 측정 지표 (KPI):\nROI & Budget spent\n4. 예상 리스크 및 대응 방안 (Risk Management)\n4-1. 예상 리스크:\n내부 리소스만으로 ROI positive 가 나오지 않을 수 있음\n4-2. 대응 방안:\n크리에이터와 협업을 통한 새로운 컨텐츠 개발\n5. Next\n5-1. 다음 과제\n앰플리튜드 택소노미 확장으로 리포트 뿐만 아니라 전체적인 critical events and user properties 까지 visibility 확보"
+        }
+      ],
+      "sessions": [],
+      "expertDeployments": [
+        {
+          "activity": "미팅 및 미팅 준비",
+          "type": "미팅",
+          "expert": "심슨",
+          "hours": 20,
+          "cumulative": 20
+        },
+        {
+          "activity": "메타 광고 세팅",
+          "type": "개별 작업",
+          "expert": "심슨",
+          "hours": 10,
+          "cumulative": 30
+        },
+        {
+          "activity": "메타 광고 시그널 엔지니어링",
+          "type": "개별 작업",
+          "expert": "심슨",
+          "hours": 10,
+          "cumulative": 40
+        },
+        {
+          "activity": "앰플리튜드 Product analytic, session recording, experiments",
+          "type": "개별 작업",
+          "expert": "심슨",
+          "hours": 10,
+          "cumulative": 50
+        },
+        {
+          "activity": "메타 광고 집행, 리포팅, 최적화, 컨텐츠 제작, CRM 도입 컨설팅, 유저 인터뷰, 크리에이터 인게이지 오케스트레이션",
+          "type": "",
+          "expert": "앨리스",
+          "hours": 0,
+          "cumulative": 80
+        },
+        {
+          "activity": "(AI & meme) 컨텐츠 제작, 본인 등판 (<- 12월15일 기준 가장 성과 좋았던 소재), 크리에이터 인게이지",
+          "type": "",
+          "expert": "컨텐츠마케터",
+          "hours": 0,
+          "cumulative": 70
+        },
+        {
+          "activity": "핵심 결과물 (Key Output)",
+          "type": "진행 상황 (vs 계획)",
+          "expert": "",
+          "hours": 0,
+          "cumulative": 0
+        },
+        {
+          "activity": "(링크) 개선 가설 리포트 v1",
+          "type": "(On-track) 가설 3개 도출 완료, 팀에서 2개 채택하여 테스트 준비 중. (Off-work 시간 0.5H 초과)",
+          "expert": "",
+          "hours": 0,
+          "cumulative": 0
+        },
+        {
+          "activity": "(링크) A/B 테스트 기획안 피드백",
+          "type": "(On-track) 기획안 리뷰 완료, 소재 제작 중",
+          "expert": "",
+          "hours": 0,
+          "cumulative": 0
+        }
+      ],
+      "feedback": []
+    }
+  }
+}

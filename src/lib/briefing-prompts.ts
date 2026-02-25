@@ -8,6 +8,7 @@ import type {
   OkrValue,
   BatchDashboardData,
 } from "@/types";
+import type { CompanyCoachingRecords } from "@/lib/coaching-data";
 
 // ══════════════════════════════════════════════════
 // 브리핑 v4 — MBB 시니어 파트너 수준 진단 + 토큰 최소화
@@ -332,6 +333,95 @@ export function formatOkrValues(values: OkrValue[]): string {
     .join("\n");
 }
 
+// ── 코칭 기록 데이터 포맷 ────────────────────────────
+
+/**
+ * 코칭 플랜 요약 (전문가 협업 계획서)
+ */
+export function formatCoachingPlans(records: CompanyCoachingRecords): string {
+  if (records.coachingPlans.length === 0) return "";
+
+  return records.coachingPlans.map((p) => {
+    const objective = truncate(p.objective, 100);
+    const teamReq = truncate(p.teamRequest, 300);
+    const expertPlan = truncate(p.expertPlan, 300);
+    return `- [전문가: ${p.expert}] 기간: ${p.period} / 시간: ${p.timeBudget}
+  목표: ${objective}
+  팀 요청: ${teamReq}
+  전문가 계획: ${expertPlan}`;
+  }).join("\n");
+}
+
+/**
+ * 코칭 세션 기록 (멘토 미팅 로그)
+ */
+export function formatCoachingSessions(records: CompanyCoachingRecords): string {
+  if (records.sessions.length === 0) return "";
+
+  // 최근 5건만 (프롬프트 축소)
+  const sorted = [...records.sessions].sort((a, b) => b.date.localeCompare(a.date));
+  return sorted.slice(0, 5).map((s) => {
+    const issues = truncate(s.issues, 250);
+    const followUp = s.followUp ? truncate(s.followUp, 150) : "";
+    return `- [${s.date}] 멘토: ${s.mentor} / 참석: ${s.attendeesCompany}
+  논의: ${issues}${followUp ? `\n  후속: ${followUp}` : ""}`;
+  }).join("\n");
+}
+
+/**
+ * 전문가 투입 기록 요약 (대량 → 핵심만)
+ */
+export function formatExpertDeployments(records: CompanyCoachingRecords): string {
+  if (records.expertDeployments.length === 0) return "";
+
+  // 전문가별 그룹핑 후 최근 활동만
+  const byExpert = new Map<string, { count: number; lastDate: string; lastActivity: string }>();
+  for (const d of records.expertDeployments) {
+    const existing = byExpert.get(d.expert);
+    if (!existing || d.date > existing.lastDate) {
+      byExpert.set(d.expert, {
+        count: (existing?.count || 0) + 1,
+        lastDate: d.date,
+        lastActivity: truncate(d.activity, 100),
+      });
+    } else {
+      existing.count++;
+    }
+  }
+
+  return Array.from(byExpert.entries())
+    .map(([expert, info]) => `- ${expert}: ${info.count}회 투입 (최근 ${info.lastDate}) — ${info.lastActivity}`)
+    .join("\n");
+}
+
+/**
+ * 코칭 기록 전체를 하나의 프롬프트 섹션으로 조합
+ */
+export function formatCoachingRecordsSection(records: CompanyCoachingRecords): string {
+  const sections: string[] = [];
+
+  const plans = formatCoachingPlans(records);
+  if (plans) sections.push(`### 전문가 협업 계획서\n${plans}`);
+
+  const sessions = formatCoachingSessions(records);
+  if (sessions) sections.push(`### 코칭 세션 기록 (${records.sessions.length}건 중 최근 5건)\n${sessions}`);
+
+  const deployments = formatExpertDeployments(records);
+  if (deployments) sections.push(`### 전문가 투입 현황 (총 ${records.expertDeployments.length}건)\n${deployments}`);
+
+  if (records.feedback.length > 0) {
+    const fb = records.feedback.slice(0, 3).map((f) =>
+      `- [${f.date}] ${f.name} (만족도 ${f.satisfaction}/10)
+  주제: ${truncate(f.topicReview, 150)}
+  좋았던 점: ${truncate(f.goodPoints, 100)}
+  개선점: ${truncate(f.improvements, 100)}`
+    ).join("\n");
+    sections.push(`### 코칭 피드백 (${records.feedback.length}건)\n${fb}`);
+  }
+
+  return sections.join("\n\n");
+}
+
 // ── 배치 대시보드 데이터 포맷 ────────────────────────
 
 function formatBatchOkrData(data: BatchDashboardData): string {
@@ -374,7 +464,8 @@ export function buildBriefingUserPrompt(
   kptReviews: KptReview[],
   okrItems: OkrItem[],
   okrValues: OkrValue[],
-  batchData?: BatchDashboardData | null
+  batchData?: BatchDashboardData | null,
+  coachingRecords?: CompanyCoachingRecords | null
 ): string {
   const batchPeriod =
     company.batchStartDate && company.batchEndDate
@@ -452,7 +543,10 @@ ${formatOlderSessionsBrief(olderSessions)}
 
 ## 전문가 리소스 요청 (${expertRequests.length}건)
 ${formatExpertRequests(expertRequests)}
-
+${coachingRecords ? `
+## 코칭 기록 (엑셀 원본 — 멘토링 회의록과 교차 분석 시 활용)
+${formatCoachingRecordsSection(coachingRecords)}
+` : ""}
 ## AI 분석 결과 이력 (${analyses.length}건)
 ${formatAnalyses(analyses)}
 
@@ -461,7 +555,7 @@ ${formatAnalyses(analyses)}
 - 멘토링 세션: 총 ${sorted.length}건${sorted.length > 0 ? ` (최초 ${sorted[sorted.length - 1].date} ~ 최근 ${sorted[0].date})` : ""}
 - 전문가 요청: 총 ${expertRequests.length}건${expertRequests.length === 0 ? " — 전문가 요청 관련 서술 금지" : ""}
 - KPT 회고: 총 ${kptReviews.length}건${kptReviews.length === 0 ? " — KPT 관련 서술 금지" : ""}
-- OKR 항목/측정: ${okrItems.length}건 / ${okrValues.length}건
+- OKR 항목/측정: ${okrItems.length}건 / ${okrValues.length}건${coachingRecords ? `\n- 코칭 기록: 플랜 ${coachingRecords.coachingPlans.length}건, 세션 ${coachingRecords.sessions.length}건, 전문가 투입 ${coachingRecords.expertDeployments.length}건 (제공된 기록만 인용 가능)` : ""}
 - 위에 제공되지 않은 정량 수치(매출액, MAU, 전환율 등)를 자체 생성하면 환각(hallucination)으로 간주.
 
 [지시사항]

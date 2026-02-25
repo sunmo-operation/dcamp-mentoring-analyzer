@@ -54,7 +54,8 @@ function buildEnhancedUserPrompt(
   // 기존 프롬프트를 기본으로 생성
   const basePrompt = buildBriefingUserPrompt(
     company, sessions, expertRequests, analyses,
-    kptReviews, okrItems, okrValues, batchData
+    kptReviews, okrItems, okrValues, batchData,
+    packet.coachingRecords
   );
 
   // Analyst 분석 결과 + Pulse 정성 평가를 추가 섹션으로 주입

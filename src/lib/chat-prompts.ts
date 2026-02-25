@@ -7,6 +7,7 @@ import type {
   OkrValue,
   CompanyBriefing,
 } from "@/types";
+import type { CompanyCoachingRecords } from "@/lib/coaching-data";
 import {
   truncate,
   formatRecentSessionsGrouped,
@@ -15,6 +16,7 @@ import {
   formatKptReviews,
   formatOkrItems,
   formatOkrValues,
+  formatCoachingRecordsSection,
 } from "@/lib/briefing-prompts";
 
 // ══════════════════════════════════════════════════
@@ -64,6 +66,7 @@ export function buildChatContext(
   okrItems: OkrItem[],
   okrValues: OkrValue[],
   briefing?: CompanyBriefing | null,
+  coachingRecords?: CompanyCoachingRecords | null,
 ): string {
   // 세션 정렬 및 분리 (최근 3개월 기준)
   const cutoffDate = new Date();
@@ -120,5 +123,8 @@ ${formatRecentSessionsGrouped(recentSessions)}
 ${formatOlderSessionsBrief(olderSessions)}
 
 ## 전문가 리소스 요청 (${expertRequests.length}건)
-${formatExpertRequests(expertRequests)}`;
+${formatExpertRequests(expertRequests)}${coachingRecords ? `
+
+## 코칭 기록 (엑셀 원본)
+${formatCoachingRecordsSection(coachingRecords)}` : ""}`;
 }
