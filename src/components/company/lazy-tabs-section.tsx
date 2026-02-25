@@ -187,7 +187,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
                         {title}
                       </CardTitle>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0 max-w-[45%] sm:max-w-none flex-wrap justify-end">
                       {types.map((type) => (
                         <Badge
                           key={String(type)}

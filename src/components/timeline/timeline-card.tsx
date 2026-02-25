@@ -86,7 +86,7 @@ export function TimelineCard({ event, expertRequest }: TimelineCardProps) {
               {sourceLabel}
             </Badge>
           </div>
-          <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
+          <span className="text-xs text-muted-foreground whitespace-nowrap shrink min-w-0">
             {event.date
               ? new Date(event.date).toLocaleDateString("ko-KR")
               : "-"}
