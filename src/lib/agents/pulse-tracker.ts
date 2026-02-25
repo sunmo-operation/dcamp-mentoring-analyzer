@@ -179,6 +179,7 @@ function detectMilestoneCategory(text: string): PulseReport["milestones"][0]["ca
 
 function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"] {
   const entries: PulseReport["milestones"] = [];
+  const companyName = packet.company.name;
 
   // 1. 모든 노션 멘토링 세션 → 타임라인 항목
   for (const s of packet.sessions) {
@@ -194,25 +195,20 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     const combined = [s.summary, s.followUp].filter(Boolean).join(" ");
     const milestoneCategory = detectMilestoneCategory(combined);
 
-    // 제목: 멘토 이름 포함하여 누구와 무슨 활동인지 명확하게
+    // 제목: 배치/기업명 접두사 제거 + 멘토 이름 포함
     const mentors = s.mentorNames?.filter(Boolean).join(", ");
-    let title = s.title || types.join("/") + " 세션";
-    if (mentors && !title.includes(mentors.split(",")[0])) {
-      title = `${title} (${mentors})`;
-    }
+    const title = cleanTitle(s.title || types.join("/") + " 세션", companyName, types, mentors);
 
-    // 2~3줄 맥락 설명: 논의 내용 + 이후 방향
-    const summaryParts: string[] = [];
-    if (s.summary) summaryParts.push(truncate(s.summary, 150));
-    if (s.followUp) summaryParts.push("→ " + truncate(s.followUp, 100));
-    const fullSummary = summaryParts.join("\n") || undefined;
+    // 요약: 원문에서 핵심 한 줄 추출 (노션 raw 텍스트 → 깔끔한 한 줄)
+    const summary = distillOneLiner(s.summary, 100);
+    const followUp = distillOneLiner(s.followUp, 80, "→ ");
 
     entries.push({
       date: s.date,
       title,
       category: milestoneCategory || category,
       source: "노션",
-      summary: fullSummary,
+      summary: [summary, followUp].filter(Boolean).join("\n") || undefined,
       detail: milestoneCategory ? extractMilestoneTitle(combined, milestoneCategory) : undefined,
       isHighlight: !!milestoneCategory,
     });
@@ -239,10 +235,10 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     if (!req.requestedAt) continue;
     entries.push({
       date: req.requestedAt.split("T")[0],
-      title: req.oneLiner || req.title,
+      title: truncate(req.oneLiner || req.title, 60),
       category: "전문가요청",
       source: "전문가요청",
-      summary: req.problem ? truncate(req.problem, 200) : undefined,
+      summary: distillOneLiner(req.problem, 100) || undefined,
       isHighlight: req.status === "완료" || req.status === "진행 완료",
     });
   }
@@ -263,8 +259,8 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
         category: "코칭",
         source: "코칭기록",
         summary: [
-          cs.issues ? truncate(cs.issues, 150) : "",
-          cs.followUp ? "→ " + truncate(cs.followUp, 100) : "",
+          distillOneLiner(cs.issues, 100),
+          distillOneLiner(cs.followUp, 80, "→ "),
         ].filter(Boolean).join("\n") || undefined,
       });
     }
@@ -283,7 +279,7 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     for (const [date, experts] of deployDates) {
       entries.push({
         date,
-        title: `전문가 투입: ${experts.join(", ")}`,
+        title: experts.join(", "),
         category: "전문가투입",
         source: "코칭기록",
       });
@@ -301,6 +297,73 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
       seen.add(key);
       return true;
     });
+}
+
+// ── 타임라인 텍스트 정제 유틸 ──────────────────────
+
+/**
+ * 노션 제목에서 배치/기업명 접두사 제거 + 멘토 이름 포함
+ * "3기_넥스트그라운드_멘토 미팅" → "멘토 미팅 (댄박)"
+ * "3기_넥스트그라운드_넥스트그라운드" → "멘토링 (댄박)"
+ */
+function cleanTitle(rawTitle: string, companyName: string, sessionTypes: string[], mentors?: string): string {
+  let cleaned = rawTitle;
+
+  // "N기_" 접두사 제거
+  cleaned = cleaned.replace(/^\d+기_/, "");
+
+  // 기업명 접두사 제거 ("넥스트그라운드_" 또는 "넥스트그라운드 ")
+  if (companyName) {
+    const escaped = companyName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    cleaned = cleaned.replace(new RegExp(`^${escaped}[_\\s]*`, "i"), "");
+  }
+
+  // 남은 언더스코어 → 공백
+  cleaned = cleaned.replace(/_/g, " ").trim();
+
+  // 제거 후 빈 문자열이면 세션 유형으로 대체
+  if (!cleaned || cleaned.length <= 2) {
+    const typeLabel = sessionTypes.length > 0 ? sessionTypes.join("/") : "멘토링";
+    cleaned = mentors ? `${typeLabel} (${mentors})` : `${typeLabel} 세션`;
+    return cleaned;
+  }
+
+  // 멘토 이름 추가 (이미 포함되어 있지 않은 경우)
+  if (mentors && !cleaned.includes(mentors.split(",")[0].trim())) {
+    cleaned = `${cleaned} (${mentors})`;
+  }
+
+  return cleaned;
+}
+
+/**
+ * 노션 원문 → 핵심 한 줄 추출
+ * 불릿/번호/헤더 마커 제거 후 첫 번째 의미있는 문장을 반환
+ */
+function distillOneLiner(rawText: string | undefined | null, maxLen: number, prefix = ""): string {
+  if (!rawText) return "";
+
+  const lines = rawText
+    .split(/\n/)
+    .map((l) =>
+      l
+        .replace(/^\s*[-•◦·*]\s*/, "")         // 불릿 마커 제거
+        .replace(/^\s*\d+\.\s*/, "")            // 번호 리스트 제거
+        .replace(/^\[.*?\]\s*/, "")             // [헤더] 제거
+        .replace(/^(주요|후속|논의|목적|현재|배경|목표)[^\s]*\s*/i, "")  // 섹션 헤더
+        .trim()
+    )
+    .filter((l) => l.length > 8 && !l.startsWith("[") && !l.startsWith("→"));
+
+  if (lines.length === 0) return "";
+
+  // 첫 줄 사용, 두 번째 줄도 여유가 있으면 합침
+  let result = lines[0];
+  if (lines.length > 1 && result.length + lines[1].length + 2 <= maxLen) {
+    result += ". " + lines[1];
+  }
+
+  return prefix + truncate(result, maxLen - prefix.length);
 }
 
 function extractMilestoneTitle(text: string, category: string): string {
