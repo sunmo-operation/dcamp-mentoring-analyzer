@@ -76,7 +76,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
       <div className="flex flex-col items-center gap-4 py-16">
         <div className="rounded-2xl bg-muted/50 px-6 py-3 text-center">
           <p className="text-sm text-muted-foreground">
-            멘토링 기록, 팀 펄스
+            멘토링 기록, 배치 타임라인
           </p>
         </div>
         <button

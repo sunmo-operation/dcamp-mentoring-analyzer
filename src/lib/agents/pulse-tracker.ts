@@ -194,10 +194,10 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     const combined = [s.summary, s.followUp].filter(Boolean).join(" ");
     const milestoneCategory = detectMilestoneCategory(combined);
 
-    // 요약 + 후속조치를 합쳐서 맥락 있는 설명 생성
+    // 요약 + 후속조치를 합쳐서 2~3줄 맥락 설명 생성
     const summaryParts: string[] = [];
-    if (s.summary) summaryParts.push(truncate(s.summary, 200));
-    if (s.followUp) summaryParts.push("후속: " + truncate(s.followUp, 120));
+    if (s.summary) summaryParts.push(truncate(s.summary, 150));
+    if (s.followUp) summaryParts.push("후속: " + truncate(s.followUp, 100));
     const fullSummary = summaryParts.join("\n") || undefined;
 
     entries.push({
@@ -235,7 +235,7 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
       title: req.oneLiner || req.title,
       category: "전문가요청",
       source: "전문가요청",
-      summary: [req.status || "접수", req.problem ? truncate(req.problem, 150) : ""].filter(Boolean).join(" · "),
+      summary: req.problem ? truncate(req.problem, 200) : undefined,
       isHighlight: req.status === "완료" || req.status === "진행 완료",
     });
   }
@@ -256,8 +256,8 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
         category: "코칭",
         source: "코칭기록",
         summary: [
-          cs.issues ? truncate(cs.issues, 200) : "",
-          cs.followUp ? "후속: " + truncate(cs.followUp, 120) : "",
+          cs.issues ? truncate(cs.issues, 150) : "",
+          cs.followUp ? "후속: " + truncate(cs.followUp, 100) : "",
         ].filter(Boolean).join("\n") || undefined,
       });
     }
