@@ -36,6 +36,13 @@ export interface ExpertDeployment {
   expert: string;
   activity: string;
   note?: string;
+  // 배치 3기/4기 확장 필드
+  location?: string;
+  attendeesCompany?: string;
+  attendeesDcamp?: string;
+  issues?: string;
+  followUp?: string;
+  type?: string;
 }
 
 export interface CoachingFeedback {
@@ -50,14 +57,46 @@ export interface CoachingFeedback {
   nextAgenda: string;
 }
 
+export interface MentoringJournal {
+  date: string;
+  title: string;
+  preMeeting: string;
+  duringMeeting: string;
+  postMeeting: string;
+}
+
+export interface ProblemBacklogItem {
+  date: string;
+  problem: string;
+  reason: string;
+  targetMetric: string;
+  category: string;
+  status: string;
+}
+
+export interface ResourceConnection {
+  period: string;
+  company: string;
+  category: string;
+  status: string;
+  item: string;
+  detail: string;
+  followUp?: string;
+}
+
 /** 기업 단위 코칭 기록 패키지 */
 export interface CompanyCoachingRecords {
   coachingPlans: CoachingPlan[];
   sessions: CoachingSession[];
   expertDeployments: ExpertDeployment[];
   feedback: CoachingFeedback[];
-  pmNotes: string | number | null;
-  resourceConnections: unknown[] | null;
+  mentoringJournals: MentoringJournal[];
+  kpiMonthly: string[];
+  problemBacklog: ProblemBacklogItem[];
+  resourceConnections: ResourceConnection[];
+  survey: Record<string, string>;
+  okr: string | null;
+  batch?: string;
 }
 
 // ── 이름 정규화 (excel-data.ts와 동일 로직) ────────────
@@ -73,15 +112,23 @@ function normalizeName(name: string): string {
 
 // ── 기업명 → 코칭 데이터 매핑 (초기화 시 한 번만 빌드) ──
 
+interface RawCompanyData {
+  coachingPlans?: CoachingPlan[];
+  sessions?: CoachingSession[];
+  expertDeployments?: ExpertDeployment[];
+  feedback?: CoachingFeedback[];
+  mentoringJournals?: MentoringJournal[];
+  kpiMonthly?: string[];
+  problemBacklog?: ProblemBacklogItem[];
+  resourceConnections?: ResourceConnection[];
+  survey?: Record<string, string>;
+  okr?: string | null;
+  pmNotes?: string | number | null;
+  batch?: string;
+}
+
 interface RawData {
-  companies: Record<string, {
-    coachingPlans?: CoachingPlan[];
-    sessions?: CoachingSession[];
-    expertDeployments?: ExpertDeployment[];
-    feedback?: CoachingFeedback[];
-    pmNotes?: string | number | null;
-    resourceConnections?: unknown[] | null;
-  }>;
+  companies: Record<string, RawCompanyData>;
 }
 
 const data = coachingRaw as unknown as RawData;
@@ -93,8 +140,13 @@ for (const [companyName, records] of Object.entries(data.companies)) {
     sessions: records.sessions || [],
     expertDeployments: records.expertDeployments || [],
     feedback: records.feedback || [],
-    pmNotes: records.pmNotes ?? null,
-    resourceConnections: records.resourceConnections ?? null,
+    mentoringJournals: records.mentoringJournals || [],
+    kpiMonthly: records.kpiMonthly || [],
+    problemBacklog: records.problemBacklog || [],
+    resourceConnections: records.resourceConnections as ResourceConnection[] || [],
+    survey: records.survey || {},
+    okr: records.okr ?? null,
+    batch: records.batch,
   });
 }
 
@@ -125,7 +177,10 @@ export function getCoachingRecordsByName(companyName: string): CompanyCoachingRe
     records.coachingPlans.length > 0 ||
     records.sessions.length > 0 ||
     records.expertDeployments.length > 0 ||
-    records.feedback.length > 0;
+    records.feedback.length > 0 ||
+    records.mentoringJournals.length > 0 ||
+    records.problemBacklog.length > 0 ||
+    Object.keys(records.survey).length > 0;
 
   return hasData ? records : null;
 }

@@ -419,6 +419,34 @@ export function formatCoachingRecordsSection(records: CompanyCoachingRecords): s
     sections.push(`### 코칭 피드백 (${records.feedback.length}건)\n${fb}`);
   }
 
+  // 멘토링 일지 (배치4기)
+  if (records.mentoringJournals.length > 0) {
+    const journals = records.mentoringJournals.slice(0, 3).map((j) => {
+      const parts = [`- [${j.date}] ${truncate(j.title, 80)}`];
+      if (j.preMeeting) parts.push(`  사전준비: ${truncate(j.preMeeting, 150)}`);
+      if (j.duringMeeting) parts.push(`  미팅내용: ${truncate(j.duringMeeting, 200)}`);
+      if (j.postMeeting) parts.push(`  멘토피드백: ${truncate(j.postMeeting, 150)}`);
+      return parts.join("\n");
+    }).join("\n");
+    sections.push(`### 멘토링 일지 (${records.mentoringJournals.length}건 중 최근 3건)\n${journals}`);
+  }
+
+  // 문제 백로그 (배치4기)
+  if (records.problemBacklog.length > 0) {
+    const problems = records.problemBacklog.slice(0, 5).map((p) =>
+      `- [${p.date || "미상"}] [${p.category || "미분류"}] ${p.problem}${p.status ? ` (${p.status})` : ""}${p.reason ? `\n  이유: ${truncate(p.reason, 100)}` : ""}`
+    ).join("\n");
+    sections.push(`### 문제 백로그 (${records.problemBacklog.length}건 중 최근 5건)\n${problems}`);
+  }
+
+  // 자원 연결
+  if (records.resourceConnections.length > 0) {
+    const resources = records.resourceConnections.slice(0, 5).map((r) =>
+      `- [${r.period}] [${r.category}] ${r.item}: ${truncate(r.detail, 120)} (${r.status})`
+    ).join("\n");
+    sections.push(`### 디캠프 자원 연결 (${records.resourceConnections.length}건)\n${resources}`);
+  }
+
   return sections.join("\n\n");
 }
 
