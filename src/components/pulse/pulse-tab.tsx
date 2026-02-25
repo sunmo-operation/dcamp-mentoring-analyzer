@@ -9,7 +9,7 @@ interface PulseTabProps {
 
 const HIGHLIGHT_CATEGORIES = new Set(["성과", "전환점", "리스크", "의사결정", "외부"]);
 
-// 카테고리 배지 스타일: [텍스트색, 배경색]
+// 카테고리 배지 스타일
 const CATEGORY_BADGE: Record<string, string> = {
   "성과": "text-emerald-700 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-950/60",
   "전환점": "text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/60",
@@ -40,17 +40,21 @@ function formatDate(dateStr: string): string {
   }
 }
 
-function formatMonthHeader(dateStr: string): string {
+function getMonthKey(dateStr: string): string {
+  return dateStr.slice(0, 7);
+}
+
+function getYear(dateStr: string): string {
+  return dateStr.slice(0, 4);
+}
+
+function formatMonth(dateStr: string): string {
   try {
     const d = new Date(dateStr);
-    return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+    return `${d.getMonth() + 1}월`;
   } catch {
     return dateStr;
   }
-}
-
-function getMonthKey(dateStr: string): string {
-  return dateStr.slice(0, 7);
 }
 
 const INITIAL_COUNT = 25;
@@ -60,16 +64,29 @@ export function PulseTab({ pulse }: PulseTabProps) {
   const [showAll, setShowAll] = useState(false);
   const visibleEntries = showAll ? milestones : milestones.slice(0, INITIAL_COUNT);
 
-  // 월별 그룹핑
-  const groups: { monthKey: string; label: string; items: typeof milestones }[] = [];
-  let current = "";
+  // 연도 > 월별 이중 그룹핑
+  type MonthGroup = { monthKey: string; month: string; items: typeof milestones };
+  type YearGroup = { year: string; months: MonthGroup[] };
+
+  const yearGroups: YearGroup[] = [];
+  let curYear = "";
+  let curMonth = "";
+
   for (const m of visibleEntries) {
+    const y = getYear(m.date);
     const mk = getMonthKey(m.date);
-    if (mk !== current) {
-      current = mk;
-      groups.push({ monthKey: mk, label: formatMonthHeader(m.date), items: [] });
+
+    if (y !== curYear) {
+      curYear = y;
+      curMonth = mk;
+      yearGroups.push({ year: y, months: [{ monthKey: mk, month: formatMonth(m.date), items: [] }] });
+    } else if (mk !== curMonth) {
+      curMonth = mk;
+      yearGroups[yearGroups.length - 1].months.push({ monthKey: mk, month: formatMonth(m.date), items: [] });
     }
-    groups[groups.length - 1].items.push(m);
+
+    const yg = yearGroups[yearGroups.length - 1];
+    yg.months[yg.months.length - 1].items.push(m);
   }
 
   return (
@@ -83,73 +100,75 @@ export function PulseTab({ pulse }: PulseTabProps) {
         </p>
       </div>
 
-      {groups.length > 0 ? (
+      {yearGroups.length > 0 ? (
         <div>
-          {groups.map((group, gi) => (
-            <section key={group.monthKey}>
-              {/* 월 구분 */}
-              {gi > 0 && <div className="h-px bg-border my-7" />}
-              <h3 className="text-[13px] font-semibold mb-4">{group.label}</h3>
+          {yearGroups.map((yg, yi) => (
+            <div key={yg.year}>
+              {/* ── 연도 헤더 ── */}
+              {yi > 0 && <div className="h-px bg-border mt-8 mb-6" />}
+              <h3 className="text-[15px] font-bold mb-5">{yg.year}년</h3>
 
-              {/* 항목 리스트 */}
-              <div className="space-y-4">
-                {group.items.map((m, i) => {
-                  const isHighlight = m.isHighlight || HIGHLIGHT_CATEGORIES.has(m.category);
-                  const label = CATEGORY_LABEL[m.category] || m.category;
-                  const badgeStyle = CATEGORY_BADGE[m.category];
+              {yg.months.map((mg, mi) => (
+                <section key={mg.monthKey} className={mi > 0 ? "mt-6" : ""}>
+                  {/* 월 헤더 */}
+                  <p className="text-[12px] font-medium text-muted-foreground/70 mb-3">{mg.month}</p>
 
-                  // summary → 요약 / 후속 액션 분리
-                  let mainSummary = "";
-                  let followUp = "";
-                  if (m.summary) {
-                    const lines = m.summary.split("\n");
-                    mainSummary = lines.filter(l => !l.startsWith("→")).join(" ").trim();
-                    followUp = lines.filter(l => l.startsWith("→")).join(" ").trim();
-                  }
-                  if (!mainSummary && isHighlight && m.detail && m.detail !== m.title) {
-                    mainSummary = m.detail;
-                  }
+                  {/* 항목 리스트 */}
+                  <div className="space-y-4">
+                    {mg.items.map((m, i) => {
+                      const isHighlight = m.isHighlight || HIGHLIGHT_CATEGORIES.has(m.category);
+                      const label = CATEGORY_LABEL[m.category] || m.category;
+                      const badgeStyle = CATEGORY_BADGE[m.category];
 
-                  return (
-                    <div key={`${group.monthKey}-${i}`}>
-                      {/* 첫 줄: 날짜 배지 + 카테고리 배지 + 제목 */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {/* 날짜 배지 */}
-                        <span className="inline-flex items-center rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground font-medium">
-                          {formatDate(m.date)}
-                        </span>
+                      // summary → 요약 / 후속 액션 분리
+                      let mainSummary = "";
+                      let followUp = "";
+                      if (m.summary) {
+                        const lines = m.summary.split("\n");
+                        mainSummary = lines.filter(l => !l.startsWith("→")).join(" ").trim();
+                        followUp = lines.filter(l => l.startsWith("→")).join(" ").trim();
+                      }
+                      if (!mainSummary && isHighlight && m.detail && m.detail !== m.title) {
+                        mainSummary = m.detail;
+                      }
 
-                        {/* 카테고리 배지 */}
-                        <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
-                          badgeStyle || "text-muted-foreground bg-muted/40"
-                        }`}>
-                          {label}
-                        </span>
+                      return (
+                        <div key={`${mg.monthKey}-${i}`}>
+                          {/* 첫 줄: 날짜 배지 + 카테고리 배지 + 제목 */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="inline-flex items-center rounded-md border border-border px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground font-medium">
+                              {formatDate(m.date)}
+                            </span>
+                            <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+                              badgeStyle || "text-muted-foreground bg-muted/50"
+                            }`}>
+                              {label}
+                            </span>
+                            <span className={`text-[13px] leading-snug ${isHighlight ? "font-semibold" : ""}`}>
+                              {m.title}
+                            </span>
+                          </div>
 
-                        {/* 제목 */}
-                        <span className={`text-[13px] ${isHighlight ? "font-semibold" : ""}`}>
-                          {m.title}
-                        </span>
-                      </div>
+                          {/* 요약 */}
+                          {mainSummary && (
+                            <p className="text-[12px] text-muted-foreground leading-relaxed mt-1.5 break-keep">
+                              {mainSummary}
+                            </p>
+                          )}
 
-                      {/* 요약 (둘째 줄) */}
-                      {mainSummary && (
-                        <p className="text-[12px] text-muted-foreground leading-relaxed mt-1 ml-[0.5px] break-keep">
-                          {mainSummary}
-                        </p>
-                      )}
-
-                      {/* 후속 액션 (셋째 줄) */}
-                      {followUp && (
-                        <p className="text-[12px] text-muted-foreground/50 leading-relaxed mt-0.5 ml-[0.5px] break-keep">
-                          {followUp}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+                          {/* 후속 액션 */}
+                          {followUp && (
+                            <p className="text-[12px] text-muted-foreground/50 leading-relaxed mt-0.5 break-keep">
+                              {followUp}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
           ))}
 
           {!showAll && milestones.length > INITIAL_COUNT && (

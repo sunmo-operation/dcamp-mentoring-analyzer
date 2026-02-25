@@ -230,15 +230,29 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     }
   }
 
-  // 3. 전문가 요청
+  // 3. 전문가 요청 — oneLiner가 보일러플레이트인 경우 더 좋은 필드 활용
   for (const req of packet.expertRequests) {
     if (!req.requestedAt) continue;
+
+    // 제목: oneLiner → coreQuestion → problem 순으로, 구체적인 것 우선
+    let reqTitle = req.oneLiner || "";
+    const isGenericTitle = !reqTitle || /직접 투입 요청|전문가 요청|지원 요청|전문가 투입/.test(reqTitle);
+    if (isGenericTitle) {
+      reqTitle = req.coreQuestion || distillOneLiner(req.problem, 55) || req.title;
+    }
+    reqTitle = truncateAtBoundary(reqTitle, 55);
+
+    // 요약: 성공 지표가 있으면 우선, 없으면 problem에서 추출
+    const reqSummary = distillOneLiner(req.successMetric, 80)
+      || distillOneLiner(req.problem, 80)
+      || undefined;
+
     entries.push({
       date: req.requestedAt.split("T")[0],
-      title: truncateAtBoundary(req.oneLiner || req.title, 55),
+      title: reqTitle,
       category: "전문가요청",
       source: "전문가요청",
-      summary: distillOneLiner(req.problem, 100) || undefined,
+      summary: reqSummary,
       isHighlight: req.status === "완료" || req.status === "진행 완료",
     });
   }
@@ -365,16 +379,16 @@ function distillOneLiner(rawText: string | undefined | null, maxLen: number, pre
   // 각 구문에 "핵심도" 점수 부여 → 가장 중요한 문장 선택
   const scored = phrases.map((p) => {
     let score = 0;
-    // 숫자/지표가 포함된 문장 = 핵심 가능성 높음
-    if (/\d+[만억천%건명회원개]|\d+\.\d+/.test(p)) score += 3;
-    // 결과/성과 동사 포함
-    if (/완료|달성|확보|증가|감소|돌파|전환|출시|론칭|체결|구축|이전/.test(p)) score += 2;
-    // 진행 상태
-    if (/진행 중|예정|계획|착수|시작/.test(p)) score += 1;
-    // 불완전한 문장 감점 (조사/전치사로 끝남)
-    if (/[에서위한통한관련대한]$/.test(p)) score -= 3;
-    // 배경/도입부 감점
-    if (/필요성|관점에서|상황입니다|상황이다/.test(p)) score -= 1;
+    // 숫자/지표가 포함된 문장 = 핵심 가능성 높음 (+3)
+    if (/\d+[만억천%건명회원개월일]|\d+\.\d+/.test(p)) score += 3;
+    // 결과/성과 동사 포함 (+2)
+    if (/완료|달성|확보|증가|감소|돌파|전환|출시|론칭|체결|구축|이전|개선|확인/.test(p)) score += 2;
+    // 진행 상태 (+1)
+    if (/진행 중|예정|계획|착수|시작|준비/.test(p)) score += 1;
+    // 불완전한 구문 — 다중 글자 패턴으로 정확 감지 (-3)
+    if (/(?:에서|위한|위해|통한|통해|대한|관련|관점에서|경우에|있어서|필요한|하는지)$/.test(p)) score -= 3;
+    // 도입부/배경 문장 (-1)
+    if (/^(?:현재|현황|배경|목적|상황)/.test(p)) score -= 1;
     return { phrase: p, score };
   });
 
