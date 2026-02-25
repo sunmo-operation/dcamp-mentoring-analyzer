@@ -66,7 +66,7 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
   const visibleEntries = showAll ? milestones : milestones.slice(0, INITIAL_COUNT);
 
   // ── AI 요약 상태 ──
-  const [aiSummaries, setAiSummaries] = useState<Record<number, string> | null>(null);
+  const [aiData, setAiData] = useState<Record<number, { topic: string; summary: string }> | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const aiRequested = useRef(false);
 
@@ -95,11 +95,11 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
       .then((res) => res.json())
       .then((data) => {
         if (data.summaries && data.summaries.length > 0) {
-          const map: Record<number, string> = {};
+          const map: Record<number, { topic: string; summary: string }> = {};
           for (const s of data.summaries) {
-            map[s.index] = s.summary;
+            map[s.index] = { topic: s.topic || "", summary: s.summary || "" };
           }
-          setAiSummaries(map);
+          setAiData(map);
         }
       })
       .catch(() => {
@@ -152,7 +152,7 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
               AI 요약 적용 중
             </span>
           )}
-          {aiSummaries && !aiLoading && (
+          {aiData && !aiLoading && (
             <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/40">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" />
               AI 요약 적용됨
@@ -181,15 +181,16 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
                       const label = CATEGORY_LABEL[m.category] || m.category;
                       const badgeStyle = CATEGORY_BADGE[m.category];
 
-                      // AI 요약이 있으면 AI 요약 사용, 없으면 기존 텍스트 추출 요약
-                      const aiSummary = aiSummaries?.[m.globalIndex];
+                      // AI 데이터가 있으면 topic(제목 교체) + summary(요약 교체)
+                      const ai = aiData?.[m.globalIndex];
+                      const displayTitle = (ai?.topic && ai.topic.length > 3) ? ai.topic : m.title;
 
                       let mainSummary = "";
                       let followUp = "";
 
-                      if (aiSummary) {
-                        // AI 요약에서 "→ 후속:" 분리
-                        const aiLines = aiSummary.split("\n");
+                      if (ai?.summary) {
+                        // AI 요약에서 "→" 후속 분리
+                        const aiLines = ai.summary.split("\n");
                         mainSummary = aiLines.filter((l) => !l.startsWith("→")).join(" ").trim();
                         followUp = aiLines.filter((l) => l.startsWith("→")).join(" ").trim();
                       } else if (m.summary) {
@@ -214,14 +215,14 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
                               {label}
                             </span>
                             <span className={`text-[13px] leading-snug ${isHighlight ? "font-semibold" : ""}`}>
-                              {m.title}
+                              {displayTitle}
                             </span>
                           </div>
 
                           {/* 요약 */}
                           {mainSummary && (
                             <p className={`text-[12px] text-muted-foreground leading-relaxed mt-1.5 break-keep transition-opacity duration-300 ${
-                              aiLoading && !aiSummary ? "opacity-60" : "opacity-100"
+                              aiLoading && !ai ? "opacity-60" : "opacity-100"
                             }`}>
                               {mainSummary}
                             </p>

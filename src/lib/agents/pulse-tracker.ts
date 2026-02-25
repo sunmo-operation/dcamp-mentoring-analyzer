@@ -235,25 +235,34 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     }
   }
 
-  // 3. 전문가 요청 — oneLiner가 보일러플레이트인 경우 더 좋은 필드 활용
+  // 3. 전문가 요청 — 제목/요약 모두 정제
   for (const req of packet.expertRequests) {
     if (!req.requestedAt) continue;
 
-    // 제목: oneLiner → coreQuestion → problem 순으로, 구체적인 것 우선
+    // 제목 결정: oneLiner → coreQuestion 첫 문장 → problem 첫 문장 → 정제된 title
     let reqTitle = req.oneLiner || "";
-    const isGenericTitle = !reqTitle || /직접 투입 요청|전문가 요청|지원 요청|전문가 투입/.test(reqTitle);
+    const isGenericTitle = !reqTitle || /직접 투입 요청|전문가 요청|지원 요청|전문가 투입|실무진 투입/.test(reqTitle);
     if (isGenericTitle) {
-      reqTitle = req.coreQuestion || distillOneLiner(req.problem, 55) || req.title;
+      reqTitle = extractFirstSentence(req.coreQuestion)
+        || extractFirstSentence(req.problem)
+        || cleanExpertTitle(req.title, companyName);
     }
-    reqTitle = truncateAtBoundary(reqTitle, 55);
+    reqTitle = truncateAtBoundary(reqTitle, 60);
 
-    // 요약: 성공 지표가 있으면 우선, 없으면 problem에서 추출
-    const reqSummary = distillOneLiner(req.successMetric, 80)
-      || distillOneLiner(req.problem, 80)
+    // 요약: 성공 지표 > problem 첫 문장
+    const reqSummary = extractFirstSentence(req.successMetric, 80)
+      || extractFirstSentence(req.problem, 80)
       || undefined;
 
-    // AI용 원문: 문제 + 핵심질문 + 성공지표 전체
-    const reqRawParts = [req.problem, req.coreQuestion, req.successMetric, req.expectedImpact].filter(Boolean);
+    // AI용 원문: 제목 + 문제 + 핵심질문 + 성공지표 + 활용계획 전체
+    const reqRawParts = [
+      req.title ? `요청 제목: ${req.title}` : null,
+      req.problem ? `해결 문제: ${req.problem}` : null,
+      req.coreQuestion ? `핵심 질문: ${req.coreQuestion}` : null,
+      req.successMetric ? `성공 지표: ${req.successMetric}` : null,
+      req.expectedImpact ? `기대 효과: ${req.expectedImpact}` : null,
+      req.desiredExpert ? `희망 전문가: ${req.desiredExpert}` : null,
+    ].filter(Boolean);
     const reqRawText = reqRawParts.join("\n").trim() || undefined;
 
     entries.push({
@@ -362,6 +371,46 @@ function cleanTitle(rawTitle: string, companyName: string, sessionTypes: string[
 }
 
 /**
+ * 전문가 요청 제목에서 배치/기업명/날짜코드 제거
+ * "[배치3기] 넥스트그라운드_실무진 투입 요청(260223)" → "실무진 투입 요청"
+ */
+function cleanExpertTitle(rawTitle: string, companyName: string): string {
+  let cleaned = rawTitle;
+  // "[배치N기]" 접두사 제거
+  cleaned = cleaned.replace(/^\[배치\d+기\]\s*/, "");
+  // "N기_" 접두사 제거
+  cleaned = cleaned.replace(/^\d+기_/, "");
+  // 기업명 제거
+  if (companyName) {
+    const escaped = companyName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    cleaned = cleaned.replace(new RegExp(escaped, "gi"), "");
+  }
+  // 날짜코드 "(YYMMDD)" 제거
+  cleaned = cleaned.replace(/\(\d{6}\)/, "");
+  // 언더스코어/다중 공백 정리
+  cleaned = cleaned.replace(/[_]/g, " ").replace(/\s+/g, " ").trim();
+  return cleaned || "전문가 요청";
+}
+
+/**
+ * 텍스트에서 첫 번째 완결된 문장 추출 (bullet point 분리 포함)
+ * "• Q1은 무엇인가? • Q2는..." → "Q1은 무엇인가?"
+ */
+function extractFirstSentence(text: string | undefined | null, maxLen = 60): string {
+  if (!text) return "";
+  // bullet point(•), 줄바꿈, 번호 목록으로 분리
+  const parts = text
+    .split(/[•\n]/)
+    .map((s) => s.replace(/^\s*[-·*]\s*/, "").replace(/^\s*\d+\.\s*/, "").trim())
+    .filter((s) => s.length > 5);
+  if (parts.length === 0) return "";
+  // 첫 완결 문장 선택 (물음표/마침표로 끝나는 것 우선)
+  const complete = parts.find((p) => /[?？.。!]$/.test(p));
+  const best = complete || parts[0];
+  return truncateAtBoundary(best, maxLen);
+}
+
+/**
  * 노션 원문 → 핵심 한 줄 추출
  * 단순 첫 줄 복사가 아니라, 숫자/결과/성과가 담긴 핵심 문장을 우선 선택.
  * 누가 읽어도 바로 이해되는 완결된 문장. 절대 중간에 안 끊김.
@@ -371,10 +420,10 @@ function distillOneLiner(rawText: string | undefined | null, maxLen: number, pre
 
   const effectiveMax = maxLen - prefix.length;
 
-  // 원문을 개별 구문으로 분리
+  // 원문을 개별 구문으로 분리 (줄바꿈 + bullet point "•" 모두 분리)
   const phrases = rawText
     .replace(/\[.*?\]/g, "")
-    .split(/\n/)
+    .split(/[\n•]/)
     .map((l) =>
       l
         .replace(/^\s*[-•◦·*]\s*/, "")
