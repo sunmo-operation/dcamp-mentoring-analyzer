@@ -16,6 +16,7 @@ import {
 import {
   collectCompanyData,
   generateAnalystReport,
+  generatePulseReport,
   buildEnhancedPrompts,
   analyzeSemanticTopics,
   mergeSemanticTopics,
@@ -304,9 +305,12 @@ export async function POST(request: Request) {
           lastEditedTime: currentLastEdited ?? undefined,
         };
 
-        // Narrator Agent: Analyst 결과를 반영한 강화 프롬프트 생성
+        // Pulse Tracker: 정성적 종합 평가 (즉시 반환, AI 호출 없음)
+        const pulseReport = generatePulseReport(packet);
+
+        // Narrator Agent: Analyst + Pulse 결과를 반영한 강화 프롬프트 생성
         const claude = getClaudeClient();
-        const { systemPrompt, userPrompt } = buildEnhancedPrompts(packet, analystReport);
+        const { systemPrompt, userPrompt } = buildEnhancedPrompts(packet, analystReport, pulseReport);
 
         // Claude 호출 + 자동 재시도 (최대 2회)
         let rawParsed: unknown;

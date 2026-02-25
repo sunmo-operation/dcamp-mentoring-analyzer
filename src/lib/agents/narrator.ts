@@ -4,7 +4,7 @@
 // AI 브리핑 품질을 높이는 프롬프트 빌더
 // ══════════════════════════════════════════════════
 
-import type { CompanyDataPacket, AnalystReport } from "./types";
+import type { CompanyDataPacket, AnalystReport, PulseReport } from "./types";
 import {
   buildBriefingSystemPrompt,
   buildBriefingUserPrompt,
@@ -33,10 +33,11 @@ export interface NarratorPrompts {
  */
 export function buildEnhancedPrompts(
   packet: CompanyDataPacket,
-  analystReport: AnalystReport
+  analystReport: AnalystReport,
+  pulseReport?: PulseReport
 ): NarratorPrompts {
   const systemPrompt = buildBriefingSystemPrompt();
-  const userPrompt = buildEnhancedUserPrompt(packet, analystReport);
+  const userPrompt = buildEnhancedUserPrompt(packet, analystReport, pulseReport);
   return { systemPrompt, userPrompt };
 }
 
@@ -45,7 +46,8 @@ export function buildEnhancedPrompts(
  */
 function buildEnhancedUserPrompt(
   packet: CompanyDataPacket,
-  report: AnalystReport
+  report: AnalystReport,
+  pulse?: PulseReport
 ): string {
   const { company, sessions, expertRequests, analyses, kptReviews, okrItems, okrValues, batchData } = packet;
 
@@ -55,17 +57,19 @@ function buildEnhancedUserPrompt(
     kptReviews, okrItems, okrValues, batchData
   );
 
-  // Analyst 분석 결과를 추가 섹션으로 주입
+  // Analyst 분석 결과 + Pulse 정성 평가를 추가 섹션으로 주입
   const analystSection = buildAnalystSection(report);
+  const pulseSection = pulse ? buildPulseSection(pulse) : "";
 
-  // 기존 프롬프트의 [지시사항] 앞에 Analyst 섹션을 삽입
+  // 기존 프롬프트의 [지시사항] 앞에 삽입
+  const combined = [analystSection, pulseSection].filter(Boolean).join("\n\n");
   const insertPoint = basePrompt.indexOf("[지시사항]");
   if (insertPoint >= 0) {
-    return basePrompt.slice(0, insertPoint) + analystSection + "\n\n" + basePrompt.slice(insertPoint);
+    return basePrompt.slice(0, insertPoint) + combined + "\n\n" + basePrompt.slice(insertPoint);
   }
 
   // [지시사항]이 없으면 끝에 추가
-  return basePrompt + "\n\n" + analystSection;
+  return basePrompt + "\n\n" + combined;
 }
 
 /**
@@ -190,6 +194,56 @@ function buildAnalystSection(report: AnalystReport): string {
 
   // 8. 컨텍스트 요약
   sections.push(`\n### Analyst 컨텍스트 요약\n${report.narrativeContext}`);
+
+  return sections.join("\n");
+}
+
+/**
+ * PulseReport → 멘토링 준비에 실질적으로 도움이 되는 프롬프트 섹션
+ * AI가 이 정보를 반영하여 meetingStrategy, mentorInsights 등을 작성하도록 유도
+ */
+function buildPulseSection(pulse: PulseReport): string {
+  const sections: string[] = [];
+  const qa = pulse.qualitativeAssessment;
+
+  sections.push("## 🏥 팀 펄스 (Pulse Tracker — 멘토링 준비 시 반드시 참고)");
+
+  // 종합 서술 평가
+  sections.push(`\n### 종합 평가\n${qa.overallNarrative}`);
+
+  // 멘토링 정기성 → meetingStrategy에 반영 유도
+  sections.push(`\n### 멘토링 정기성 (meetingStrategy 참고)`);
+  sections.push(`- ${qa.mentoringRegularity.assessment}`);
+  const monthDetail = qa.mentoringRegularity.recentMonthBreakdown
+    .map((m) => `${m.month}: ${m.count}건`)
+    .join(", ");
+  sections.push(`- 최근 3개월: ${monthDetail}`);
+  if (!qa.mentoringRegularity.meetsMonthlyTarget) {
+    sections.push("- ★ 월 1회 미만 진행 중 → openingLine에서 최근 공백 언급 권장, meetingStrategy.focus에 반영");
+  }
+
+  // 전담멘토 관계 → mentorInsights에 반영 유도
+  sections.push(`\n### 전담멘토 관계 (mentorInsights 참고)`);
+  sections.push(`- ${qa.dedicatedMentorEngagement.assessment}`);
+  if (qa.dedicatedMentorEngagement.hasDedicatedMentor && !qa.dedicatedMentorEngagement.isRegular) {
+    sections.push("- ★ 전담멘토와 정기 만남 미확보 → gapAnalysis에 반영 권장");
+  }
+
+  // 전문가 요청 활용 → mentorInsights.currentExpertRequests에 반영 유도
+  sections.push(`\n### 전문가 리소스 활용도 (mentorInsights.currentExpertRequests 참고)`);
+  sections.push(`- ${qa.expertRequestActivity.assessment}`);
+  if (qa.expertRequestActivity.totalRequests === 0) {
+    sections.push("- ★ 전문가 요청 미활용 → pmActions에 디캠프 전문가 리소스 안내 액션 추가 권장");
+  }
+
+  // 주의가 필요한 건강 신호만 선별
+  const warnings = pulse.healthSignals.filter((s) => s.status !== "good");
+  if (warnings.length > 0) {
+    sections.push("\n### 주의 신호");
+    for (const w of warnings) {
+      sections.push(`- [${w.status}] ${w.signal}: ${w.detail}`);
+    }
+  }
 
   return sections.join("\n");
 }
