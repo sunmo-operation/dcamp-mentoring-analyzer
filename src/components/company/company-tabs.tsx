@@ -20,7 +20,7 @@ export function CompanyTabs({
     <Tabs defaultValue={defaultTab}>
       <TabsList variant="line" className="w-full justify-start">
         <TabsTrigger value="mentoring">멘토링 기록</TabsTrigger>
-        <TabsTrigger value="pulse">팀 펄스</TabsTrigger>
+        <TabsTrigger value="pulse">배치 타임라인</TabsTrigger>
       </TabsList>
 
       <TabsContent value="mentoring" className="mt-6">
