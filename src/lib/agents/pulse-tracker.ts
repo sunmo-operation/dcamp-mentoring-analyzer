@@ -18,9 +18,10 @@ export function generatePulseReport(packet: CompanyDataPacket): PulseReport {
   const milestones = extractMilestones(packet);
   const engagement = assessProgramEngagement(packet);
   const healthSignals = assessHealth(packet, cadence, engagement);
-  const summary = buildSummary(cadence, engagement);
+  const qualitativeAssessment = buildQualitativeAssessment(packet, cadence);
+  const summary = buildNarrativeSummary(qualitativeAssessment, cadence);
 
-  return { meetingCadence: cadence, milestones, programEngagement: engagement, healthSignals, summary };
+  return { meetingCadence: cadence, milestones, programEngagement: engagement, healthSignals, qualitativeAssessment, summary };
 }
 
 // ── 미팅 주기/밀도 분석 ──────────────────────────────
@@ -445,16 +446,225 @@ function assessHealth(
   return signals;
 }
 
-// ── 탭 요약 생성 ──────────────────────────────
+// ── 정성적 종합 평가 ──────────────────────────────
 
-function buildSummary(
-  cadence: PulseReport["meetingCadence"],
-  engagement: PulseReport["programEngagement"]
+function buildQualitativeAssessment(
+  packet: CompanyDataPacket,
+  cadence: PulseReport["meetingCadence"]
+): PulseReport["qualitativeAssessment"] {
+  const mentoringRegularity = assessMentoringRegularity(packet.sessions);
+  const dedicatedMentorEngagement = assessDedicatedMentor(packet);
+  const expertRequestActivity = assessExpertRequestActivity(packet);
+  const overallNarrative = buildOverallNarrative(
+    mentoringRegularity, dedicatedMentorEngagement, expertRequestActivity, cadence
+  );
+
+  return { mentoringRegularity, dedicatedMentorEngagement, expertRequestActivity, overallNarrative };
+}
+
+/**
+ * 월 1회 이상 멘토링 진행 여부 체크
+ */
+function assessMentoringRegularity(
+  sessions: MentoringSession[]
+): PulseReport["qualitativeAssessment"]["mentoringRegularity"] {
+  // 최근 3개월 월별 세션 수 계산
+  const now = new Date();
+  const recentMonths: { month: string; count: number }[] = [];
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const count = sessions.filter((s) => s.date && s.date.startsWith(monthStr)).length;
+    recentMonths.push({ month: monthStr, count });
+  }
+
+  const monthsWithMeeting = recentMonths.filter((m) => m.count > 0).length;
+  const meetsMonthlyTarget = monthsWithMeeting >= 2; // 최근 3개월 중 2개월 이상
+
+  let assessment: string;
+  if (monthsWithMeeting === 3) {
+    assessment = "최근 3개월 매월 멘토링이 진행되고 있어 안정적인 흐름을 유지하고 있음";
+  } else if (monthsWithMeeting === 2) {
+    const missingMonth = recentMonths.find((m) => m.count === 0);
+    assessment = `대체로 월 1회 이상 진행 중이나, ${missingMonth?.month || "일부"} 미팅 공백이 있음`;
+  } else if (monthsWithMeeting === 1) {
+    assessment = "최근 3개월 중 1개월만 멘토링이 진행되어 주기적 관리가 필요함";
+  } else {
+    assessment = "최근 3개월간 멘토링 기록이 없어 즉시 점검이 필요함";
+  }
+
+  return { meetsMonthlyTarget, recentMonthBreakdown: recentMonths, assessment };
+}
+
+/**
+ * 전담멘토와 정기적 만남 여부 체크
+ */
+function assessDedicatedMentor(
+  packet: CompanyDataPacket
+): PulseReport["qualitativeAssessment"]["dedicatedMentorEngagement"] {
+  const mentorName = packet.company.excel?.dedicatedMentor || null;
+  const hasDedicatedMentor = !!mentorName && mentorName !== "없음";
+
+  if (!hasDedicatedMentor) {
+    return {
+      hasDedicatedMentor: false,
+      mentorName: null,
+      totalMeetings: 0,
+      lastMeetingDate: null,
+      isRegular: false,
+      avgIntervalDays: null,
+      assessment: "전담멘토가 배정되지 않은 상태",
+    };
+  }
+
+  // 전담멘토 이름으로 세션 필터 (쉼표로 구분된 복수 멘토 처리)
+  const mentorNames = mentorName.split(/[,，]/).map((n) => n.trim()).filter(Boolean);
+  const mentorSessions = packet.sessions
+    .filter((s) => s.mentorNames?.some((mn) => mentorNames.some((dn) => mn.includes(dn))))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const totalMeetings = mentorSessions.length;
+  const lastMeetingDate = mentorSessions.length > 0
+    ? mentorSessions[mentorSessions.length - 1].date
+    : null;
+
+  // 평균 간격 계산
+  let avgIntervalDays: number | null = null;
+  if (mentorSessions.length >= 2) {
+    const intervals: number[] = [];
+    for (let i = 1; i < mentorSessions.length; i++) {
+      const prev = new Date(mentorSessions[i - 1].date).getTime();
+      const curr = new Date(mentorSessions[i].date).getTime();
+      intervals.push(Math.round((curr - prev) / (1000 * 60 * 60 * 24)));
+    }
+    avgIntervalDays = Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length);
+  }
+
+  // 정기성 판단: 평균 간격 45일 이내면 정기적
+  const isRegular = avgIntervalDays !== null && avgIntervalDays <= 45;
+
+  // 마지막 미팅으로부터의 경과일
+  const daysSinceLast = lastMeetingDate
+    ? Math.round((Date.now() - new Date(lastMeetingDate).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  let assessment: string;
+  if (totalMeetings === 0) {
+    assessment = `전담멘토(${mentorName})가 배정되어 있으나 멘토링 기록이 없음. 미팅 셋업 필요`;
+  } else if (isRegular && daysSinceLast !== null && daysSinceLast <= 45) {
+    assessment = `전담멘토(${mentorName})와 평균 ${avgIntervalDays}일 간격으로 정기적 만남 유지 중 (총 ${totalMeetings}회)`;
+  } else if (isRegular && daysSinceLast !== null && daysSinceLast > 45) {
+    assessment = `전담멘토(${mentorName})와 기존 정기 미팅(평균 ${avgIntervalDays}일 간격)이 있었으나, 최근 ${daysSinceLast}일 동안 공백 발생`;
+  } else if (totalMeetings >= 2) {
+    assessment = `전담멘토(${mentorName})와 총 ${totalMeetings}회 만남이 있으나 간격이 불규칙(평균 ${avgIntervalDays ?? "?"}일). 정기 일정 수립 권장`;
+  } else {
+    assessment = `전담멘토(${mentorName})와 ${totalMeetings}회 만남. 추가 미팅으로 관계 구축 필요`;
+  }
+
+  return { hasDedicatedMentor, mentorName, totalMeetings, lastMeetingDate, isRegular, avgIntervalDays, assessment };
+}
+
+/**
+ * 전문가 요청 활용도 평가
+ */
+function assessExpertRequestActivity(
+  packet: CompanyDataPacket
+): PulseReport["qualitativeAssessment"]["expertRequestActivity"] {
+  const totalRequests = packet.expertRequests.length;
+  const completedRequests = packet.expertRequests.filter(
+    (r) => ["완료", "진행 완료"].includes(r.status || "")
+  ).length;
+
+  let assessment: string;
+  if (totalRequests === 0) {
+    assessment = "전문가 요청을 아직 활용하지 않고 있음. 디캠프 전문가 리소스 활용을 안내할 필요가 있음";
+  } else if (totalRequests >= 3) {
+    assessment = `총 ${totalRequests}건 요청(완료 ${completedRequests}건)으로 전문가 리소스를 적극 활용하고 있음`;
+  } else if (totalRequests >= 1) {
+    assessment = `총 ${totalRequests}건 요청(완료 ${completedRequests}건). 필요에 따라 전문가 리소스를 활용하고 있으나, 추가 활용 여지 있음`;
+  } else {
+    assessment = "전문가 요청 활용 내역 확인 필요";
+  }
+
+  return { totalRequests, completedRequests, assessment };
+}
+
+/**
+ * 종합 서술 평가 생성
+ */
+function buildOverallNarrative(
+  mentoring: PulseReport["qualitativeAssessment"]["mentoringRegularity"],
+  mentor: PulseReport["qualitativeAssessment"]["dedicatedMentorEngagement"],
+  expert: PulseReport["qualitativeAssessment"]["expertRequestActivity"],
+  cadence: PulseReport["meetingCadence"]
 ): string {
   const parts: string[] = [];
-  parts.push(`프로그램 참여 ${engagement.overallScore}점(${engagement.label})`);
-  parts.push(`미팅 밀도 ${cadence.densityScore}점(${cadence.densityLabel})`);
+
+  // 멘토링 정기성
+  if (mentoring.meetsMonthlyTarget) {
+    parts.push("멘토링이 월 1회 이상 안정적으로 진행되고 있음");
+  } else {
+    parts.push("멘토링 주기가 월 1회 미만으로 관리 강화가 필요함");
+  }
+
+  // 전담멘토
+  if (mentor.hasDedicatedMentor) {
+    if (mentor.isRegular) {
+      parts.push(`전담멘토와 정기적 만남을 유지하고 있어 긍정적`);
+    } else if (mentor.totalMeetings > 0) {
+      parts.push(`전담멘토와의 만남이 있으나 정기성 확보 필요`);
+    } else {
+      parts.push(`전담멘토가 배정되어 있으나 미팅 기록이 없어 확인 필요`);
+    }
+  }
+
+  // 전문가 요청
+  if (expert.totalRequests >= 2) {
+    parts.push("전문가 리소스를 잘 활용하고 있음");
+  } else if (expert.totalRequests === 0) {
+    parts.push("전문가 리소스 활용이 없어 안내 필요");
+  }
+
+  // 미팅 추세
+  if (cadence.trend === "slowing") {
+    parts.push("다만 최근 미팅 주기가 느려지는 추세여서 주의가 필요함");
+  } else if (cadence.trend === "accelerating") {
+    parts.push("미팅 빈도가 증가하는 긍정적 추세");
+  }
+
+  return parts.join(". ") + ".";
+}
+
+// ── 탭 요약 생성 ──────────────────────────────
+
+function buildNarrativeSummary(
+  qa: PulseReport["qualitativeAssessment"],
+  cadence: PulseReport["meetingCadence"]
+): string {
+  const parts: string[] = [];
+
+  // 멘토링 정기성
+  if (qa.mentoringRegularity.meetsMonthlyTarget) {
+    parts.push("멘토링 정기 진행 중");
+  } else {
+    parts.push("멘토링 주기 점검 필요");
+  }
+
+  // 전담멘토
+  if (qa.dedicatedMentorEngagement.hasDedicatedMentor) {
+    parts.push(qa.dedicatedMentorEngagement.isRegular ? "전담멘토 정기 만남" : "전담멘토 만남 불규칙");
+  }
+
+  // 전문가 요청
+  if (qa.expertRequestActivity.totalRequests > 0) {
+    parts.push(`전문가 ${qa.expertRequestActivity.totalRequests}건 활용`);
+  } else {
+    parts.push("전문가 미활용");
+  }
+
+  // 추세
   if (cadence.trend === "slowing") parts.push("주기 둔화 중");
   else if (cadence.trend === "accelerating") parts.push("주기 가속 중");
+
   return parts.join(" · ");
 }

@@ -528,6 +528,10 @@ export async function getCompanyAllData(
   ]);
   console.log(`[perf] getCompanyAllData > Notion 병렬호출: ${Date.now() - t1}ms (company + sessions ${sessions.length}건 + expertRequests ${expertRequests.length}건 + survey)`);
 
+  if (expertRequests.length === 0) {
+    console.warn(`[data] ⚠ 전문가 요청 0건 (companyId=${companyNotionPageId.slice(0, 8)}..., DB=${process.env.NOTION_EXPERT_REQUESTS_DB_ID?.slice(0, 8)}...). DB ID가 올바른지 확인 필요.`);
+  }
+
   if (!company) return null;
 
   // 엑셀 마스터 시트 데이터 병합 (PM, 투자현황, 사전설문 등)

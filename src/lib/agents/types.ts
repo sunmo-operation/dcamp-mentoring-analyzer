@@ -78,6 +78,34 @@ export interface PulseReport {
     detail: string;
   }[];
 
+  // 정성적 종합 평가 (점수 대신 서술형)
+  qualitativeAssessment: {
+    // 월 1회 이상 멘토링 진행 여부
+    mentoringRegularity: {
+      meetsMonthlyTarget: boolean;
+      recentMonthBreakdown: { month: string; count: number }[];
+      assessment: string; // 서술적 평가
+    };
+    // 전담멘토와 정기적 만남 여부
+    dedicatedMentorEngagement: {
+      hasDedicatedMentor: boolean;
+      mentorName: string | null;
+      totalMeetings: number;
+      lastMeetingDate: string | null;
+      isRegular: boolean;
+      avgIntervalDays: number | null;
+      assessment: string;
+    };
+    // 전문가 요청 활용도
+    expertRequestActivity: {
+      totalRequests: number;
+      completedRequests: number;
+      assessment: string;
+    };
+    // 종합 서술 평가
+    overallNarrative: string;
+  };
+
   // 탭 요약 (한 줄)
   summary: string;
 }

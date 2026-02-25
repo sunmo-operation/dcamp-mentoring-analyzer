@@ -163,17 +163,34 @@ import type { PulseReport, AnalystReport } from "@/lib/agents/types";
 function buildAgentContext(pulse: PulseReport, analyst: AnalystReport): string {
   const parts: string[] = ["\n\n## 에이전트 분석 (Pulse + Analyst)"];
 
-  // 팀 펄스 요약
-  parts.push(`\n### 팀 펄스`);
-  parts.push(`- 프로그램 참여: ${pulse.programEngagement.label} (${pulse.programEngagement.overallScore}점)`);
-  parts.push(`- 미팅 밀도: ${pulse.meetingCadence.densityLabel} (${pulse.meetingCadence.densityScore}점, 평균 ${pulse.meetingCadence.avgIntervalDays}일 간격)`);
+  // 정성적 종합 평가 (서술형)
+  const qa = pulse.qualitativeAssessment;
+  parts.push(`\n### 팀 종합 평가`);
+  parts.push(qa.overallNarrative);
+
+  parts.push(`\n### 멘토링 정기성`);
+  parts.push(`- ${qa.mentoringRegularity.assessment}`);
+  for (const m of qa.mentoringRegularity.recentMonthBreakdown) {
+    parts.push(`  - ${m.month}: ${m.count}건`);
+  }
+
+  parts.push(`\n### 전담멘토 관계`);
+  parts.push(`- ${qa.dedicatedMentorEngagement.assessment}`);
+
+  parts.push(`\n### 전문가 리소스 활용`);
+  parts.push(`- ${qa.expertRequestActivity.assessment}`);
+
+  // 미팅 추세 (참고 맥락)
+  parts.push(`\n### 미팅 현황`);
+  parts.push(`- 총 ${pulse.meetingCadence.totalSessions}회 / ${pulse.meetingCadence.periodMonths}개월 / 평균 ${pulse.meetingCadence.avgIntervalDays}일 간격`);
   parts.push(`- 추세: ${pulse.meetingCadence.trendReason}`);
 
   if (pulse.healthSignals.length > 0) {
-    parts.push(`\n### 건강 신호`);
+    parts.push(`\n### 주의 신호`);
     for (const s of pulse.healthSignals) {
-      const icon = s.status === "good" ? "+" : s.status === "warning" ? "!" : "-";
-      parts.push(`- [${icon}] ${s.signal}: ${s.detail}`);
+      if (s.status !== "good") {
+        parts.push(`- ${s.signal}: ${s.detail}`);
+      }
     }
   }
 
