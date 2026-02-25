@@ -300,23 +300,44 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
       });
     }
 
-    // 전문가 투입 (날짜별 그룹, 최근 10일)
-    const deployByDate = new Map<string, string[]>();
-    for (const d of packet.coachingRecords.expertDeployments) {
-      if (notionDates.has(d.date)) continue;
-      const experts = deployByDate.get(d.date) || [];
-      if (!experts.includes(d.expert)) experts.push(d.expert);
-      deployByDate.set(d.date, experts);
-    }
-    const deployDates = [...deployByDate.entries()]
-      .sort(([a], [b]) => b.localeCompare(a))
-      .slice(0, 10);
-    for (const [date, experts] of deployDates) {
+    // 전문가 투입 (개별 항목 — 내용 포함, 최근 15건)
+    const recentDeploys = [...packet.coachingRecords.expertDeployments]
+      .filter((d) => !notionDates.has(d.date))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 15);
+    for (const d of recentDeploys) {
+      const expertName = d.expert && d.expert !== "-" && d.expert !== "n/a" ? d.expert : "";
+      const typeLabel = d.type || "전문가";
+
+      // 제목: 전문가명 + activity 요약
+      let deployTitle = expertName ? `${expertName} ${typeLabel}` : `${typeLabel} 투입`;
+      if (d.activity && d.activity.length > 5 && !d.activity.startsWith("[")) {
+        const shortActivity = extractFirstSentence(d.activity, 40);
+        if (shortActivity) deployTitle = expertName ? `${expertName} — ${shortActivity}` : shortActivity;
+      }
+
+      // 요약: issues > activity > followUp
+      const deploySummary = distillOneLiner(d.issues, 100)
+        || distillOneLiner(d.activity, 100)
+        || undefined;
+      const deployFollowUp = distillOneLiner(d.followUp, 80, "→ ");
+
+      // AI용 원문
+      const deployRawParts = [
+        d.activity ? `활동: ${d.activity}` : null,
+        d.issues ? `논의: ${d.issues}` : null,
+        d.followUp ? `후속: ${d.followUp}` : null,
+        d.note ? `비고: ${d.note}` : null,
+      ].filter(Boolean);
+      const deployRawText = deployRawParts.join("\n").trim() || undefined;
+
       entries.push({
-        date,
-        title: experts.join(", "),
+        date: d.date,
+        title: deployTitle,
         category: "전문가투입",
         source: "코칭기록",
+        summary: [deploySummary, deployFollowUp].filter(Boolean).join("\n") || undefined,
+        rawText: deployRawText,
       });
     }
   }
