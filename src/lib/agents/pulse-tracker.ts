@@ -16,9 +16,11 @@ import type { MentoringSession, KptReview } from "@/types";
 export function generatePulseReport(packet: CompanyDataPacket): PulseReport {
   const cadence = analyzeMeetingCadence(packet.sessions, packet.company.batchStartDate);
   const milestones = extractMilestones(packet);
-  const healthSignals = assessHealth(packet, cadence);
+  const engagement = assessProgramEngagement(packet);
+  const healthSignals = assessHealth(packet, cadence, engagement);
+  const summary = buildSummary(cadence, engagement);
 
-  return { meetingCadence: cadence, milestones, healthSignals };
+  return { meetingCadence: cadence, milestones, programEngagement: engagement, healthSignals, summary };
 }
 
 // ── 미팅 주기/밀도 분석 ──────────────────────────────
@@ -251,114 +253,159 @@ function truncate(text: string, max: number): string {
   return text.slice(0, max - 3) + "...";
 }
 
+// ── 디캠프 프로그램 참여도 분석 ──────────────────────
+
+function assessProgramEngagement(
+  packet: CompanyDataPacket
+): PulseReport["programEngagement"] {
+  const breakdown: PulseReport["programEngagement"]["breakdown"] = [];
+
+  // 1. 멘토링 참여 (멘토/점검/체크업 세션)
+  const mentorSessions = packet.sessions.filter((s) =>
+    s.sessionTypes.some((t) => ["멘토", "점검", "체크업"].includes(t))
+  );
+  const recentMentorSessions = mentorSessions.filter((s) => isWithinMonths(s.date, 3));
+  const mentorScore = Math.min(100, recentMentorSessions.length * 25); // 3개월 4회 = 100
+  breakdown.push({
+    area: "멘토링",
+    score: mentorScore,
+    detail: recentMentorSessions.length > 0
+      ? `최근 3개월 ${recentMentorSessions.length}회 참여`
+      : "최근 3개월 참여 없음",
+  });
+
+  // 2. 전문가 투입 활용
+  const expertSessions = packet.sessions.filter((s) =>
+    s.sessionTypes.some((t) => t === "전문가투입")
+  );
+  const expertScore = Math.min(100, expertSessions.length * 50); // 2회 = 100
+  breakdown.push({
+    area: "전문가 투입",
+    score: expertScore,
+    detail: expertSessions.length > 0
+      ? `총 ${expertSessions.length}회 전문가 투입 세션`
+      : "전문가 투입 미활용",
+  });
+
+  // 3. KPT 회고 실행
+  const recentKpts = packet.kptReviews.filter((k) => isWithinMonths(k.reviewDate, 3));
+  const kptScore = Math.min(100, recentKpts.length * 33); // 3개월 3회 = 100
+  breakdown.push({
+    area: "KPT 회고",
+    score: kptScore,
+    detail: recentKpts.length > 0
+      ? `최근 3개월 ${recentKpts.length}건 회고 실행`
+      : packet.kptReviews.length > 0 ? "최근 회고 중단됨" : "미참여",
+  });
+
+  // 4. OKR 관리
+  const hasOkr = packet.okrItems.length > 0;
+  const hasValues = packet.okrValues.length > 0;
+  const okrScore = hasOkr && hasValues ? 100 : hasOkr ? 50 : 0;
+  breakdown.push({
+    area: "OKR 관리",
+    score: okrScore,
+    detail: hasOkr
+      ? `${packet.okrItems.length}개 지표${hasValues ? `, ${packet.okrValues.length}건 측정값 입력` : " (측정값 미입력)"}`
+      : "OKR 미설정",
+  });
+
+  // 5. 전문가 요청 제출
+  const reqScore = Math.min(100, packet.expertRequests.length * 50); // 2건 = 100
+  breakdown.push({
+    area: "전문가 요청",
+    score: reqScore,
+    detail: packet.expertRequests.length > 0
+      ? `총 ${packet.expertRequests.length}건 요청 (완료 ${packet.expertRequests.filter((r) => ["완료", "진행 완료"].includes(r.status || "")).length}건)`
+      : "요청 없음",
+  });
+
+  // 종합 점수 (가중 평균: 멘토링 30%, 전문가투입 20%, KPT 20%, OKR 15%, 요청 15%)
+  const weights = [0.30, 0.20, 0.20, 0.15, 0.15];
+  const overallScore = Math.round(
+    breakdown.reduce((sum, b, i) => sum + b.score * weights[i], 0)
+  );
+
+  let label: string;
+  if (overallScore >= 70) label = "적극 활용";
+  else if (overallScore >= 40) label = "보통";
+  else if (overallScore > 0) label = "저조";
+  else label = "미참여";
+
+  return { overallScore, label, breakdown };
+}
+
+function isWithinMonths(dateStr: string | undefined, months: number): boolean {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - months);
+  return d.getTime() >= cutoff.getTime();
+}
+
 // ── 종합 건강 신호 ──────────────────────────────
 
 function assessHealth(
   packet: CompanyDataPacket,
-  cadence: PulseReport["meetingCadence"]
+  cadence: PulseReport["meetingCadence"],
+  engagement: PulseReport["programEngagement"]
 ): PulseReport["healthSignals"] {
   const signals: PulseReport["healthSignals"] = [];
 
-  // 1. 미팅 밀도
-  if (cadence.densityScore >= 70) {
-    signals.push({
-      signal: "미팅 밀도",
-      status: "good",
-      detail: `${cadence.densityLabel} — ${cadence.totalSessions}회/${cadence.periodMonths}개월, 평균 ${cadence.avgIntervalDays}일 간격`,
-    });
-  } else if (cadence.densityScore >= 40) {
-    signals.push({
-      signal: "미팅 밀도",
-      status: "warning",
-      detail: `${cadence.densityLabel} — 평균 ${cadence.avgIntervalDays}일 간격. 주 1회 기준 ${cadence.densityScore}% 수준`,
-    });
-  } else {
-    signals.push({
-      signal: "미팅 밀도",
-      status: "concern",
-      detail: `${cadence.densityLabel} — 평균 ${cadence.avgIntervalDays}일 간격. 미팅 빈도 점검 필요`,
-    });
-  }
+  // 1. 디캠프 참여도 종합
+  signals.push({
+    signal: "디캠프 프로그램 참여도",
+    status: engagement.overallScore >= 60 ? "good" : engagement.overallScore >= 30 ? "warning" : "concern",
+    detail: `${engagement.label} (${engagement.overallScore}점) — ${engagement.breakdown.filter((b) => b.score >= 50).map((b) => b.area).join(", ") || "활성 영역 없음"}`,
+  });
 
-  // 2. 미팅 추세
+  // 2. 미팅 밀도
+  signals.push({
+    signal: "미팅 밀도",
+    status: cadence.densityScore >= 70 ? "good" : cadence.densityScore >= 40 ? "warning" : "concern",
+    detail: `${cadence.densityLabel} — ${cadence.totalSessions}회/${cadence.periodMonths}개월, 평균 ${cadence.avgIntervalDays}일 간격`,
+  });
+
+  // 3. 미팅 추세
   if (cadence.trend === "slowing") {
-    signals.push({
-      signal: "미팅 주기 둔화",
-      status: "warning",
-      detail: cadence.trendReason,
-    });
+    signals.push({ signal: "미팅 주기 둔화", status: "warning", detail: cadence.trendReason });
   } else if (cadence.trend === "accelerating") {
-    signals.push({
-      signal: "미팅 주기 가속",
-      status: "good",
-      detail: cadence.trendReason,
-    });
+    signals.push({ signal: "미팅 주기 가속", status: "good", detail: cadence.trendReason });
   }
 
-  // 3. 최근 미팅 간격 체크
+  // 4. 최근 미팅 공백
   const sessions = [...packet.sessions].sort((a, b) => b.date.localeCompare(a.date));
   if (sessions.length > 0) {
-    const lastSessionDate = new Date(sessions[0].date);
     const daysSinceLast = Math.round(
-      (Date.now() - lastSessionDate.getTime()) / (1000 * 60 * 60 * 24)
+      (Date.now() - new Date(sessions[0].date).getTime()) / (1000 * 60 * 60 * 24)
     );
     if (daysSinceLast > 30) {
-      signals.push({
-        signal: "최근 미팅 공백",
-        status: "concern",
-        detail: `마지막 미팅 후 ${daysSinceLast}일 경과 (${sessions[0].date})`,
-      });
+      signals.push({ signal: "최근 미팅 공백", status: "concern", detail: `마지막 미팅 후 ${daysSinceLast}일 경과` });
     } else if (daysSinceLast > 14) {
-      signals.push({
-        signal: "미팅 간격",
-        status: "warning",
-        detail: `마지막 미팅 후 ${daysSinceLast}일 경과`,
-      });
+      signals.push({ signal: "미팅 간격", status: "warning", detail: `마지막 미팅 후 ${daysSinceLast}일 경과` });
     }
   }
 
-  // 4. KPT 회고 실행력
-  const recentKpts = packet.kptReviews.filter((k) => {
-    if (!k.reviewDate) return false;
-    const d = new Date(k.reviewDate);
-    return Date.now() - d.getTime() < 90 * 24 * 60 * 60 * 1000;
-  });
-  if (recentKpts.length > 0) {
-    signals.push({
-      signal: "KPT 회고",
-      status: "good",
-      detail: `최근 3개월 ${recentKpts.length}건 실행 중`,
-    });
-  } else if (packet.kptReviews.length > 0) {
-    signals.push({
-      signal: "KPT 회고 중단",
-      status: "warning",
-      detail: "최근 3개월간 회고 없음",
-    });
-  }
-
-  // 5. 전문가 요청 활용도
-  const activeRequests = packet.expertRequests.filter(
-    (r) => r.status && !["완료", "진행 완료", "지원불가"].includes(r.status)
-  );
-  if (activeRequests.length > 0) {
-    signals.push({
-      signal: "전문가 리소스",
-      status: "good",
-      detail: `진행 중 ${activeRequests.length}건 — 적극적 리소스 활용`,
-    });
-  }
-
-  // 6. OKR 달성률
-  const achievedItems = packet.okrItems.filter((item) => item.achieved);
-  if (packet.okrItems.length > 0) {
-    const rate = Math.round((achievedItems.length / packet.okrItems.length) * 100);
-    signals.push({
-      signal: "OKR 달성",
-      status: rate >= 60 ? "good" : rate >= 30 ? "warning" : "concern",
-      detail: `${packet.okrItems.length}개 지표 중 ${achievedItems.length}개 달성 (${rate}%)`,
-    });
+  // 5. 참여도 저조 항목 경고
+  for (const b of engagement.breakdown) {
+    if (b.score === 0) {
+      signals.push({ signal: `${b.area} 미활용`, status: "concern", detail: b.detail });
+    }
   }
 
   return signals;
+}
+
+// ── 탭 요약 생성 ──────────────────────────────
+
+function buildSummary(
+  cadence: PulseReport["meetingCadence"],
+  engagement: PulseReport["programEngagement"]
+): string {
+  const parts: string[] = [];
+  parts.push(`프로그램 참여 ${engagement.overallScore}점(${engagement.label})`);
+  parts.push(`미팅 밀도 ${cadence.densityScore}점(${cadence.densityLabel})`);
+  if (cadence.trend === "slowing") parts.push("주기 둔화 중");
+  else if (cadence.trend === "accelerating") parts.push("주기 가속 중");
+  return parts.join(" · ");
 }

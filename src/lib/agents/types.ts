@@ -58,10 +58,24 @@ export interface PulseReport {
     detail?: string;
   }[];
 
+  // 디캠프 프로그램 참여도
+  programEngagement: {
+    overallScore: number; // 0~100
+    label: string; // "적극 활용" | "보통" | "저조" | "미참여"
+    breakdown: {
+      area: string; // "멘토링" | "전문가 투입" | "KPT 회고" | "OKR 관리" | "전문가 요청"
+      score: number; // 0~100
+      detail: string;
+    }[];
+  };
+
   // 종합 건강 신호
   healthSignals: {
     signal: string;
     status: "good" | "warning" | "concern";
     detail: string;
   }[];
+
+  // 탭 요약 (한 줄)
+  summary: string;
 }

@@ -24,11 +24,17 @@ const MILESTONE_STYLE: Record<string, string> = {
   "외부": "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
 };
 
-// ── 밀도 점수 색상 ──────────────────────────────
-function densityColor(score: number): string {
+// ── 점수 색상 (공통) ──────────────────────────────
+function scoreColor(score: number): string {
   if (score >= 70) return "text-green-600 dark:text-green-400";
   if (score >= 40) return "text-amber-600 dark:text-amber-400";
   return "text-red-600 dark:text-red-400";
+}
+
+function barColor(score: number): string {
+  if (score >= 70) return "bg-green-500";
+  if (score >= 40) return "bg-amber-500";
+  return "bg-red-500";
 }
 
 function trendIcon(trend: PulseReport["meetingCadence"]["trend"]): string {
@@ -41,24 +47,62 @@ function trendIcon(trend: PulseReport["meetingCadence"]["trend"]): string {
 }
 
 export function PulseTab({ pulse }: PulseTabProps) {
-  const { meetingCadence, milestones, healthSignals } = pulse;
+  const { meetingCadence, milestones, programEngagement, healthSignals, summary } = pulse;
 
   return (
     <div className="space-y-6">
-      {/* ── 헤더 ─────────────────────────────── */}
+      {/* ── 헤더 + 요약 ─────────────────────────────── */}
       <div>
         <h2 className="text-xl font-bold">팀 펄스</h2>
         <p className="text-sm text-muted-foreground">
-          미팅 밀도, 주요 마일스톤, 건강 신호를 한눈에
+          디캠프와의 관계 밀도 — 프로그램 참여, 미팅, 마일스톤을 한눈에
         </p>
+        {summary && (
+          <p className="mt-2 text-sm font-medium rounded-lg bg-muted/50 px-3 py-2">
+            {summary}
+          </p>
+        )}
       </div>
+
+      {/* ── 디캠프 프로그램 참여도 ─────────────────── */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            디캠프 프로그램 참여도
+            <span className={`text-2xl font-bold tabular-nums ${scoreColor(programEngagement.overallScore)}`}>
+              {programEngagement.overallScore}
+            </span>
+            <span className="text-xs text-muted-foreground font-normal">/ 100</span>
+            <Badge variant="outline" className="ml-auto text-xs">
+              {programEngagement.label}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {programEngagement.breakdown.map((b) => (
+            <div key={b.area} className="space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">{b.area}</span>
+                <span className={`tabular-nums font-bold ${scoreColor(b.score)}`}>{b.score}</span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${barColor(b.score)}`}
+                  style={{ width: `${b.score}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">{b.detail}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       {/* ── 미팅 밀도 카드 ─────────────────────── */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             미팅 밀도
-            <span className={`text-2xl font-bold tabular-nums ${densityColor(meetingCadence.densityScore)}`}>
+            <span className={`text-2xl font-bold tabular-nums ${scoreColor(meetingCadence.densityScore)}`}>
               {meetingCadence.densityScore}
             </span>
             <span className="text-xs text-muted-foreground font-normal">/ 100</span>
