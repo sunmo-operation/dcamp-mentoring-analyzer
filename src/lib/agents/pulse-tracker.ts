@@ -178,65 +178,113 @@ function detectMilestoneCategory(text: string): PulseReport["milestones"][0]["ca
 }
 
 function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"] {
-  const milestones: PulseReport["milestones"] = [];
+  const entries: PulseReport["milestones"] = [];
 
-  // 1. 세션 요약/후속조치에서 마일스톤 추출
+  // 1. 모든 노션 멘토링 세션 → 타임라인 항목
   for (const s of packet.sessions) {
-    const texts = [s.summary, s.followUp].filter(Boolean) as string[];
-    const combined = texts.join(" ");
-    const category = detectMilestoneCategory(combined);
-    if (category && s.date) {
-      // 매칭된 키워드 주변 문맥 추출 (간결한 제목)
-      const title = extractMilestoneTitle(combined, category);
-      milestones.push({
-        date: s.date,
-        title,
-        category,
-        source: "멘토링",
-        detail: s.title,
-      });
-    }
+    if (!s.date) continue;
+    const types = s.sessionTypes.length > 0 ? s.sessionTypes : ["기타"];
+
+    // 세션 유형 → 카테고리 매핑
+    let category: PulseReport["milestones"][0]["category"] = "멘토링";
+    if (types.some((t) => ["점검", "체크업"].includes(t))) category = "점검";
+    else if (types.some((t) => t === "전문가투입")) category = "전문가투입";
+
+    // 키워드 마일스톤 감지 → 하이라이트
+    const combined = [s.summary, s.followUp].filter(Boolean).join(" ");
+    const milestoneCategory = detectMilestoneCategory(combined);
+
+    entries.push({
+      date: s.date,
+      title: s.title || types.join("/") + " 세션",
+      category: milestoneCategory || category,
+      source: "노션",
+      summary: s.summary ? truncate(s.summary, 80) : undefined,
+      detail: milestoneCategory ? extractMilestoneTitle(combined, milestoneCategory) : undefined,
+      isHighlight: !!milestoneCategory,
+    });
   }
 
-  // 2. KPT에서 주요 성과(Keep) 추출
+  // 2. KPT 주요 성과 (키워드 매칭만)
   for (const kpt of packet.kptReviews) {
     if (kpt.keep && kpt.reviewDate) {
-      const category = detectMilestoneCategory(kpt.keep);
-      if (category) {
-        milestones.push({
+      const cat = detectMilestoneCategory(kpt.keep);
+      if (cat) {
+        entries.push({
           date: kpt.reviewDate,
           title: truncate(kpt.keep, 60),
-          category,
+          category: cat,
           source: "KPT",
+          isHighlight: true,
         });
       }
     }
   }
 
-  // 3. 전문가 요청 중 완료된 건
+  // 3. 전문가 요청
   for (const req of packet.expertRequests) {
-    if (req.status === "완료" || req.status === "진행 완료") {
-      milestones.push({
-        date: req.requestedAt?.split("T")[0] || "",
-        title: req.oneLiner || req.title,
-        category: "외부",
-        source: "전문가요청",
+    if (!req.requestedAt) continue;
+    entries.push({
+      date: req.requestedAt.split("T")[0],
+      title: req.oneLiner || req.title,
+      category: "전문가요청",
+      source: "전문가요청",
+      summary: req.status || "접수",
+      isHighlight: req.status === "완료" || req.status === "진행 완료",
+    });
+  }
+
+  // 4. 코칭 기록 (노션에 없는 날짜만 추가)
+  if (packet.coachingRecords) {
+    const notionDates = new Set(packet.sessions.map((s) => s.date));
+
+    // 코칭 세션 (최근 10건)
+    const coachingSessions = [...packet.coachingRecords.sessions]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 10);
+    for (const cs of coachingSessions) {
+      if (notionDates.has(cs.date)) continue;
+      entries.push({
+        date: cs.date,
+        title: `${cs.mentor} 멘토링`,
+        category: "코칭",
+        source: "코칭기록",
+        summary: cs.issues ? truncate(cs.issues, 80) : undefined,
+      });
+    }
+
+    // 전문가 투입 (날짜별 그룹, 최근 10일)
+    const deployByDate = new Map<string, string[]>();
+    for (const d of packet.coachingRecords.expertDeployments) {
+      if (notionDates.has(d.date)) continue;
+      const experts = deployByDate.get(d.date) || [];
+      if (!experts.includes(d.expert)) experts.push(d.expert);
+      deployByDate.set(d.date, experts);
+    }
+    const deployDates = [...deployByDate.entries()]
+      .sort(([a], [b]) => b.localeCompare(a))
+      .slice(0, 10);
+    for (const [date, experts] of deployDates) {
+      entries.push({
+        date,
+        title: `전문가 투입: ${experts.join(", ")}`,
+        category: "전문가투입",
+        source: "코칭기록",
       });
     }
   }
 
-  // 날짜 내림차순 정렬, 중복 제거 (같은 날짜+카테고리)
+  // 날짜 내림차순 정렬, 중복 제거
   const seen = new Set<string>();
-  return milestones
-    .filter((m) => m.date)
+  return entries
+    .filter((m) => m.date && m.date.length >= 8)
     .sort((a, b) => b.date.localeCompare(a.date))
     .filter((m) => {
-      const key = `${m.date}-${m.category}`;
+      const key = `${m.date}-${m.source}-${m.title.slice(0, 15)}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    })
-    .slice(0, 15); // 최대 15건
+    });
 }
 
 function extractMilestoneTitle(text: string, category: string): string {

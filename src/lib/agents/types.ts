@@ -51,13 +51,15 @@ export interface PulseReport {
     densityLabel: string; // "매우 활발" | "양호" | "느슨" | "경고"
   };
 
-  // 주요 마일스톤 타임라인
+  // 주요 마일스톤 타임라인 (전체 세션 + 키워드 마일스톤)
   milestones: {
     date: string;
     title: string;
-    category: "성과" | "전환점" | "리스크" | "의사결정" | "외부";
-    source: string; // "멘토링" | "KPT" | "OKR" | "전문가요청"
+    category: "멘토링" | "점검" | "전문가투입" | "전문가요청" | "코칭" | "성과" | "전환점" | "리스크" | "의사결정" | "외부";
+    source: string; // "노션" | "KPT" | "전문가요청" | "코칭기록"
+    summary?: string; // 세션 요약 (80자 이내)
     detail?: string;
+    isHighlight?: boolean; // 키워드 매칭 마일스톤
   }[];
 
   // 디캠프 프로그램 참여도

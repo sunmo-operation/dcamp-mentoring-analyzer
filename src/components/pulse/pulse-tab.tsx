@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { PulseReport } from "@/lib/agents/types";
 
@@ -8,307 +8,275 @@ interface PulseTabProps {
   pulse: PulseReport;
 }
 
-// ── 건강 상태 색상 ──────────────────────────────
-const STATUS_STYLE: Record<string, { bg: string; dot: string }> = {
-  good: { bg: "bg-green-50 dark:bg-green-950/30", dot: "bg-green-500" },
-  warning: { bg: "bg-amber-50 dark:bg-amber-950/30", dot: "bg-amber-500" },
-  concern: { bg: "bg-red-50 dark:bg-red-950/30", dot: "bg-red-500" },
+// ── 건강 신호 배지 스타일 ──────────────────────────
+const STATUS_BADGE: Record<string, { icon: string; style: string }> = {
+  good: { icon: "✓", style: "text-green-700 bg-green-50 border-green-200" },
+  warning: { icon: "!", style: "text-amber-700 bg-amber-50 border-amber-200" },
+  concern: { icon: "✕", style: "text-red-700 bg-red-50 border-red-200" },
 };
 
-// ── 마일스톤 카테고리 색상 ──────────────────────────
-const MILESTONE_STYLE: Record<string, string> = {
-  "성과": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  "전환점": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  "의사결정": "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200",
-  "리스크": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  "외부": "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
+// ── 타임라인 카테고리 스타일 ─────────────────────────
+const CATEGORY_STYLE: Record<
+  string,
+  { icon: string; label: string; dot: string; badge: string }
+> = {
+  "멘토링": { icon: "📝", label: "멘토링", dot: "bg-blue-400", badge: "bg-blue-50 text-blue-700 border-blue-200" },
+  "점검": { icon: "🔍", label: "점검", dot: "bg-indigo-400", badge: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  "전문가투입": { icon: "🎓", label: "전문가투입", dot: "bg-purple-400", badge: "bg-purple-50 text-purple-700 border-purple-200" },
+  "전문가요청": { icon: "📋", label: "전문가요청", dot: "bg-cyan-400", badge: "bg-cyan-50 text-cyan-700 border-cyan-200" },
+  "코칭": { icon: "💬", label: "코칭", dot: "bg-orange-400", badge: "bg-orange-50 text-orange-700 border-orange-200" },
+  "성과": { icon: "🎯", label: "성과", dot: "bg-green-500", badge: "bg-green-50 text-green-800 border-green-200" },
+  "전환점": { icon: "🔄", label: "전환점", dot: "bg-blue-500", badge: "bg-blue-50 text-blue-800 border-blue-200" },
+  "리스크": { icon: "⚠️", label: "리스크", dot: "bg-red-500", badge: "bg-red-50 text-red-800 border-red-200" },
+  "의사결정": { icon: "💡", label: "의사결정", dot: "bg-violet-500", badge: "bg-violet-50 text-violet-800 border-violet-200" },
+  "외부": { icon: "🏛️", label: "외부", dot: "bg-slate-400", badge: "bg-slate-50 text-slate-700 border-slate-200" },
 };
 
-function trendIcon(trend: PulseReport["meetingCadence"]["trend"]): string {
+// ── 유틸 ──────────────────────────────────────────
+function trendLabel(trend: PulseReport["meetingCadence"]["trend"]): string {
   switch (trend) {
-    case "accelerating": return "↑";
-    case "stable": return "→";
-    case "slowing": return "↓";
-    case "irregular": return "~";
+    case "accelerating": return "가속 ↑";
+    case "stable": return "안정 →";
+    case "slowing": return "둔화 ↓";
+    case "irregular": return "불규칙 ~";
   }
-}
-
-export function PulseTab({ pulse }: PulseTabProps) {
-  const { meetingCadence, milestones, healthSignals, summary, qualitativeAssessment: qa } = pulse;
-
-  return (
-    <div className="space-y-6">
-      {/* ── 헤더 + 종합 평가 ─────────────────────────── */}
-      <div>
-        <h2 className="text-xl font-bold">팀 펄스</h2>
-        <p className="text-sm text-muted-foreground">
-          멘토링 준비를 위한 팀 상태 종합 진단
-        </p>
-        {summary && (
-          <p className="mt-2 text-sm font-medium rounded-lg bg-muted/50 px-3 py-2">
-            {summary}
-          </p>
-        )}
-      </div>
-
-      {/* ── 종합 서술 평가 ───────────────────────────── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">종합 평가</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm leading-relaxed text-foreground">
-            {qa.overallNarrative}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* ── 멘토링 정기성 ────────────────────────────── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            멘토링 정기성
-            <Badge variant={qa.mentoringRegularity.meetsMonthlyTarget ? "default" : "destructive"} className="text-xs ml-auto">
-              {qa.mentoringRegularity.meetsMonthlyTarget ? "월 1회 이상 충족" : "월 1회 미달"}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            {qa.mentoringRegularity.assessment}
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {qa.mentoringRegularity.recentMonthBreakdown.map((m) => (
-              <div key={m.month} className={`rounded-xl p-3 text-center ${m.count > 0 ? "bg-green-50 dark:bg-green-950/30" : "bg-red-50 dark:bg-red-950/30"}`}>
-                <p className={`text-2xl font-bold tabular-nums ${m.count > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
-                  {m.count}<span className="text-sm font-normal">건</span>
-                </p>
-                <p className="text-xs text-muted-foreground">{m.month}</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ── 전담멘토 관계 ────────────────────────────── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            전담멘토 관계
-            {qa.dedicatedMentorEngagement.hasDedicatedMentor && (
-              <Badge variant="outline" className="text-xs ml-auto">
-                {qa.dedicatedMentorEngagement.mentorName}
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            {qa.dedicatedMentorEngagement.assessment}
-          </p>
-          {qa.dedicatedMentorEngagement.hasDedicatedMentor && qa.dedicatedMentorEngagement.totalMeetings > 0 && (
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl bg-muted/40 p-3 text-center">
-                <p className="text-2xl font-bold tabular-nums">{qa.dedicatedMentorEngagement.totalMeetings}</p>
-                <p className="text-xs text-muted-foreground">총 만남</p>
-              </div>
-              <div className="rounded-xl bg-muted/40 p-3 text-center">
-                <p className="text-2xl font-bold tabular-nums">
-                  {qa.dedicatedMentorEngagement.avgIntervalDays ?? "-"}<span className="text-sm font-normal">일</span>
-                </p>
-                <p className="text-xs text-muted-foreground">평균 간격</p>
-              </div>
-              <div className="rounded-xl bg-muted/40 p-3 text-center">
-                <p className={`text-2xl font-bold ${qa.dedicatedMentorEngagement.isRegular ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}`}>
-                  {qa.dedicatedMentorEngagement.isRegular ? "정기" : "불규칙"}
-                </p>
-                <p className="text-xs text-muted-foreground">만남 패턴</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ── 전문가 리소스 활용 ───────────────────────── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            전문가 리소스 활용
-            <Badge variant="outline" className="text-xs ml-auto">
-              {qa.expertRequestActivity.totalRequests}건 요청
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {qa.expertRequestActivity.assessment}
-          </p>
-          {qa.expertRequestActivity.totalRequests > 0 && (
-            <div className="mt-3 flex gap-3">
-              <div className="rounded-xl bg-muted/40 px-4 py-2 text-center">
-                <p className="text-lg font-bold tabular-nums">{qa.expertRequestActivity.totalRequests}</p>
-                <p className="text-xs text-muted-foreground">총 요청</p>
-              </div>
-              <div className="rounded-xl bg-muted/40 px-4 py-2 text-center">
-                <p className="text-lg font-bold tabular-nums text-green-600 dark:text-green-400">{qa.expertRequestActivity.completedRequests}</p>
-                <p className="text-xs text-muted-foreground">완료</p>
-              </div>
-              <div className="rounded-xl bg-muted/40 px-4 py-2 text-center">
-                <p className="text-lg font-bold tabular-nums text-amber-600 dark:text-amber-400">{qa.expertRequestActivity.totalRequests - qa.expertRequestActivity.completedRequests}</p>
-                <p className="text-xs text-muted-foreground">진행 중</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ── 미팅 현황 요약 ───────────────────────────── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">미팅 현황</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-xl bg-muted/40 p-3 text-center">
-              <p className="text-2xl font-bold tabular-nums">{meetingCadence.totalSessions}</p>
-              <p className="text-xs text-muted-foreground">총 미팅</p>
-            </div>
-            <div className="rounded-xl bg-muted/40 p-3 text-center">
-              <p className="text-2xl font-bold tabular-nums">{meetingCadence.avgIntervalDays}<span className="text-sm font-normal">일</span></p>
-              <p className="text-xs text-muted-foreground">평균 간격</p>
-            </div>
-            <div className="rounded-xl bg-muted/40 p-3 text-center">
-              <p className="text-2xl font-bold tabular-nums">{meetingCadence.recentIntervalDays}<span className="text-sm font-normal">일</span></p>
-              <p className="text-xs text-muted-foreground">최근 간격</p>
-            </div>
-            <div className="rounded-xl bg-muted/40 p-3 text-center">
-              <p className="text-2xl font-bold tabular-nums">
-                {trendIcon(meetingCadence.trend)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {meetingCadence.trend === "accelerating" ? "가속" :
-                 meetingCadence.trend === "stable" ? "안정" :
-                 meetingCadence.trend === "slowing" ? "둔화" : "불규칙"}
-              </p>
-            </div>
-          </div>
-
-          {meetingCadence.trendReason && (
-            <p className="text-sm text-muted-foreground">{meetingCadence.trendReason}</p>
-          )}
-
-          {meetingCadence.byType.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {meetingCadence.byType.map((t) => (
-                <Badge key={t.type} variant="outline" className="text-xs gap-1">
-                  {t.type}
-                  <span className="font-bold">{t.count}회</span>
-                </Badge>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ── 주의 신호 ─────────────────────────── */}
-      {healthSignals.filter((s) => s.status !== "good").length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">주의 신호</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {healthSignals.filter((s) => s.status !== "good").map((s, i) => {
-              const style = STATUS_STYLE[s.status] || STATUS_STYLE.warning;
-              return (
-                <div key={i} className={`flex items-start gap-3 rounded-xl p-3 ${style.bg}`}>
-                  <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${style.dot}`} />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{s.signal}</p>
-                    <p className="text-xs text-muted-foreground">{s.detail}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ── 긍정 신호 (접힌 상태) ────────────────── */}
-      {healthSignals.filter((s) => s.status === "good").length > 0 && (
-        <details className="group">
-          <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
-            긍정 신호 {healthSignals.filter((s) => s.status === "good").length}건 보기
-          </summary>
-          <div className="mt-2 space-y-2">
-            {healthSignals.filter((s) => s.status === "good").map((s, i) => {
-              const style = STATUS_STYLE.good;
-              return (
-                <div key={i} className={`flex items-start gap-3 rounded-xl p-3 ${style.bg}`}>
-                  <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${style.dot}`} />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{s.signal}</p>
-                    <p className="text-xs text-muted-foreground">{s.detail}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </details>
-      )}
-
-      {/* ── 마일스톤 타임라인 ─────────────────── */}
-      {milestones.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">주요 마일스톤</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative space-y-0">
-              <div className="absolute left-[79px] top-2 bottom-2 w-px bg-border sm:left-[95px]" />
-
-              {milestones.map((m, i) => (
-                <div key={i} className="relative flex items-start gap-3 py-3">
-                  <div className="w-[70px] shrink-0 text-right sm:w-[86px]">
-                    <p className="text-xs tabular-nums text-muted-foreground">
-                      {formatDate(m.date)}
-                    </p>
-                  </div>
-                  <div className="relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-background bg-primary" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className={`text-[10px] ${MILESTONE_STYLE[m.category] || MILESTONE_STYLE["외부"]}`}>
-                        {m.category}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">{m.source}</span>
-                    </div>
-                    <p className="mt-0.5 text-sm leading-relaxed">{m.title}</p>
-                    {m.detail && m.detail !== m.title && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{m.detail}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {milestones.length === 0 && (
-        <div className="rounded-xl bg-muted/30 p-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            멘토링 기록에서 마일스톤을 감지하지 못했습니다
-          </p>
-        </div>
-      )}
-    </div>
-  );
 }
 
 function formatDate(dateStr: string): string {
   try {
     const d = new Date(dateStr);
-    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+    return `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
   } catch {
     return dateStr;
   }
+}
+
+function formatMonthHeader(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+  } catch {
+    return dateStr;
+  }
+}
+
+function getMonthKey(dateStr: string): string {
+  return dateStr.slice(0, 7);
+}
+
+// ── 메인 컴포넌트 ─────────────────────────────────
+const INITIAL_COUNT = 20;
+
+export function PulseTab({ pulse }: PulseTabProps) {
+  const { meetingCadence, milestones, healthSignals, qualitativeAssessment: qa } = pulse;
+  const [showAll, setShowAll] = useState(false);
+
+  const visibleEntries = showAll ? milestones : milestones.slice(0, INITIAL_COUNT);
+
+  const warnings = healthSignals.filter((s) => s.status !== "good");
+  const positives = healthSignals.filter((s) => s.status === "good");
+
+  return (
+    <div className="space-y-6">
+      {/* ── 헤더 ─────────────────────────── */}
+      <div>
+        <h2 className="text-xl font-bold">팀 펄스</h2>
+        <p className="text-sm text-muted-foreground">
+          디캠프 배치와 함께한 여정
+        </p>
+      </div>
+
+      {/* ── 핵심 지표 카드 ─────────────────── */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-2xl bg-muted/40 p-4 text-center">
+          <p className="text-2xl font-bold tabular-nums">{meetingCadence.totalSessions}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">총 미팅</p>
+        </div>
+        <div className="rounded-2xl bg-muted/40 p-4 text-center">
+          <p className="text-2xl font-bold tabular-nums">
+            {meetingCadence.avgIntervalDays}<span className="text-sm font-normal">일</span>
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">평균 간격</p>
+        </div>
+        <div className="rounded-2xl bg-muted/40 p-4 text-center">
+          <p className="text-2xl font-bold tabular-nums">
+            {pulse.programEngagement.overallScore}<span className="text-sm font-normal">점</span>
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">프로그램 참여</p>
+        </div>
+        <div className="rounded-2xl bg-muted/40 p-4 text-center">
+          <p className="text-lg font-bold leading-8">{trendLabel(meetingCadence.trend)}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">미팅 추세</p>
+        </div>
+      </div>
+
+      {/* ── 상태 신호 (인라인 배지) ────────── */}
+      {(warnings.length > 0 || positives.length > 0) && (
+        <div className="flex flex-wrap gap-2">
+          {warnings.map((s, i) => {
+            const st = STATUS_BADGE[s.status] || STATUS_BADGE.warning;
+            return (
+              <div
+                key={`w-${i}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${st.style}`}
+              >
+                <span className="font-bold text-[10px]">{st.icon}</span>
+                {s.signal}
+              </div>
+            );
+          })}
+          {positives.map((s, i) => {
+            const st = STATUS_BADGE.good;
+            return (
+              <div
+                key={`g-${i}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${st.style}`}
+              >
+                <span className="font-bold text-[10px]">{st.icon}</span>
+                {s.signal}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── 종합 평가 ─────────────────────── */}
+      <div className="rounded-2xl bg-muted/30 px-4 py-3">
+        <p className="text-sm leading-relaxed">{qa.overallNarrative}</p>
+      </div>
+
+      {/* ── 전담멘토 (있는 경우만) ─────────── */}
+      {qa.dedicatedMentorEngagement.hasDedicatedMentor && (
+        <div className="flex items-center gap-3 rounded-2xl border border-border/50 px-4 py-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm shrink-0">
+            <span role="img" aria-label="멘토">👤</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">
+              전담멘토 {qa.dedicatedMentorEngagement.mentorName}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {qa.dedicatedMentorEngagement.totalMeetings > 0
+                ? `총 ${qa.dedicatedMentorEngagement.totalMeetings}회 만남 · 평균 ${qa.dedicatedMentorEngagement.avgIntervalDays ?? "?"}일 간격 · ${qa.dedicatedMentorEngagement.isRegular ? "정기적" : "불규칙"}`
+                : "미팅 기록 없음"}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── 주요 마일스톤 타임라인 ─────────── */}
+      <div>
+        <h3 className="text-lg font-bold mb-1">주요 마일스톤</h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          {milestones.length > 0
+            ? `총 ${milestones.length}건의 활동 기록`
+            : "멘토링 기록에서 마일스톤을 감지하지 못했습니다"}
+        </p>
+
+        {visibleEntries.length > 0 && (
+          <TimelineView entries={visibleEntries} />
+        )}
+
+        {!showAll && milestones.length > INITIAL_COUNT && (
+          <button
+            onClick={() => setShowAll(true)}
+            className="mt-3 w-full rounded-2xl border border-border bg-muted/30 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60"
+          >
+            전체 보기 ({milestones.length - INITIAL_COUNT}건 더)
+          </button>
+        )}
+
+        {milestones.length === 0 && (
+          <div className="rounded-xl bg-muted/30 p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              기록이 없습니다
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── 타임라인 서브 컴포넌트 ─────────────────────────
+type MilestoneEntry = PulseReport["milestones"][0];
+
+function TimelineView({ entries }: { entries: MilestoneEntry[] }) {
+  // 월별 그룹핑
+  const groups: { monthKey: string; label: string; items: MilestoneEntry[] }[] = [];
+  let current = "";
+
+  for (const m of entries) {
+    const mk = getMonthKey(m.date);
+    if (mk !== current) {
+      current = mk;
+      groups.push({ monthKey: mk, label: formatMonthHeader(m.date), items: [] });
+    }
+    groups[groups.length - 1].items.push(m);
+  }
+
+  return (
+    <div className="space-y-0">
+      {groups.map((group) => (
+        <div key={group.monthKey}>
+          {/* 월 헤더 */}
+          <div className="flex items-center gap-3 py-2">
+            <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+              {group.label}
+            </span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          {/* 타임라인 항목들 */}
+          <div className="relative ml-1">
+            {/* 연속 세로선 */}
+            <div className="absolute left-[5px] top-0 bottom-0 w-0.5 bg-border/50" />
+
+            {group.items.map((m, i) => {
+              const cat = CATEGORY_STYLE[m.category] || CATEGORY_STYLE["멘토링"];
+              return (
+                <div key={`${group.monthKey}-${i}`} className="relative flex items-start gap-4 py-2.5">
+                  {/* 도트 (고정폭 컨테이너) */}
+                  <div className="w-3 shrink-0 flex justify-center">
+                    <div
+                      className={`relative z-10 mt-1.5 rounded-full ring-2 ring-background ${
+                        m.isHighlight ? "h-3 w-3" : "h-2.5 w-2.5"
+                      } ${cat.dot}`}
+                    />
+                  </div>
+
+                  {/* 콘텐츠 */}
+                  <div className={`min-w-0 flex-1 ${m.isHighlight ? "rounded-xl bg-muted/30 px-3 py-2 -my-0.5" : ""}`}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {formatDate(m.date)}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] leading-none px-1.5 py-0.5 ${cat.badge}`}
+                      >
+                        {cat.label}
+                      </Badge>
+                      {m.source !== "노션" && (
+                        <span className="text-[10px] text-muted-foreground">{m.source}</span>
+                      )}
+                    </div>
+                    <p className={`mt-0.5 text-sm leading-snug ${m.isHighlight ? "font-medium" : ""}`}>
+                      {m.title}
+                    </p>
+                    {m.isHighlight && m.detail && m.detail !== m.title && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{m.detail}</p>
+                    )}
+                    {!m.isHighlight && m.summary && (
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{m.summary}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
