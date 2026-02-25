@@ -9,8 +9,21 @@
     "app/api/analyze/route.ts": {
       "maxDuration": 120
     },
+    "app/api/cron/sync/route.ts": {
+      "maxDuration": 300
+    },
     "app/companies/[id]/page.tsx": {
       "maxDuration": 120
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/sync",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/sync",
+      "schedule": "0 9 * * *"
+    }
+  ]
 }

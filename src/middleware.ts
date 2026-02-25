@@ -27,7 +27,7 @@ function isRateLimited(ip: string): boolean {
 }
 
 // ── 사이트 비밀번호 인증이 필요 없는 경로 ──────────
-const PUBLIC_PATHS = ["/login", "/api/auth/login"];
+const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/cron"];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(
