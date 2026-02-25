@@ -16,10 +16,10 @@ interface ChatPanelProps {
 
 // 추천 질문 칩
 const SUGGESTED_QUESTIONS = [
-  "최근 핵심 이슈가 뭐야?",
-  "KPT에서 미해결 문제는?",
-  "다음 미팅 전략 추천해줘",
-  "멘토링 반복 지적 사항 정리해줘",
+  "이 팀 최근 상황이 어때?",
+  "다음 미팅에서 뭘 물어보면 좋을까?",
+  "반복적으로 나오는 이슈가 있어?",
+  "전문가 투입이 필요한 부분이 있을까?",
 ];
 
 export function ChatPanel({ companyId, companyName, floating = false }: ChatPanelProps) {
@@ -218,7 +218,7 @@ export function ChatPanel({ companyId, companyName, floating = false }: ChatPane
             </svg>
           </div>
           <h2 className="text-lg font-bold">
-            AI에게 {companyName}에 대해 물어보세요
+            {companyName}에 대해 궁금한 점이 있다면
           </h2>
         </div>
       )}
@@ -229,7 +229,7 @@ export function ChatPanel({ companyId, companyName, floating = false }: ChatPane
         {!hasMessages && (
           <div className="p-5">
             <p className="mb-3 text-sm text-muted-foreground">
-              추천 질문으로 시작해보세요
+              브리핑 외에 더 알고 싶은 게 있다면 물어보세요
             </p>
             <div className="flex flex-wrap gap-2">
               {SUGGESTED_QUESTIONS.map((q) => (
@@ -314,7 +314,7 @@ export function ChatPanel({ companyId, companyName, floating = false }: ChatPane
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="메시지를 입력하세요... (Shift+Enter: 줄바꿈)"
+              placeholder="궁금한 점을 물어보세요..."
               disabled={loading}
               rows={1}
               className="flex-1 resize-none rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:border-purple-400 focus:outline-none focus:ring-1 focus:ring-purple-400 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:focus:border-purple-500 dark:focus:ring-purple-500"
