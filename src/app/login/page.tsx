@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get("from") || "/";
 
@@ -28,8 +27,8 @@ export default function LoginPage() {
 
         if (res.ok) {
           setSuccess(true);
-          router.push(from);
-          router.refresh();
+          // 하드 네비게이션: 새 인증 쿠키가 미들웨어에 확실히 전달되도록
+          window.location.href = from;
         } else {
           const data = await res.json().catch(() => null);
           setError(data?.error || "로그인에 실패했습니다");
@@ -40,7 +39,7 @@ export default function LoginPage() {
         setLoading(false);
       }
     },
-    [password, from, router],
+    [password, from],
   );
 
   return (
