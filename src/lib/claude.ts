@@ -8,7 +8,7 @@ export function getClaudeClient(): Anthropic {
       "ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다. .env.local 파일을 확인하세요."
     );
   }
-  return new Anthropic({ apiKey });
+  return new Anthropic({ apiKey, maxRetries: 3 });
 }
 
 /**

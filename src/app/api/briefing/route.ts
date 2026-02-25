@@ -286,11 +286,8 @@ export async function POST(request: Request) {
         // Analyst Agent: 데이터 기반 사전 분석 (AI 호출 없음, 즉시 반환)
         let analystReport = generateAnalystReport(packet);
 
-        // Topic Analyst (2차 에이전트) + Notion 최신 수정 시간을 병렬 실행
-        const [semanticTopics, currentLastEdited] = await Promise.all([
-          analyzeSemanticTopics(packet).catch(() => null),
-          getLastEditedTime("company-detail", companyId),
-        ]);
+        // Topic Analyst (2차 에이전트) — getLastEditedTime은 위에서 이미 조회한 lastEdited 재사용
+        const semanticTopics = await analyzeSemanticTopics(packet).catch(() => null);
         if (semanticTopics) {
           analystReport = mergeSemanticTopics(analystReport, semanticTopics);
         }
@@ -302,7 +299,7 @@ export async function POST(request: Request) {
           analysisCount: analyses.length,
           kptCount: kptReviews.length,
           okrItemCount: okrItems.length,
-          lastEditedTime: currentLastEdited ?? undefined,
+          lastEditedTime: lastEdited ?? undefined,
         };
 
         // Pulse Tracker: 정성적 종합 평가 (즉시 반환, AI 호출 없음)
