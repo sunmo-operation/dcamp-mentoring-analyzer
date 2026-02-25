@@ -312,20 +312,19 @@ function cleanTitle(rawTitle: string, companyName: string, sessionTypes: string[
   // "N기_" 접두사 제거
   cleaned = cleaned.replace(/^\d+기_/, "");
 
-  // 기업명 접두사 제거 ("넥스트그라운드_" 또는 "넥스트그라운드 ")
+  // 기업명 모든 출현 제거 (반복 포함: "넥스트그라운드_넥스트그라운드" → "")
   if (companyName) {
     const escaped = companyName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    cleaned = cleaned.replace(new RegExp(`^${escaped}[_\\s]*`, "i"), "");
+    cleaned = cleaned.replace(new RegExp(escaped, "gi"), "");
   }
 
-  // 남은 언더스코어 → 공백
-  cleaned = cleaned.replace(/_/g, " ").trim();
+  // 언더스코어/다중 공백 정리
+  cleaned = cleaned.replace(/[_]/g, " ").replace(/\s+/g, " ").trim();
 
-  // 제거 후 빈 문자열이면 세션 유형으로 대체
+  // 빈 문자열이거나 기업명만 남으면 세션 유형으로 대체
   if (!cleaned || cleaned.length <= 2) {
     const typeLabel = sessionTypes.length > 0 ? sessionTypes.join("/") : "멘토링";
-    cleaned = mentors ? `${typeLabel} (${mentors})` : `${typeLabel} 세션`;
-    return cleaned;
+    return mentors ? `${typeLabel} (${mentors})` : `${typeLabel} 세션`;
   }
 
   // 멘토 이름 추가 (이미 포함되어 있지 않은 경우)
@@ -337,33 +336,55 @@ function cleanTitle(rawTitle: string, companyName: string, sessionTypes: string[
 }
 
 /**
- * 노션 원문 → 핵심 한 줄 추출
- * 불릿/번호/헤더 마커 제거 후 첫 번째 의미있는 문장을 반환
+ * 노션 원문 → 완결된 핵심 한 줄 추출
+ * 불릿/번호/헤더 제거 후, 자연스럽게 끊기는 문장을 반환
  */
 function distillOneLiner(rawText: string | undefined | null, maxLen: number, prefix = ""): string {
   if (!rawText) return "";
 
-  const lines = rawText
+  const effectiveMax = maxLen - prefix.length;
+
+  // 원문을 개별 구문으로 분리
+  const phrases = rawText
+    .replace(/\[.*?\]/g, "")                    // [헤더] 블록 제거
     .split(/\n/)
     .map((l) =>
       l
-        .replace(/^\s*[-•◦·*]\s*/, "")         // 불릿 마커 제거
-        .replace(/^\s*\d+\.\s*/, "")            // 번호 리스트 제거
-        .replace(/^\[.*?\]\s*/, "")             // [헤더] 제거
-        .replace(/^(주요|후속|논의|목적|현재|배경|목표)[^\s]*\s*/i, "")  // 섹션 헤더
+        .replace(/^\s*[-•◦·*]\s*/, "")          // 불릿 마커
+        .replace(/^\s*\d+\.\s*/, "")            // 번호 리스트
+        .replace(/^\s*[a-zA-Z]\)\s*/, "")       // a) b) 리스트
+        .replace(/^(주요|후속|논의|목적|현재|배경|목표|참고)[^\s]*\s*/i, "")
         .trim()
     )
-    .filter((l) => l.length > 8 && !l.startsWith("[") && !l.startsWith("→"));
+    .filter((l) => l.length > 10);
 
-  if (lines.length === 0) return "";
+  if (phrases.length === 0) return "";
 
-  // 첫 줄 사용, 두 번째 줄도 여유가 있으면 합침
-  let result = lines[0];
-  if (lines.length > 1 && result.length + lines[1].length + 2 <= maxLen) {
-    result += ". " + lines[1];
+  // 구문들을 결합하여 자연스러운 한 줄 만들기
+  let result = phrases[0];
+  for (let i = 1; i < phrases.length; i++) {
+    const next = result + ", " + phrases[i];
+    if (next.length <= effectiveMax) {
+      result = next;
+    } else {
+      break;
+    }
   }
 
-  return prefix + truncate(result, maxLen - prefix.length);
+  // 길이 초과 시 자연스러운 경계에서 자르기 (쉼표/마침표 우선)
+  if (result.length > effectiveMax) {
+    const region = result.slice(0, effectiveMax);
+    const lastComma = region.lastIndexOf(",");
+    const lastPeriod = region.lastIndexOf(".");
+    const cut = Math.max(lastComma, lastPeriod);
+    if (cut > effectiveMax * 0.4) {
+      result = region.slice(0, cut).trim();
+    } else {
+      result = region.slice(0, effectiveMax - 1).trim() + "…";
+    }
+  }
+
+  return prefix + result;
 }
 
 function extractMilestoneTitle(text: string, category: string): string {
