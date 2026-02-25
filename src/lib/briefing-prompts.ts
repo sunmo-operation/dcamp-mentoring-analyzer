@@ -336,61 +336,49 @@ export function formatOkrValues(values: OkrValue[]): string {
 // ── 코칭 기록 데이터 포맷 ────────────────────────────
 
 /**
- * 코칭 플랜 요약 (전문가 협업 계획서)
+ * 코칭 플랜 요약 (전문가 협업 계획서) — 핵심만 축약
  */
 export function formatCoachingPlans(records: CompanyCoachingRecords): string {
   if (records.coachingPlans.length === 0) return "";
 
   return records.coachingPlans.map((p) => {
-    const objective = truncate(p.objective, 100);
-    const teamReq = truncate(p.teamRequest, 300);
-    const expertPlan = truncate(p.expertPlan, 300);
-    return `- [전문가: ${p.expert}] 기간: ${p.period} / 시간: ${p.timeBudget}
-  목표: ${objective}
-  팀 요청: ${teamReq}
-  전문가 계획: ${expertPlan}`;
+    return `- [전문가: ${p.expert}] 기간: ${p.period} / 시간: ${p.timeBudget} / 목표: ${truncate(p.objective, 80)}`;
   }).join("\n");
 }
 
 /**
- * 코칭 세션 기록 (멘토 미팅 로그)
+ * 코칭 세션 기록 (멘토 미팅 로그) — 최근 3건만
  */
 export function formatCoachingSessions(records: CompanyCoachingRecords): string {
   if (records.sessions.length === 0) return "";
 
-  // 최근 5건만 (프롬프트 축소)
   const sorted = [...records.sessions].sort((a, b) => b.date.localeCompare(a.date));
-  return sorted.slice(0, 5).map((s) => {
-    const issues = truncate(s.issues, 250);
-    const followUp = s.followUp ? truncate(s.followUp, 150) : "";
-    return `- [${s.date}] 멘토: ${s.mentor} / 참석: ${s.attendeesCompany}
-  논의: ${issues}${followUp ? `\n  후속: ${followUp}` : ""}`;
+  return sorted.slice(0, 3).map((s) => {
+    return `- [${s.date}] 멘토: ${s.mentor} / 논의: ${truncate(s.issues, 150)}`;
   }).join("\n");
 }
 
 /**
- * 전문가 투입 기록 요약 (대량 → 핵심만)
+ * 전문가 투입 기록 요약 (전문가별 1줄 요약)
  */
 export function formatExpertDeployments(records: CompanyCoachingRecords): string {
   if (records.expertDeployments.length === 0) return "";
 
-  // 전문가별 그룹핑 후 최근 활동만
-  const byExpert = new Map<string, { count: number; lastDate: string; lastActivity: string }>();
+  // 전문가별 그룹핑
+  const byExpert = new Map<string, { count: number; firstDate: string; lastDate: string }>();
   for (const d of records.expertDeployments) {
     const existing = byExpert.get(d.expert);
-    if (!existing || d.date > existing.lastDate) {
-      byExpert.set(d.expert, {
-        count: (existing?.count || 0) + 1,
-        lastDate: d.date,
-        lastActivity: truncate(d.activity, 100),
-      });
+    if (!existing) {
+      byExpert.set(d.expert, { count: 1, firstDate: d.date, lastDate: d.date });
     } else {
       existing.count++;
+      if (d.date < existing.firstDate) existing.firstDate = d.date;
+      if (d.date > existing.lastDate) existing.lastDate = d.date;
     }
   }
 
   return Array.from(byExpert.entries())
-    .map(([expert, info]) => `- ${expert}: ${info.count}회 투입 (최근 ${info.lastDate}) — ${info.lastActivity}`)
+    .map(([expert, info]) => `- ${expert}: ${info.count}회 (${info.firstDate} ~ ${info.lastDate})`)
     .join("\n");
 }
 
@@ -404,45 +392,38 @@ export function formatCoachingRecordsSection(records: CompanyCoachingRecords): s
   if (plans) sections.push(`### 전문가 협업 계획서\n${plans}`);
 
   const sessions = formatCoachingSessions(records);
-  if (sessions) sections.push(`### 코칭 세션 기록 (${records.sessions.length}건 중 최근 5건)\n${sessions}`);
+  if (sessions) sections.push(`### 코칭 세션 기록 (${records.sessions.length}건 중 최근 3건)\n${sessions}`);
 
   const deployments = formatExpertDeployments(records);
   if (deployments) sections.push(`### 전문가 투입 현황 (총 ${records.expertDeployments.length}건)\n${deployments}`);
 
   if (records.feedback.length > 0) {
     const fb = records.feedback.slice(0, 3).map((f) =>
-      `- [${f.date}] ${f.name} (만족도 ${f.satisfaction}/10)
-  주제: ${truncate(f.topicReview, 150)}
-  좋았던 점: ${truncate(f.goodPoints, 100)}
-  개선점: ${truncate(f.improvements, 100)}`
+      `- [${f.date}] ${f.name} 만족도 ${f.satisfaction}/10 / ${truncate(f.topicReview, 80)}`
     ).join("\n");
     sections.push(`### 코칭 피드백 (${records.feedback.length}건)\n${fb}`);
   }
 
-  // 멘토링 일지 (배치4기)
+  // 멘토링 일지 (배치4기) — 1줄 요약
   if (records.mentoringJournals.length > 0) {
-    const journals = records.mentoringJournals.slice(0, 3).map((j) => {
-      const parts = [`- [${j.date}] ${truncate(j.title, 80)}`];
-      if (j.preMeeting) parts.push(`  사전준비: ${truncate(j.preMeeting, 150)}`);
-      if (j.duringMeeting) parts.push(`  미팅내용: ${truncate(j.duringMeeting, 200)}`);
-      if (j.postMeeting) parts.push(`  멘토피드백: ${truncate(j.postMeeting, 150)}`);
-      return parts.join("\n");
-    }).join("\n");
+    const journals = records.mentoringJournals.slice(0, 3).map((j) =>
+      `- [${j.date}] ${truncate(j.title, 60)}${j.postMeeting ? ` → ${truncate(j.postMeeting, 80)}` : ""}`
+    ).join("\n");
     sections.push(`### 멘토링 일지 (${records.mentoringJournals.length}건 중 최근 3건)\n${journals}`);
   }
 
-  // 문제 백로그 (배치4기)
+  // 문제 백로그 (배치4기) — 핵심만
   if (records.problemBacklog.length > 0) {
     const problems = records.problemBacklog.slice(0, 5).map((p) =>
-      `- [${p.date || "미상"}] [${p.category || "미분류"}] ${p.problem}${p.status ? ` (${p.status})` : ""}${p.reason ? `\n  이유: ${truncate(p.reason, 100)}` : ""}`
+      `- [${p.category || "미분류"}] ${truncate(p.problem, 80)}${p.status ? ` (${p.status})` : ""}`
     ).join("\n");
-    sections.push(`### 문제 백로그 (${records.problemBacklog.length}건 중 최근 5건)\n${problems}`);
+    sections.push(`### 문제 백로그 (${records.problemBacklog.length}건)\n${problems}`);
   }
 
-  // 자원 연결
+  // 자원 연결 — 1줄 요약
   if (records.resourceConnections.length > 0) {
     const resources = records.resourceConnections.slice(0, 5).map((r) =>
-      `- [${r.period}] [${r.category}] ${r.item}: ${truncate(r.detail, 120)} (${r.status})`
+      `- [${r.category}] ${r.item} (${r.status})`
     ).join("\n");
     sections.push(`### 디캠프 자원 연결 (${records.resourceConnections.length}건)\n${resources}`);
   }
