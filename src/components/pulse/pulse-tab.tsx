@@ -134,14 +134,14 @@ export function PulseTab({ pulse }: PulseTabProps) {
 
                       {/* 요약 (둘째 줄) */}
                       {mainSummary && (
-                        <p className="text-[12px] text-muted-foreground leading-relaxed mt-1 ml-[0.5px] line-clamp-2">
+                        <p className="text-[12px] text-muted-foreground leading-relaxed mt-1 ml-[0.5px] break-keep">
                           {mainSummary}
                         </p>
                       )}
 
                       {/* 후속 액션 (셋째 줄) */}
                       {followUp && (
-                        <p className="text-[12px] text-muted-foreground/50 leading-relaxed mt-0.5 ml-[0.5px] line-clamp-1">
+                        <p className="text-[12px] text-muted-foreground/50 leading-relaxed mt-0.5 ml-[0.5px] break-keep">
                           {followUp}
                         </p>
                       )}

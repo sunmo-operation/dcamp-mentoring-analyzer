@@ -235,7 +235,7 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     if (!req.requestedAt) continue;
     entries.push({
       date: req.requestedAt.split("T")[0],
-      title: truncate(req.oneLiner || req.title, 60),
+      title: truncateAtBoundary(req.oneLiner || req.title, 55),
       category: "전문가요청",
       source: "전문가요청",
       summary: distillOneLiner(req.problem, 100) || undefined,
@@ -336,8 +336,9 @@ function cleanTitle(rawTitle: string, companyName: string, sessionTypes: string[
 }
 
 /**
- * 노션 원문 → 완결된 핵심 한 줄 추출
- * 불릿/번호/헤더 제거 후, 자연스럽게 끊기는 문장을 반환
+ * 노션 원문 → 핵심 한 줄 추출
+ * 단순 첫 줄 복사가 아니라, 숫자/결과/성과가 담긴 핵심 문장을 우선 선택.
+ * 누가 읽어도 바로 이해되는 완결된 문장. 절대 중간에 안 끊김.
  */
 function distillOneLiner(rawText: string | undefined | null, maxLen: number, prefix = ""): string {
   if (!rawText) return "";
@@ -346,45 +347,71 @@ function distillOneLiner(rawText: string | undefined | null, maxLen: number, pre
 
   // 원문을 개별 구문으로 분리
   const phrases = rawText
-    .replace(/\[.*?\]/g, "")                    // [헤더] 블록 제거
+    .replace(/\[.*?\]/g, "")
     .split(/\n/)
     .map((l) =>
       l
-        .replace(/^\s*[-•◦·*]\s*/, "")          // 불릿 마커
-        .replace(/^\s*\d+\.\s*/, "")            // 번호 리스트
-        .replace(/^\s*[a-zA-Z]\)\s*/, "")       // a) b) 리스트
+        .replace(/^\s*[-•◦·*]\s*/, "")
+        .replace(/^\s*\d+\.\s*/, "")
+        .replace(/^\s*[a-zA-Z]\)\s*/, "")
         .replace(/^(주요|후속|논의|목적|현재|배경|목표|참고)[^\s]*\s*/i, "")
         .trim()
+        .replace(/\.$/, "")
     )
     .filter((l) => l.length > 10);
 
   if (phrases.length === 0) return "";
 
-  // 구문들을 결합하여 자연스러운 한 줄 만들기
-  let result = phrases[0];
-  for (let i = 1; i < phrases.length; i++) {
-    const next = result + ", " + phrases[i];
-    if (next.length <= effectiveMax) {
-      result = next;
-    } else {
-      break;
+  // 각 구문에 "핵심도" 점수 부여 → 가장 중요한 문장 선택
+  const scored = phrases.map((p) => {
+    let score = 0;
+    // 숫자/지표가 포함된 문장 = 핵심 가능성 높음
+    if (/\d+[만억천%건명회원개]|\d+\.\d+/.test(p)) score += 3;
+    // 결과/성과 동사 포함
+    if (/완료|달성|확보|증가|감소|돌파|전환|출시|론칭|체결|구축|이전/.test(p)) score += 2;
+    // 진행 상태
+    if (/진행 중|예정|계획|착수|시작/.test(p)) score += 1;
+    // 불완전한 문장 감점 (조사/전치사로 끝남)
+    if (/[에서위한통한관련대한]$/.test(p)) score -= 3;
+    // 배경/도입부 감점
+    if (/필요성|관점에서|상황입니다|상황이다/.test(p)) score -= 1;
+    return { phrase: p, score };
+  });
+
+  // 점수 높은 순 정렬 (동점이면 원래 순서 유지)
+  scored.sort((a, b) => b.score - a.score);
+
+  // 최고 점수 구문 선택
+  let result = scored[0].phrase;
+
+  // 너무 짧으면 (<20자) 차순위 구문과 결합
+  if (result.length < 20 && scored.length > 1) {
+    const second = scored[1].phrase;
+    const combined = result + ", " + second;
+    if (combined.length <= effectiveMax) {
+      result = combined;
     }
   }
 
-  // 길이 초과 시 자연스러운 경계에서 자르기 (쉼표/마침표 우선)
+  // 길이 초과 시 자연 경계에서 자르기
   if (result.length > effectiveMax) {
-    const region = result.slice(0, effectiveMax);
-    const lastComma = region.lastIndexOf(",");
-    const lastPeriod = region.lastIndexOf(".");
-    const cut = Math.max(lastComma, lastPeriod);
-    if (cut > effectiveMax * 0.4) {
-      result = region.slice(0, cut).trim();
-    } else {
-      result = region.slice(0, effectiveMax - 1).trim() + "…";
-    }
+    result = truncateAtBoundary(result, effectiveMax);
   }
 
   return prefix + result;
+}
+
+/** 쉼표·마침표·공백 등 자연스러운 경계에서 자르기 (절대 단어 중간 X) */
+function truncateAtBoundary(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const region = text.slice(0, max);
+  const lastComma = region.lastIndexOf(",");
+  const lastPeriod = region.lastIndexOf(".");
+  const cut = Math.max(lastComma, lastPeriod);
+  if (cut > max * 0.4) return region.slice(0, cut).trim();
+  const lastSpace = region.lastIndexOf(" ");
+  if (lastSpace > max * 0.4) return region.slice(0, lastSpace).trim();
+  return region.trim();
 }
 
 function extractMilestoneTitle(text: string, category: string): string {
