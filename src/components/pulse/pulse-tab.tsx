@@ -7,27 +7,34 @@ interface PulseTabProps {
   pulse: PulseReport;
 }
 
-// 하이라이트 카테고리 (성과/전환/리스크 등 특별 이벤트)
 const HIGHLIGHT_CATEGORIES = new Set(["성과", "전환점", "리스크", "의사결정", "외부"]);
 
-// 카테고리별 스타일
-const CATEGORY_STYLE: Record<string, { dot: string; label: string }> = {
-  "멘토링": { dot: "bg-foreground/25", label: "멘토링" },
-  "점검": { dot: "bg-blue-400", label: "점검" },
-  "전문가투입": { dot: "bg-violet-400", label: "전문가 투입" },
-  "전문가요청": { dot: "bg-violet-400", label: "전문가 요청" },
-  "코칭": { dot: "bg-teal-400", label: "코칭" },
-  "성과": { dot: "bg-emerald-400", label: "성과" },
-  "전환점": { dot: "bg-amber-400", label: "전환점" },
-  "리스크": { dot: "bg-rose-400", label: "리스크" },
-  "의사결정": { dot: "bg-blue-400", label: "의사결정" },
-  "외부": { dot: "bg-foreground/30", label: "외부" },
+// 하이라이트 카테고리만 컬러 텍스트 (일반 항목은 muted)
+const CATEGORY_COLOR: Record<string, string> = {
+  "성과": "text-emerald-600 dark:text-emerald-400",
+  "전환점": "text-amber-600 dark:text-amber-400",
+  "리스크": "text-rose-600 dark:text-rose-400",
+  "의사결정": "text-blue-600 dark:text-blue-400",
+  "외부": "text-violet-600 dark:text-violet-400",
+};
+
+const CATEGORY_LABEL: Record<string, string> = {
+  "멘토링": "멘토링",
+  "점검": "점검",
+  "전문가투입": "전문가 투입",
+  "전문가요청": "전문가 요청",
+  "코칭": "코칭",
+  "성과": "성과",
+  "전환점": "전환점",
+  "리스크": "리스크",
+  "의사결정": "의사결정",
+  "외부": "외부",
 };
 
 function formatDate(dateStr: string): string {
   try {
     const d = new Date(dateStr);
-    return `${d.getMonth() + 1}/${String(d.getDate()).padStart(2, "0")}`;
+    return `${d.getMonth() + 1}.${String(d.getDate()).padStart(2, "0")}`;
   } catch {
     return dateStr;
   }
@@ -67,9 +74,9 @@ export function PulseTab({ pulse }: PulseTabProps) {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-xl font-bold">배치 타임라인</h2>
-        <p className="text-sm text-muted-foreground">
+      <div className="mb-8">
+        <h2 className="text-xl font-bold tracking-tight">배치 타임라인</h2>
+        <p className="text-[13px] text-muted-foreground mt-1">
           {milestones.length > 0
             ? `총 ${milestones.length}건의 활동 기록`
             : "기록이 없습니다"}
@@ -77,24 +84,23 @@ export function PulseTab({ pulse }: PulseTabProps) {
       </div>
 
       {groups.length > 0 ? (
-        <div className="space-y-6">
-          {groups.map((group) => (
+        <div>
+          {groups.map((group, gi) => (
             <section key={group.monthKey}>
-              {/* 월 헤더 */}
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-xs font-medium text-muted-foreground tracking-wide">
-                  {group.label}
-                </span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
+              {/* 월 구분선 — 첫 번째 섹션 제외 */}
+              {gi > 0 && <div className="h-px bg-border my-6" />}
 
-              {/* 항목 리스트 — 일관된 row 구조 */}
-              <div>
+              {/* 월 헤더 */}
+              <h3 className="text-[13px] font-semibold mb-4">{group.label}</h3>
+
+              {/* 항목 리스트 */}
+              <div className="space-y-3">
                 {group.items.map((m, i) => {
                   const isHighlight = m.isHighlight || HIGHLIGHT_CATEGORIES.has(m.category);
-                  const style = CATEGORY_STYLE[m.category] || { dot: "bg-foreground/20", label: m.category };
+                  const label = CATEGORY_LABEL[m.category] || m.category;
+                  const categoryColor = CATEGORY_COLOR[m.category] || "";
 
-                  // summary에서 → 이후 부분(후속 액션)을 분리
+                  // summary → 요약 / 후속 액션 분리
                   let mainSummary = "";
                   let followUp = "";
                   if (m.summary) {
@@ -102,45 +108,41 @@ export function PulseTab({ pulse }: PulseTabProps) {
                     mainSummary = lines.filter(l => !l.startsWith("→")).join(" ").trim();
                     followUp = lines.filter(l => l.startsWith("→")).join(" ").trim();
                   }
-                  // 하이라이트인데 summary 없으면 detail 표시
                   if (!mainSummary && isHighlight && m.detail && m.detail !== m.title) {
                     mainSummary = m.detail;
                   }
+                  const hasSub = !!(mainSummary || followUp);
 
                   return (
-                    <div
-                      key={`${group.monthKey}-${i}`}
-                      className={`flex gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/40 ${
-                        isHighlight ? "bg-muted/30" : ""
-                      }`}
-                    >
-                      {/* 날짜 열 (고정폭) */}
-                      <span className="text-[13px] tabular-nums text-muted-foreground w-[34px] shrink-0 pt-px">
+                    <div key={`${group.monthKey}-${i}`} className={`flex gap-3 ${hasSub ? "pb-1" : ""}`}>
+                      {/* 날짜 */}
+                      <span className="text-[13px] tabular-nums text-muted-foreground/60 w-[34px] shrink-0 pt-[1px]">
                         {formatDate(m.date)}
                       </span>
 
-                      {/* 콘텐츠 열 */}
+                      {/* 콘텐츠 */}
                       <div className="min-w-0 flex-1">
-                        {/* Line 1: dot + category + title */}
-                        <p className="flex items-center gap-1.5 text-[13px] leading-snug">
-                          <span className={`w-[5px] h-[5px] rounded-full shrink-0 ${style.dot}`} />
-                          <span className="text-muted-foreground shrink-0">{style.label}</span>
-                          <span className="text-muted-foreground/50">·</span>
-                          <span className={`truncate ${isHighlight ? "font-medium" : ""}`}>
+                        {/* 첫 줄: 카테고리 · 제목 */}
+                        <p className="text-[13px] leading-relaxed">
+                          <span className={isHighlight && categoryColor ? `font-medium ${categoryColor}` : "text-muted-foreground"}>
+                            {label}
+                          </span>
+                          <span className="text-muted-foreground/30 mx-1.5">·</span>
+                          <span className={isHighlight ? "font-medium" : ""}>
                             {m.title}
                           </span>
                         </p>
 
-                        {/* Line 2: 요약 (한 줄 고정) */}
+                        {/* 둘째 줄: 요약 */}
                         {mainSummary && (
-                          <p className="text-[12px] text-muted-foreground leading-normal mt-0.5 pl-[11px] line-clamp-1">
+                          <p className="text-[12px] text-muted-foreground/50 leading-relaxed mt-0.5 line-clamp-1">
                             {mainSummary}
                           </p>
                         )}
 
-                        {/* Line 3: 후속 액션 (한 줄 고정) */}
+                        {/* 셋째 줄: 후속 액션 */}
                         {followUp && (
-                          <p className="text-[12px] text-muted-foreground/60 leading-normal mt-0.5 pl-[11px] line-clamp-1">
+                          <p className="text-[12px] text-muted-foreground/40 leading-relaxed mt-0.5 line-clamp-1">
                             {followUp}
                           </p>
                         )}
@@ -155,15 +157,15 @@ export function PulseTab({ pulse }: PulseTabProps) {
           {!showAll && milestones.length > INITIAL_COUNT && (
             <button
               onClick={() => setShowAll(true)}
-              className="w-full rounded-2xl border border-border bg-muted/30 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60"
+              className="w-full mt-8 py-3 text-[13px] font-medium text-muted-foreground border border-border rounded-xl transition-colors hover:bg-muted/30"
             >
               전체 보기 ({milestones.length - INITIAL_COUNT}건 더)
             </button>
           )}
         </div>
       ) : (
-        <div className="rounded-xl bg-muted/30 p-8 text-center">
-          <p className="text-sm text-muted-foreground">기록이 없습니다</p>
+        <div className="py-16 text-center">
+          <p className="text-[13px] text-muted-foreground">기록이 없습니다</p>
         </div>
       )}
     </div>
