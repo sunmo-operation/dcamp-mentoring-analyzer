@@ -7,6 +7,7 @@ import { RefreshBar } from "./refresh-bar";
 import { parseBulletLines } from "./briefing-styles";
 import { ExecutiveSummary } from "./sections/executive-summary";
 import { OkrDiagnosis } from "./sections/okr-diagnosis";
+import { PositiveShifts } from "./sections/positive-shifts";
 import { RepeatPatterns } from "./sections/repeat-patterns";
 import { UnspokenSignals } from "./sections/unspoken-signals";
 import { MentorInsights } from "./sections/mentor-insights";
@@ -211,6 +212,7 @@ export function BriefingPanel({
     ))
   );
   const okrDiagnosis = hasOkrContent ? rawOkrDiagnosis : null;
+  const positiveShifts = briefing?.positiveShifts;
   const repeatPatterns = briefing?.repeatPatterns;
   const unspokenSignals = briefing?.unspokenSignals;
   const mentorInsights = briefing?.mentorInsights;
@@ -408,6 +410,11 @@ export function BriefingPanel({
             metricVsNarrative={okrDiagnosis.metricVsNarrative}
             kptHighlights={okrDiagnosis.kptHighlights}
           />
+        )}
+
+        {/* ② -b 긍정적 변화 */}
+        {positiveShifts && positiveShifts.length > 0 && (
+          <PositiveShifts shifts={positiveShifts} />
         )}
 
         {/* ③ 심층 인사이트 */}

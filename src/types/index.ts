@@ -353,6 +353,12 @@ export interface CompanyBriefing {
       try: string;
     } | null;
   } | null;
+  positiveShifts: {
+    shift: string;
+    evidence: string;
+    detectedFrom: string;
+    impactArea: string;
+  }[];
   repeatPatterns: {
     issue: string;
     issueCategory: string;

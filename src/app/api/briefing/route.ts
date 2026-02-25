@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { revalidatePath } from "next/cache";
 import { getClaudeClient, classifyClaudeError } from "@/lib/claude";
 import {
   buildBriefingSystemPrompt,
@@ -462,6 +463,8 @@ function buildBriefing(
 async function safeSave(briefing: CompanyBriefing) {
   try {
     await saveBriefing(briefing);
+    // ISR 캐시 무효화 — 다음 페이지 방문 시 저장된 브리핑을 즉시 반영
+    revalidatePath(`/companies/${briefing.companyId}`);
   } catch (e) {
     console.warn("브리핑 저장 실패 (무시):", e);
   }
