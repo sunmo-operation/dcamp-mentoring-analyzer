@@ -60,6 +60,7 @@ export interface PulseReport {
     summary?: string; // 세션 요약 (80자 이내)
     detail?: string;
     isHighlight?: boolean; // 키워드 매칭 마일스톤
+    rawText?: string; // AI 요약용 원문 (클라이언트에서 AI 엔드포인트로 전달)
   }[];
 
   // 디캠프 프로그램 참여도

@@ -23,6 +23,7 @@ const SESSION_TYPE_ICON: Record<string, string> = {
 };
 
 interface CompanyDetailData {
+  companyName?: string;
   sessions: MentoringSession[];
   expertRequests: ExpertRequest[];
   analyses: AnalysisResult[];
@@ -251,7 +252,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
   );
 
   // 팀 펄스 탭
-  const pulseContent = <PulseTab pulse={pulse} />;
+  const pulseContent = <PulseTab pulse={pulse} companyName={data!.companyName} />;
 
   return (
     <CompanyTabs

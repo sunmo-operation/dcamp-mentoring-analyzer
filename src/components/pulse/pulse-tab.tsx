@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { PulseReport } from "@/lib/agents/types";
 
 interface PulseTabProps {
   pulse: PulseReport;
+  companyName?: string;
 }
 
 const HIGHLIGHT_CATEGORIES = new Set(["성과", "전환점", "리스크", "의사결정", "외부"]);
@@ -59,22 +60,68 @@ function formatMonth(dateStr: string): string {
 
 const INITIAL_COUNT = 25;
 
-export function PulseTab({ pulse }: PulseTabProps) {
+export function PulseTab({ pulse, companyName }: PulseTabProps) {
   const { milestones } = pulse;
   const [showAll, setShowAll] = useState(false);
   const visibleEntries = showAll ? milestones : milestones.slice(0, INITIAL_COUNT);
 
+  // ── AI 요약 상태 ──
+  const [aiSummaries, setAiSummaries] = useState<Record<number, string> | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const aiRequested = useRef(false);
+
+  // 마운트 시 AI 요약 요청 (한 번만)
+  useEffect(() => {
+    if (aiRequested.current || milestones.length === 0) return;
+    aiRequested.current = true;
+
+    // rawText가 있는 항목만 AI 대상
+    const entries = milestones.map((m, i) => ({
+      index: i,
+      date: m.date,
+      title: m.title,
+      category: m.category,
+      rawText: m.rawText,
+    })).filter((e) => e.rawText && e.rawText.length > 20);
+
+    if (entries.length === 0) return;
+
+    setAiLoading(true);
+    fetch("/api/timeline-ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entries, companyName }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.summaries && data.summaries.length > 0) {
+          const map: Record<number, string> = {};
+          for (const s of data.summaries) {
+            map[s.index] = s.summary;
+          }
+          setAiSummaries(map);
+        }
+      })
+      .catch(() => {
+        // AI 실패 시 기존 요약 유지 — 조용히 실패
+      })
+      .finally(() => setAiLoading(false));
+  }, [milestones, companyName]);
+
   // 연도 > 월별 이중 그룹핑
-  type MonthGroup = { monthKey: string; month: string; items: typeof milestones };
+  type MonthGroup = { monthKey: string; month: string; items: (typeof milestones[0] & { globalIndex: number })[] };
   type YearGroup = { year: string; months: MonthGroup[] };
 
   const yearGroups: YearGroup[] = [];
   let curYear = "";
   let curMonth = "";
 
-  for (const m of visibleEntries) {
+  for (let gi = 0; gi < visibleEntries.length; gi++) {
+    const m = visibleEntries[gi];
     const y = getYear(m.date);
     const mk = getMonthKey(m.date);
+    // milestones 배열에서의 원래 인덱스 (AI 매핑용)
+    const globalIndex = milestones.indexOf(m);
 
     if (y !== curYear) {
       curYear = y;
@@ -86,18 +133,32 @@ export function PulseTab({ pulse }: PulseTabProps) {
     }
 
     const yg = yearGroups[yearGroups.length - 1];
-    yg.months[yg.months.length - 1].items.push(m);
+    yg.months[yg.months.length - 1].items.push({ ...m, globalIndex });
   }
 
   return (
     <div>
       <div className="mb-8">
         <h2 className="text-xl font-bold tracking-tight">배치 타임라인</h2>
-        <p className="text-[13px] text-muted-foreground mt-1">
-          {milestones.length > 0
-            ? `총 ${milestones.length}건의 활동 기록`
-            : "기록이 없습니다"}
-        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-[13px] text-muted-foreground">
+            {milestones.length > 0
+              ? `총 ${milestones.length}건의 활동 기록`
+              : "기록이 없습니다"}
+          </p>
+          {aiLoading && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/60">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+              AI 요약 적용 중
+            </span>
+          )}
+          {aiSummaries && !aiLoading && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/40">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              AI 요약 적용됨
+            </span>
+          )}
+        </div>
       </div>
 
       {yearGroups.length > 0 ? (
@@ -120,13 +181,21 @@ export function PulseTab({ pulse }: PulseTabProps) {
                       const label = CATEGORY_LABEL[m.category] || m.category;
                       const badgeStyle = CATEGORY_BADGE[m.category];
 
-                      // summary → 요약 / 후속 액션 분리
+                      // AI 요약이 있으면 AI 요약 사용, 없으면 기존 텍스트 추출 요약
+                      const aiSummary = aiSummaries?.[m.globalIndex];
+
                       let mainSummary = "";
                       let followUp = "";
-                      if (m.summary) {
+
+                      if (aiSummary) {
+                        // AI 요약에서 "→ 후속:" 분리
+                        const aiLines = aiSummary.split("\n");
+                        mainSummary = aiLines.filter((l) => !l.startsWith("→")).join(" ").trim();
+                        followUp = aiLines.filter((l) => l.startsWith("→")).join(" ").trim();
+                      } else if (m.summary) {
                         const lines = m.summary.split("\n");
-                        mainSummary = lines.filter(l => !l.startsWith("→")).join(" ").trim();
-                        followUp = lines.filter(l => l.startsWith("→")).join(" ").trim();
+                        mainSummary = lines.filter((l) => !l.startsWith("→")).join(" ").trim();
+                        followUp = lines.filter((l) => l.startsWith("→")).join(" ").trim();
                       }
                       if (!mainSummary && isHighlight && m.detail && m.detail !== m.title) {
                         mainSummary = m.detail;
@@ -151,7 +220,9 @@ export function PulseTab({ pulse }: PulseTabProps) {
 
                           {/* 요약 */}
                           {mainSummary && (
-                            <p className="text-[12px] text-muted-foreground leading-relaxed mt-1.5 break-keep">
+                            <p className={`text-[12px] text-muted-foreground leading-relaxed mt-1.5 break-keep transition-opacity duration-300 ${
+                              aiLoading && !aiSummary ? "opacity-60" : "opacity-100"
+                            }`}>
                               {mainSummary}
                             </p>
                           )}

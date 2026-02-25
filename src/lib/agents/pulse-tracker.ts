@@ -203,6 +203,10 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     const summary = distillOneLiner(s.summary, 100);
     const followUp = distillOneLiner(s.followUp, 80, "→ ");
 
+    // AI용 원문 보존 (summary + followUp 전체)
+    const rawParts = [s.summary, s.followUp].filter(Boolean);
+    const rawText = rawParts.join("\n").trim() || undefined;
+
     entries.push({
       date: s.date,
       title,
@@ -211,6 +215,7 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
       summary: [summary, followUp].filter(Boolean).join("\n") || undefined,
       detail: milestoneCategory ? extractMilestoneTitle(combined, milestoneCategory) : undefined,
       isHighlight: !!milestoneCategory,
+      rawText,
     });
   }
 
@@ -247,6 +252,10 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
       || distillOneLiner(req.problem, 80)
       || undefined;
 
+    // AI용 원문: 문제 + 핵심질문 + 성공지표 전체
+    const reqRawParts = [req.problem, req.coreQuestion, req.successMetric, req.expectedImpact].filter(Boolean);
+    const reqRawText = reqRawParts.join("\n").trim() || undefined;
+
     entries.push({
       date: req.requestedAt.split("T")[0],
       title: reqTitle,
@@ -254,6 +263,7 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
       source: "전문가요청",
       summary: reqSummary,
       isHighlight: req.status === "완료" || req.status === "진행 완료",
+      rawText: reqRawText,
     });
   }
 
@@ -267,6 +277,7 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
       .slice(0, 10);
     for (const cs of coachingSessions) {
       if (notionDates.has(cs.date)) continue;
+      const csRawParts = [cs.issues, cs.followUp].filter(Boolean);
       entries.push({
         date: cs.date,
         title: `${cs.mentor} 멘토링`,
@@ -276,6 +287,7 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
           distillOneLiner(cs.issues, 100),
           distillOneLiner(cs.followUp, 80, "→ "),
         ].filter(Boolean).join("\n") || undefined,
+        rawText: csRawParts.join("\n").trim() || undefined,
       });
     }
 

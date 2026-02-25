@@ -41,6 +41,7 @@ export async function GET(
   console.log(`[perf] /api/company-detail/${id.slice(0, 8)}: ${Date.now() - t0}ms`);
 
   return NextResponse.json({
+    companyName: packet.company.name,
     sessions: packet.sessions,
     expertRequests: packet.expertRequests,
     analyses: packet.analyses,
