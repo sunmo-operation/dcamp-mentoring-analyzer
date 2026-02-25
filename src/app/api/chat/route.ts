@@ -1,12 +1,6 @@
 import { getClaudeClient, classifyClaudeError } from "@/lib/claude";
 import { buildChatSystemPrompt, buildChatContext } from "@/lib/chat-prompts";
-import {
-  getCompanyAllData,
-  getBriefingByCompany,
-  getKptReviews,
-  getOkrItems,
-  getOkrValues,
-} from "@/lib/data";
+import { getBriefingByCompany } from "@/lib/data";
 import {
   collectCompanyData,
   generatePulseReport,
@@ -57,34 +51,27 @@ export async function POST(request: Request) {
       try {
         controller.enqueue(encode({ type: "heartbeat" }));
 
-        // 1. 기업 데이터 수집 (병렬)
-        const [allData, kptReviews, okrItems, okrValues, existingBriefing] =
-          await Promise.all([
-            getCompanyAllData(companyId),
-            getKptReviews(companyId),
-            getOkrItems(companyId),
-            getOkrValues(companyId),
-            getBriefingByCompany(companyId),
-          ]);
+        // 1. 데이터 수집: collectCompanyData 1회로 통합 (기존 3중 fetch 제거)
+        const [packet, existingBriefing] = await Promise.all([
+          collectCompanyData(companyId),
+          getBriefingByCompany(companyId),
+        ]);
 
-        if (!allData) {
+        if (!packet) {
           controller.enqueue(
             encode({ type: "error", message: "존재하지 않는 기업입니다" }),
           );
           return;
         }
 
-        const { company, sessions, expertRequests } = allData;
+        const { company, sessions, expertRequests, kptReviews, okrItems, okrValues } = packet;
 
         // 2. PulseReport + AnalystReport 생성 (즉시 반환, AI 호출 없음)
         let agentContext = "";
         try {
-          const packet = await collectCompanyData(companyId);
-          if (packet) {
-            const pulse = generatePulseReport(packet);
-            const analyst = generateAnalystReport(packet);
-            agentContext = buildAgentContext(pulse, analyst);
-          }
+          const pulse = generatePulseReport(packet);
+          const analyst = generateAnalystReport(packet);
+          agentContext = buildAgentContext(pulse, analyst);
         } catch {
           // 에이전트 실패 시 기존 컨텍스트만으로 진행
         }

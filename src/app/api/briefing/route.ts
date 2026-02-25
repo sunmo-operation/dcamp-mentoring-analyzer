@@ -2,14 +2,9 @@ import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { getClaudeClient, classifyClaudeError } from "@/lib/claude";
 import {
-  getCompanyAllData,
   getBriefingByCompany,
   saveBriefing,
   isBriefingStale,
-  getKptReviews,
-  getOkrItems,
-  getOkrValues,
-  getCompanyBatchDashboardData,
 } from "@/lib/data";
 import { getLastEditedTime } from "@/lib/notion";
 import type { CompanyBriefing } from "@/types";
@@ -230,45 +225,39 @@ export async function POST(request: Request) {
       try {
         controller.enqueue(encode({ type: "heartbeat" }));
 
-        // 0단계: 캐시 확인 (데이터 수집 전에 먼저 체크)
-        if (!force) {
-          const existing = await getBriefingByCompany(companyId);
-          if (existing) {
-            const [quickData, quickKpt, quickOkr, lastEdited] = await Promise.all([
-              getCompanyAllData(companyId),
-              getKptReviews(companyId),
-              getOkrItems(companyId),
-              getLastEditedTime("company-detail", companyId),
-            ]);
-            if (quickData) {
-              const { stale } = isBriefingStale(existing, {
-                sessions: quickData.sessions,
-                expertRequests: quickData.expertRequests,
-                analyses: quickData.analyses,
-                kptCount: quickKpt.length,
-                okrItemCount: quickOkr.length,
-                lastEditedTime: lastEdited ?? undefined,
-              });
-              if (!stale) {
-                controller.enqueue(encode({ type: "complete", briefing: existing, cached: true }));
-                return;
-              }
-            }
-          }
-        }
-
         // 1단계: 데이터 수집 (Agent: Data Collector)
+        // stale 체크와 브리핑 생성 모두 같은 packet을 재사용
         controller.enqueue(encode({
           type: "status", step: 1, totalSteps: 3,
           message: "Notion에서 데이터를 가져오고 있어요",
           elapsed: 0,
         }));
 
-        const packet = await collectCompanyData(companyId);
+        const [packet, existingBriefing, lastEdited] = await Promise.all([
+          collectCompanyData(companyId),
+          force ? Promise.resolve(undefined) : getBriefingByCompany(companyId),
+          force ? Promise.resolve(null) : getLastEditedTime("company-detail", companyId),
+        ]);
 
         if (!packet) {
           controller.enqueue(encode({ type: "error", message: "존재하지 않는 기업입니다" }));
           return;
+        }
+
+        // 0단계: 캐시 확인 (수집된 packet으로 stale 체크 — 별도 fetch 제거)
+        if (!force && existingBriefing) {
+          const { stale } = isBriefingStale(existingBriefing, {
+            sessions: packet.sessions,
+            expertRequests: packet.expertRequests,
+            analyses: packet.analyses,
+            kptCount: packet.kptReviews.length,
+            okrItemCount: packet.okrItems.length,
+            lastEditedTime: lastEdited ?? undefined,
+          });
+          if (!stale) {
+            controller.enqueue(encode({ type: "complete", briefing: existingBriefing, cached: true }));
+            return;
+          }
         }
 
         const { company, sessions, expertRequests, analyses, kptReviews, okrItems } = packet;
