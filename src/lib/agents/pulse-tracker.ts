@@ -258,76 +258,123 @@ function truncate(text: string, max: number): string {
 function assessProgramEngagement(
   packet: CompanyDataPacket
 ): PulseReport["programEngagement"] {
-  const breakdown: PulseReport["programEngagement"]["breakdown"] = [];
+  // 기본 가중치 (데이터가 있는 영역만 사용하여 재분배)
+  const BASE_WEIGHTS: { area: string; weight: number }[] = [
+    { area: "멘토링", weight: 0.30 },
+    { area: "전문가 투입", weight: 0.20 },
+    { area: "KPT 회고", weight: 0.20 },
+    { area: "OKR 관리", weight: 0.15 },
+    { area: "전문가 요청", weight: 0.15 },
+  ];
+
+  // 각 영역 점수 + 데이터 존재 여부 평가
+  const raw: { area: string; score: number; detail: string; hasData: boolean; baseWeight: number }[] = [];
 
   // 1. 멘토링 참여 (멘토/점검/체크업 세션)
   const mentorSessions = packet.sessions.filter((s) =>
     s.sessionTypes.some((t) => ["멘토", "점검", "체크업"].includes(t))
   );
+  const hasMentoringData = packet.sessions.length > 0;
   const recentMentorSessions = mentorSessions.filter((s) => isWithinMonths(s.date, 3));
-  const mentorScore = Math.min(100, recentMentorSessions.length * 25); // 3개월 4회 = 100
-  breakdown.push({
+  const mentorScore = hasMentoringData ? Math.min(100, recentMentorSessions.length * 25) : 0;
+  raw.push({
     area: "멘토링",
     score: mentorScore,
-    detail: recentMentorSessions.length > 0
-      ? `최근 3개월 ${recentMentorSessions.length}회 참여`
-      : "최근 3개월 참여 없음",
+    detail: hasMentoringData
+      ? recentMentorSessions.length > 0
+        ? `최근 3개월 ${recentMentorSessions.length}회 참여`
+        : "최근 3개월 참여 없음"
+      : "데이터 없음",
+    hasData: hasMentoringData,
+    baseWeight: BASE_WEIGHTS[0].weight,
   });
 
   // 2. 전문가 투입 활용
   const expertSessions = packet.sessions.filter((s) =>
     s.sessionTypes.some((t) => t === "전문가투입")
   );
-  const expertScore = Math.min(100, expertSessions.length * 50); // 2회 = 100
-  breakdown.push({
+  const hasExpertData = expertSessions.length > 0;
+  const expertScore = hasExpertData ? Math.min(100, expertSessions.length * 50) : 0;
+  raw.push({
     area: "전문가 투입",
     score: expertScore,
-    detail: expertSessions.length > 0
+    detail: hasExpertData
       ? `총 ${expertSessions.length}회 전문가 투입 세션`
-      : "전문가 투입 미활용",
+      : "데이터 없음",
+    hasData: hasExpertData,
+    baseWeight: BASE_WEIGHTS[1].weight,
   });
 
   // 3. KPT 회고 실행
+  const hasKptData = packet.kptReviews.length > 0;
   const recentKpts = packet.kptReviews.filter((k) => isWithinMonths(k.reviewDate, 3));
-  const kptScore = Math.min(100, recentKpts.length * 33); // 3개월 3회 = 100
-  breakdown.push({
+  const kptScore = hasKptData ? Math.min(100, recentKpts.length * 33) : 0;
+  raw.push({
     area: "KPT 회고",
     score: kptScore,
-    detail: recentKpts.length > 0
-      ? `최근 3개월 ${recentKpts.length}건 회고 실행`
-      : packet.kptReviews.length > 0 ? "최근 회고 중단됨" : "미참여",
+    detail: hasKptData
+      ? recentKpts.length > 0
+        ? `최근 3개월 ${recentKpts.length}건 회고 실행`
+        : "최근 회고 중단됨"
+      : "데이터 없음",
+    hasData: hasKptData,
+    baseWeight: BASE_WEIGHTS[2].weight,
   });
 
   // 4. OKR 관리
-  const hasOkr = packet.okrItems.length > 0;
+  const hasOkrData = packet.okrItems.length > 0;
   const hasValues = packet.okrValues.length > 0;
-  const okrScore = hasOkr && hasValues ? 100 : hasOkr ? 50 : 0;
-  breakdown.push({
+  const okrScore = hasOkrData ? (hasValues ? 100 : 50) : 0;
+  raw.push({
     area: "OKR 관리",
     score: okrScore,
-    detail: hasOkr
+    detail: hasOkrData
       ? `${packet.okrItems.length}개 지표${hasValues ? `, ${packet.okrValues.length}건 측정값 입력` : " (측정값 미입력)"}`
-      : "OKR 미설정",
+      : "데이터 없음",
+    hasData: hasOkrData,
+    baseWeight: BASE_WEIGHTS[3].weight,
   });
 
   // 5. 전문가 요청 제출
-  const reqScore = Math.min(100, packet.expertRequests.length * 50); // 2건 = 100
-  breakdown.push({
+  const hasReqData = packet.expertRequests.length > 0;
+  const reqScore = hasReqData ? Math.min(100, packet.expertRequests.length * 50) : 0;
+  raw.push({
     area: "전문가 요청",
     score: reqScore,
-    detail: packet.expertRequests.length > 0
+    detail: hasReqData
       ? `총 ${packet.expertRequests.length}건 요청 (완료 ${packet.expertRequests.filter((r) => ["완료", "진행 완료"].includes(r.status || "")).length}건)`
-      : "요청 없음",
+      : "데이터 없음",
+    hasData: hasReqData,
+    baseWeight: BASE_WEIGHTS[4].weight,
   });
 
-  // 종합 점수 (가중 평균: 멘토링 30%, 전문가투입 20%, KPT 20%, OKR 15%, 요청 15%)
-  const weights = [0.30, 0.20, 0.20, 0.15, 0.15];
-  const overallScore = Math.round(
-    breakdown.reduce((sum, b, i) => sum + b.score * weights[i], 0)
-  );
+  // 종합 점수: 데이터가 있는 영역만으로 가중 평균 (가중치 재분배)
+  const activeItems = raw.filter((r) => r.hasData);
+  const totalActiveWeight = activeItems.reduce((sum, r) => sum + r.baseWeight, 0);
+
+  const breakdown: PulseReport["programEngagement"]["breakdown"] = raw.map((r) => ({
+    area: r.area,
+    score: r.score,
+    detail: r.detail,
+    hasData: r.hasData,
+    // 데이터가 있는 영역에만 가중치 재분배
+    weight: r.hasData && totalActiveWeight > 0
+      ? Math.round((r.baseWeight / totalActiveWeight) * 100) / 100
+      : 0,
+  }));
+
+  const overallScore = totalActiveWeight > 0
+    ? Math.round(
+        activeItems.reduce((sum, r) => {
+          const redistributedWeight = r.baseWeight / totalActiveWeight;
+          return sum + r.score * redistributedWeight;
+        }, 0)
+      )
+    : 0;
 
   let label: string;
-  if (overallScore >= 70) label = "적극 활용";
+  if (totalActiveWeight === 0) label = "평가 불가";
+  else if (overallScore >= 70) label = "적극 활용";
   else if (overallScore >= 40) label = "보통";
   else if (overallScore > 0) label = "저조";
   else label = "미참여";
@@ -352,11 +399,13 @@ function assessHealth(
 ): PulseReport["healthSignals"] {
   const signals: PulseReport["healthSignals"] = [];
 
-  // 1. 디캠프 참여도 종합
+  // 1. 디캠프 참여도 종합 (데이터가 있는 영역만 기준)
+  const activeAreas = engagement.breakdown.filter((b) => b.hasData);
+  const activeHighAreas = activeAreas.filter((b) => b.score >= 50).map((b) => b.area);
   signals.push({
     signal: "디캠프 프로그램 참여도",
     status: engagement.overallScore >= 60 ? "good" : engagement.overallScore >= 30 ? "warning" : "concern",
-    detail: `${engagement.label} (${engagement.overallScore}점) — ${engagement.breakdown.filter((b) => b.score >= 50).map((b) => b.area).join(", ") || "활성 영역 없음"}`,
+    detail: `${engagement.label} (${engagement.overallScore}점) — ${activeHighAreas.join(", ") || "활성 영역 없음"}`,
   });
 
   // 2. 미팅 밀도
@@ -386,9 +435,9 @@ function assessHealth(
     }
   }
 
-  // 5. 참여도 저조 항목 경고
+  // 5. 참여도 저조 항목 경고 (데이터가 있는데 점수가 0인 경우만)
   for (const b of engagement.breakdown) {
-    if (b.score === 0) {
+    if (b.hasData && b.score === 0) {
       signals.push({ signal: `${b.area} 미활용`, status: "concern", detail: b.detail });
     }
   }

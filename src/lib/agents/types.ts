@@ -66,6 +66,8 @@ export interface PulseReport {
       area: string; // "멘토링" | "전문가 투입" | "KPT 회고" | "OKR 관리" | "전문가 요청"
       score: number; // 0~100
       detail: string;
+      hasData: boolean; // 데이터 존재 여부 — false면 점수 산정에서 제외
+      weight: number; // 실제 적용된 가중치 (0이면 제외됨)
     }[];
   };
 

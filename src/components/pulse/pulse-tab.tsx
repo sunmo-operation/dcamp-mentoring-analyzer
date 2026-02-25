@@ -80,17 +80,23 @@ export function PulseTab({ pulse }: PulseTabProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           {programEngagement.breakdown.map((b) => (
-            <div key={b.area} className="space-y-1">
+            <div key={b.area} className={`space-y-1 ${b.hasData === false ? "opacity-40" : ""}`}>
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium">{b.area}</span>
-                <span className={`tabular-nums font-bold ${scoreColor(b.score)}`}>{b.score}</span>
+                {b.hasData === false ? (
+                  <span className="text-xs text-muted-foreground">평가 제외</span>
+                ) : (
+                  <span className={`tabular-nums font-bold ${scoreColor(b.score)}`}>{b.score}</span>
+                )}
               </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${barColor(b.score)}`}
-                  style={{ width: `${b.score}%` }}
-                />
-              </div>
+              {b.hasData !== false && (
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${barColor(b.score)}`}
+                    style={{ width: `${b.score}%` }}
+                  />
+                </div>
+              )}
               <p className="text-xs text-muted-foreground">{b.detail}</p>
             </div>
           ))}
