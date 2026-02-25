@@ -194,12 +194,18 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     const combined = [s.summary, s.followUp].filter(Boolean).join(" ");
     const milestoneCategory = detectMilestoneCategory(combined);
 
+    // 요약 + 후속조치를 합쳐서 맥락 있는 설명 생성
+    const summaryParts: string[] = [];
+    if (s.summary) summaryParts.push(truncate(s.summary, 200));
+    if (s.followUp) summaryParts.push("후속: " + truncate(s.followUp, 120));
+    const fullSummary = summaryParts.join("\n") || undefined;
+
     entries.push({
       date: s.date,
       title: s.title || types.join("/") + " 세션",
       category: milestoneCategory || category,
       source: "노션",
-      summary: s.summary ? truncate(s.summary, 80) : undefined,
+      summary: fullSummary,
       detail: milestoneCategory ? extractMilestoneTitle(combined, milestoneCategory) : undefined,
       isHighlight: !!milestoneCategory,
     });
@@ -229,7 +235,7 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
       title: req.oneLiner || req.title,
       category: "전문가요청",
       source: "전문가요청",
-      summary: req.status || "접수",
+      summary: [req.status || "접수", req.problem ? truncate(req.problem, 150) : ""].filter(Boolean).join(" · "),
       isHighlight: req.status === "완료" || req.status === "진행 완료",
     });
   }
@@ -249,7 +255,10 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
         title: `${cs.mentor} 멘토링`,
         category: "코칭",
         source: "코칭기록",
-        summary: cs.issues ? truncate(cs.issues, 80) : undefined,
+        summary: [
+          cs.issues ? truncate(cs.issues, 200) : "",
+          cs.followUp ? "후속: " + truncate(cs.followUp, 120) : "",
+        ].filter(Boolean).join("\n") || undefined,
       });
     }
 

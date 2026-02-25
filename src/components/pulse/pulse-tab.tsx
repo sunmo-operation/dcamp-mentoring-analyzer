@@ -128,12 +128,12 @@ export function PulseTab({ pulse }: PulseTabProps) {
                           {m.title}
                         </p>
                         {m.summary && (
-                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">
+                          <p className="text-sm text-muted-foreground mt-1 leading-relaxed whitespace-pre-line">
                             {m.summary}
                           </p>
                         )}
-                        {isHighlight && m.detail && m.detail !== m.title && (
-                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                        {isHighlight && m.detail && m.detail !== m.title && !m.summary?.includes(m.detail) && (
+                          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                             {m.detail}
                           </p>
                         )}
