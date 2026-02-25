@@ -6,14 +6,12 @@ import type { ReactNode } from "react";
 
 interface CompanyTabsProps {
   mentoringTab: ReactNode;
-  timelineTab: ReactNode;
-  analysisTab: ReactNode;
+  pulseTab: ReactNode;
 }
 
 export function CompanyTabs({
   mentoringTab,
-  timelineTab,
-  analysisTab,
+  pulseTab,
 }: CompanyTabsProps) {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") || "mentoring";
@@ -22,20 +20,15 @@ export function CompanyTabs({
     <Tabs defaultValue={defaultTab}>
       <TabsList variant="line" className="w-full justify-start">
         <TabsTrigger value="mentoring">멘토링 기록</TabsTrigger>
-        <TabsTrigger value="timeline">타임라인</TabsTrigger>
-        <TabsTrigger value="analysis">AI 분석 이력</TabsTrigger>
+        <TabsTrigger value="pulse">팀 펄스</TabsTrigger>
       </TabsList>
 
       <TabsContent value="mentoring" className="mt-6">
         {mentoringTab}
       </TabsContent>
 
-      <TabsContent value="timeline" className="mt-6">
-        {timelineTab}
-      </TabsContent>
-
-      <TabsContent value="analysis" className="mt-6">
-        {analysisTab}
+      <TabsContent value="pulse" className="mt-6">
+        {pulseTab}
       </TabsContent>
     </Tabs>
   );

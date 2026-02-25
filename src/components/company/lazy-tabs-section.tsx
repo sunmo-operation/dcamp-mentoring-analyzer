@@ -3,16 +3,15 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { CompanyTabs } from "./company-tabs";
-import { AnalysisCard } from "@/components/analysis/analysis-card";
-import { TimelineTab } from "@/components/timeline/timeline-tab";
+import { PulseTab } from "@/components/pulse/pulse-tab";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
   MentoringSession,
   ExpertRequest,
-  TimelineEvent,
   AnalysisResult,
 } from "@/types";
+import type { PulseReport } from "@/lib/agents/types";
 
 // 세션 유형별 아이콘
 const SESSION_TYPE_ICON: Record<string, string> = {
@@ -26,11 +25,11 @@ const SESSION_TYPE_ICON: Record<string, string> = {
 interface CompanyDetailData {
   sessions: MentoringSession[];
   expertRequests: ExpertRequest[];
-  timeline: TimelineEvent[];
   analyses: AnalysisResult[];
   expertSummary: { total: number; inProgress: number; completed: number };
   kptSummary?: string | null;
   kptCount?: number | null;
+  pulse: PulseReport;
 }
 
 interface LazyTabsSectionProps {
@@ -76,7 +75,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
       <div className="flex flex-col items-center gap-4 py-16">
         <div className="rounded-2xl bg-muted/50 px-6 py-3 text-center">
           <p className="text-sm text-muted-foreground">
-            멘토링 기록, 타임라인, AI 분석 이력
+            멘토링 기록, 팀 펄스
           </p>
         </div>
         <button
@@ -140,7 +139,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
   }
 
   // ── 데이터 로드 완료: 탭 렌더링 ──────────────
-  const { sessions, expertRequests, timeline, analyses } = data!;
+  const { sessions, pulse } = data!;
 
   // 멘토링 기록 탭
   const sortedSessions = [...sessions].sort(
@@ -242,51 +241,13 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
     </>
   );
 
-  // 타임라인 탭
-  const timelineContent = (
-    <>
-      <div className="mb-6">
-        <h2 className="text-xl font-bold">타임라인</h2>
-        <p className="text-sm text-muted-foreground">
-          회의록 + 전문가 요청 통합 ({timeline.length}건)
-        </p>
-      </div>
-      <TimelineTab
-        events={timeline}
-        expertRequests={expertRequests}
-        initialFilter={filter}
-      />
-    </>
-  );
-
-  // 분석 이력 탭
-  const analysisContent = (
-    <>
-      <div className="mb-6">
-        <h2 className="text-xl font-bold">AI 분석 이력</h2>
-        <p className="text-sm text-muted-foreground">
-          총 {analyses.length}건의 멘토링 분석
-        </p>
-      </div>
-      {analyses.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {analyses.map((analysis) => (
-            <AnalysisCard key={analysis.id} analysis={analysis} />
-          ))}
-        </div>
-      ) : (
-        <p className="text-muted-foreground text-center py-8">
-          아직 분석 결과가 없습니다
-        </p>
-      )}
-    </>
-  );
+  // 팀 펄스 탭
+  const pulseContent = <PulseTab pulse={pulse} />;
 
   return (
     <CompanyTabs
       mentoringTab={mentoringContent}
-      timelineTab={timelineContent}
-      analysisTab={analysisContent}
+      pulseTab={pulseContent}
     />
   );
 }
