@@ -219,19 +219,21 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
                             </span>
                           </div>
 
-                          {/* 요약 */}
+                          {/* 요약 (불릿 형식) */}
                           {mainSummary && (
-                            <p className={`text-[12px] text-muted-foreground leading-relaxed mt-1.5 break-keep transition-opacity duration-300 ${
-                              aiLoading && !ai ? "opacity-60" : "opacity-100"
+                            <p className={`text-[12.5px] text-foreground/70 dark:text-foreground/65 leading-relaxed mt-1.5 pl-3 break-keep transition-opacity duration-300 ${
+                              aiLoading && !ai ? "opacity-50" : "opacity-100"
                             }`}>
+                              <span className="text-muted-foreground/60 mr-1">•</span>
                               {mainSummary}
                             </p>
                           )}
 
-                          {/* 후속 액션 */}
+                          {/* 후속 액션 (불릿 형식) */}
                           {followUp && (
-                            <p className="text-[12px] text-muted-foreground/50 leading-relaxed mt-0.5 break-keep">
-                              {followUp}
+                            <p className="text-[12px] text-foreground/50 dark:text-foreground/40 leading-relaxed mt-0.5 pl-3 break-keep">
+                              <span className="text-muted-foreground/40 mr-1">→</span>
+                              {followUp.replace(/^→\s*/, "")}
                             </p>
                           )}
                         </div>
