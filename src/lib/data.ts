@@ -692,6 +692,7 @@ export function isBriefingStale(
     analyses: AnalysisResult[];
     kptCount?: number;
     okrItemCount?: number;
+    lastEditedTime?: string; // Notion DB 최신 수정 시간
   }
 ): { stale: boolean; reason?: string } {
   // 24시간 경과 체크
@@ -730,6 +731,13 @@ export function isBriefingStale(
   const latestSessionDate = currentData.sessions[0]?.date || null;
   if (latestSessionDate && latestSessionDate !== fp.lastSessionDate) {
     return { stale: true, reason: "최신 멘토링 세션 날짜가 변경됨" };
+  }
+
+  // Notion 데이터 수정 감지 (기존 세션/요청 내용이 변경된 경우)
+  if (currentData.lastEditedTime && fp.lastEditedTime) {
+    if (currentData.lastEditedTime > fp.lastEditedTime) {
+      return { stale: true, reason: "Notion 데이터가 브리핑 이후 수정됨" };
+    }
   }
 
   return { stale: false };

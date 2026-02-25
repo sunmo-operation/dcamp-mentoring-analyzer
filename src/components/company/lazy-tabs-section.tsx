@@ -46,6 +46,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
   const [data, setData] = useState<CompanyDetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -156,7 +157,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
       </div>
       {sortedSessions.length > 0 ? (
         <div className="space-y-4">
-          {sortedSessions.map((session) => {
+          {sortedSessions.slice(0, visibleCount).map((session) => {
             const types = Array.isArray(session.sessionTypes)
               ? session.sessionTypes
               : [];
@@ -232,6 +233,14 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
               </Card>
             );
           })}
+          {sortedSessions.length > visibleCount && (
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 10)}
+              className="w-full rounded-2xl border border-border bg-muted/30 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60"
+            >
+              더 보기 ({sortedSessions.length - visibleCount}건 남음)
+            </button>
+          )}
         </div>
       ) : (
         <p className="text-muted-foreground text-center py-8">

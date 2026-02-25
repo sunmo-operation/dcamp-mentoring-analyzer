@@ -7,6 +7,11 @@ import {
   getOkrItems,
   getOkrValues,
 } from "@/lib/data";
+import {
+  collectCompanyData,
+  generatePulseReport,
+  generateAnalystReport,
+} from "@/lib/agents";
 
 // Vercel Pro 플랜: 최대 300초
 export const maxDuration = 300;
@@ -71,7 +76,20 @@ export async function POST(request: Request) {
 
         const { company, sessions, expertRequests } = allData;
 
-        // 2. 시스템 프롬프트 조립
+        // 2. PulseReport + AnalystReport 생성 (즉시 반환, AI 호출 없음)
+        let agentContext = "";
+        try {
+          const packet = await collectCompanyData(companyId);
+          if (packet) {
+            const pulse = generatePulseReport(packet);
+            const analyst = generateAnalystReport(packet);
+            agentContext = buildAgentContext(pulse, analyst);
+          }
+        } catch {
+          // 에이전트 실패 시 기존 컨텍스트만으로 진행
+        }
+
+        // 3. 시스템 프롬프트 조립
         const systemPrompt = buildChatSystemPrompt(company.name);
         const context = buildChatContext(
           company,
@@ -83,7 +101,7 @@ export async function POST(request: Request) {
           existingBriefing,
         );
 
-        const fullSystemPrompt = `${systemPrompt}\n\n[기업 컨텍스트 데이터]\n${context}`;
+        const fullSystemPrompt = `${systemPrompt}\n\n[기업 컨텍스트 데이터]\n${context}${agentContext}`;
 
         // 3. Claude API 스트리밍 호출 (Sonnet 4.6 — prefill 없이)
         const claude = getClaudeClient();
@@ -149,4 +167,44 @@ export async function POST(request: Request) {
       "X-Accel-Buffering": "no",
     },
   });
+}
+
+// ── PulseReport + AnalystReport → 채팅 컨텍스트 ──
+
+import type { PulseReport, AnalystReport } from "@/lib/agents/types";
+
+function buildAgentContext(pulse: PulseReport, analyst: AnalystReport): string {
+  const parts: string[] = ["\n\n## 에이전트 분석 (Pulse + Analyst)"];
+
+  // 팀 펄스 요약
+  parts.push(`\n### 팀 펄스`);
+  parts.push(`- 프로그램 참여: ${pulse.programEngagement.label} (${pulse.programEngagement.overallScore}점)`);
+  parts.push(`- 미팅 밀도: ${pulse.meetingCadence.densityLabel} (${pulse.meetingCadence.densityScore}점, 평균 ${pulse.meetingCadence.avgIntervalDays}일 간격)`);
+  parts.push(`- 추세: ${pulse.meetingCadence.trendReason}`);
+
+  if (pulse.healthSignals.length > 0) {
+    parts.push(`\n### 건강 신호`);
+    for (const s of pulse.healthSignals) {
+      const icon = s.status === "good" ? "+" : s.status === "warning" ? "!" : "-";
+      parts.push(`- [${icon}] ${s.signal}: ${s.detail}`);
+    }
+  }
+
+  // Analyst 요약
+  if (analyst.narrativeContext) {
+    parts.push(`\n### Analyst 컨텍스트\n${analyst.narrativeContext}`);
+  }
+
+  if (analyst.topicAnalysis.topKeywords.length > 0) {
+    parts.push(`\n### 주요 토픽: ${analyst.topicAnalysis.topKeywords.slice(0, 5).map((k) => `${k.keyword}(${k.count})`).join(", ")}`);
+  }
+
+  if (analyst.dataGaps.length > 0) {
+    parts.push(`\n### 데이터 공백`);
+    for (const g of analyst.dataGaps) {
+      parts.push(`- [${g.severity}] ${g.area}: ${g.detail}`);
+    }
+  }
+
+  return parts.join("\n");
 }

@@ -108,6 +108,10 @@ export interface AnalystReport {
     topKeywords: { keyword: string; count: number; lastSeen: string }[];
     recurringTopics: { topic: string; sessions: string[]; frequency: number }[];
     recentFocus: string[]; // 최근 3회 핵심 토픽
+    // 의미론적 토픽 클러스터링 (Topic Analyst 2차 에이전트)
+    semanticClusters?: { topic: string; sessions: string[]; keywords: string[]; summary: string }[];
+    recentNarrative?: string; // 최근 세션 맥락 요약
+    topicEvolution?: string; // 토픽 변화 흐름
   };
 
   // 멘토 조언 패턴

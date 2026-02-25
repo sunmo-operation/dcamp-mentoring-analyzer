@@ -100,6 +100,22 @@ function buildAnalystSection(report: AnalystReport): string {
     sections.push(`\n### 최근 포커스: ${report.topicAnalysis.recentFocus.join(", ")}`);
   }
 
+  // 의미론적 토픽 클러스터 (Topic Analyst 2차 에이전트 결과)
+  if (report.topicAnalysis.semanticClusters?.length) {
+    sections.push("\n### 의미론적 토픽 클러스터 (AI 분석)");
+    sections.push(
+      report.topicAnalysis.semanticClusters
+        .map((c) => `- **${c.topic}**: ${c.summary} (키워드: ${c.keywords.join(", ")})`)
+        .join("\n")
+    );
+  }
+  if (report.topicAnalysis.recentNarrative) {
+    sections.push(`\n### 최근 세션 맥락: ${report.topicAnalysis.recentNarrative}`);
+  }
+  if (report.topicAnalysis.topicEvolution) {
+    sections.push(`\n### 토픽 변화 흐름: ${report.topicAnalysis.topicEvolution}`);
+  }
+
   // 2. 멘토 패턴
   if (report.mentorPatterns.mentors.length > 0) {
     sections.push("\n### 멘토 참여 현황");

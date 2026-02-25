@@ -873,10 +873,6 @@ export async function getTimeline(
 }
 
 // ══════════════════════════════════════════════════
-// 분석 결과 Notion 저장
-// ══════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════
 // KPT 회고 조회
 // ══════════════════════════════════════════════════
 
@@ -998,10 +994,6 @@ export async function getOkrValues(
     }
   });
 }
-
-// ══════════════════════════════════════════════════
-// 분석 결과 Notion 저장
-// ══════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════
 // 배치 대시보드 조회 (3기/4기/5기)
@@ -1188,10 +1180,6 @@ export async function getLastEditedTime(
 }
 
 // ══════════════════════════════════════════════════
-// 분석 결과 Notion 저장
-// ══════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════
 // 사전 설문 데이터 조회
 // ══════════════════════════════════════════════════
 
@@ -1246,46 +1234,3 @@ export async function getCompanySurveyData(
   );
 }
 
-export async function saveAnalysisToNotion(
-  sessionPageId: string,
-  analysis: AnalysisResult
-): Promise<void> {
-  const dateStr = new Date(analysis.createdAt).toISOString().split("T")[0];
-  const sectionsJson = JSON.stringify(analysis.sections, null, 2);
-  // Notion code 블록 최대 2000자 제한 대응
-  const truncated =
-    sectionsJson.length > 2000
-      ? sectionsJson.slice(0, 1997) + "..."
-      : sectionsJson;
-
-  await notion.blocks.children.append({
-    block_id: sessionPageId,
-    children: [
-      {
-        object: "block" as const,
-        type: "heading_2" as const,
-        heading_2: {
-          rich_text: [
-            {
-              type: "text" as const,
-              text: { content: `AI 분석 결과 (${dateStr})` },
-            },
-          ],
-        },
-      },
-      {
-        object: "block" as const,
-        type: "code" as const,
-        code: {
-          rich_text: [
-            {
-              type: "text" as const,
-              text: { content: truncated },
-            },
-          ],
-          language: "json" as const,
-        },
-      },
-    ],
-  });
-}

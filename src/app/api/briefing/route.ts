@@ -2,10 +2,6 @@ import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { getClaudeClient, classifyClaudeError } from "@/lib/claude";
 import {
-  buildBriefingSystemPrompt,
-  buildBriefingUserPrompt,
-} from "@/lib/briefing-prompts";
-import {
   getCompanyAllData,
   getBriefingByCompany,
   saveBriefing,
@@ -15,6 +11,7 @@ import {
   getOkrValues,
   getCompanyBatchDashboardData,
 } from "@/lib/data";
+import { getLastEditedTime } from "@/lib/notion";
 import type { CompanyBriefing } from "@/types";
 import {
   briefingResponseSchema,
@@ -25,6 +22,8 @@ import {
   collectCompanyData,
   generateAnalystReport,
   buildEnhancedPrompts,
+  analyzeSemanticTopics,
+  mergeSemanticTopics,
 } from "@/lib/agents";
 
 // Vercel Pro 플랜: 최대 300초
@@ -235,10 +234,11 @@ export async function POST(request: Request) {
         if (!force) {
           const existing = await getBriefingByCompany(companyId);
           if (existing) {
-            const [quickData, quickKpt, quickOkr] = await Promise.all([
+            const [quickData, quickKpt, quickOkr, lastEdited] = await Promise.all([
               getCompanyAllData(companyId),
               getKptReviews(companyId),
               getOkrItems(companyId),
+              getLastEditedTime("company-detail", companyId),
             ]);
             if (quickData) {
               const { stale } = isBriefingStale(existing, {
@@ -247,6 +247,7 @@ export async function POST(request: Request) {
                 analyses: quickData.analyses,
                 kptCount: quickKpt.length,
                 okrItemCount: quickOkr.length,
+                lastEditedTime: lastEdited ?? undefined,
               });
               if (!stale) {
                 controller.enqueue(encode({ type: "complete", briefing: existing, cached: true }));
@@ -293,7 +294,16 @@ export async function POST(request: Request) {
         }));
 
         // Analyst Agent: 데이터 기반 사전 분석 (AI 호출 없음, 즉시 반환)
-        const analystReport = generateAnalystReport(packet);
+        let analystReport = generateAnalystReport(packet);
+
+        // Topic Analyst (2차 에이전트) + Notion 최신 수정 시간을 병렬 실행
+        const [semanticTopics, currentLastEdited] = await Promise.all([
+          analyzeSemanticTopics(packet).catch(() => null),
+          getLastEditedTime("company-detail", companyId),
+        ]);
+        if (semanticTopics) {
+          analystReport = mergeSemanticTopics(analystReport, semanticTopics);
+        }
 
         const dataFingerprint: CompanyBriefing["dataFingerprint"] = {
           lastSessionDate: sessions[0]?.date || null,
@@ -302,6 +312,7 @@ export async function POST(request: Request) {
           analysisCount: analyses.length,
           kptCount: kptReviews.length,
           okrItemCount: okrItems.length,
+          lastEditedTime: currentLastEdited ?? undefined,
         };
 
         // Narrator Agent: Analyst 결과를 반영한 강화 프롬프트 생성
