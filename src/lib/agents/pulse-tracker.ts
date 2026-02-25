@@ -194,15 +194,22 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
     const combined = [s.summary, s.followUp].filter(Boolean).join(" ");
     const milestoneCategory = detectMilestoneCategory(combined);
 
-    // 요약 + 후속조치를 합쳐서 2~3줄 맥락 설명 생성
+    // 제목: 멘토 이름 포함하여 누구와 무슨 활동인지 명확하게
+    const mentors = s.mentorNames?.filter(Boolean).join(", ");
+    let title = s.title || types.join("/") + " 세션";
+    if (mentors && !title.includes(mentors.split(",")[0])) {
+      title = `${title} (${mentors})`;
+    }
+
+    // 2~3줄 맥락 설명: 논의 내용 + 이후 방향
     const summaryParts: string[] = [];
     if (s.summary) summaryParts.push(truncate(s.summary, 150));
-    if (s.followUp) summaryParts.push("후속: " + truncate(s.followUp, 100));
+    if (s.followUp) summaryParts.push("→ " + truncate(s.followUp, 100));
     const fullSummary = summaryParts.join("\n") || undefined;
 
     entries.push({
       date: s.date,
-      title: s.title || types.join("/") + " 세션",
+      title,
       category: milestoneCategory || category,
       source: "노션",
       summary: fullSummary,
@@ -257,7 +264,7 @@ function extractMilestones(packet: CompanyDataPacket): PulseReport["milestones"]
         source: "코칭기록",
         summary: [
           cs.issues ? truncate(cs.issues, 150) : "",
-          cs.followUp ? "후속: " + truncate(cs.followUp, 100) : "",
+          cs.followUp ? "→ " + truncate(cs.followUp, 100) : "",
         ].filter(Boolean).join("\n") || undefined,
       });
     }

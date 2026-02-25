@@ -7,7 +7,10 @@ interface PulseTabProps {
   pulse: PulseReport;
 }
 
-// ── 카테고리 라벨 ────────────────────────────────
+// 하이라이트 카테고리 (성과/전환/리스크 등 특별 이벤트)
+const HIGHLIGHT_CATEGORIES = new Set(["성과", "전환점", "리스크", "의사결정", "외부"]);
+
+// 카테고리 한글 라벨
 const CATEGORY_LABEL: Record<string, string> = {
   "멘토링": "멘토링",
   "점검": "점검",
@@ -21,14 +24,10 @@ const CATEGORY_LABEL: Record<string, string> = {
   "외부": "외부",
 };
 
-// 하이라이트(마일스톤) 카테고리
-const HIGHLIGHT_CATEGORIES = new Set(["성과", "전환점", "리스크", "의사결정", "외부"]);
-
-// ── 유틸 ──────────────────────────────────────────
 function formatDate(dateStr: string): string {
   try {
     const d = new Date(dateStr);
-    return `${String(d.getMonth() + 1)}/${String(d.getDate())}`;
+    return `${d.getMonth() + 1}/${String(d.getDate()).padStart(2, "0")}`;
   } catch {
     return dateStr;
   }
@@ -47,7 +46,6 @@ function getMonthKey(dateStr: string): string {
   return dateStr.slice(0, 7);
 }
 
-// ── 메인 컴포넌트 ─────────────────────────────────
 const INITIAL_COUNT = 25;
 
 export function PulseTab({ pulse }: PulseTabProps) {
@@ -69,7 +67,6 @@ export function PulseTab({ pulse }: PulseTabProps) {
 
   return (
     <div>
-      {/* 헤더 */}
       <div className="mb-6">
         <h2 className="text-xl font-bold">배치 타임라인</h2>
         <p className="text-sm text-muted-foreground">
@@ -79,73 +76,58 @@ export function PulseTab({ pulse }: PulseTabProps) {
         </p>
       </div>
 
-      {/* 타임라인 */}
       {groups.length > 0 ? (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {groups.map((group) => (
-            <div key={group.monthKey}>
-              {/* 월 구분선 */}
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-xs font-semibold text-foreground/70">
-                  {group.label}
-                </span>
+            <section key={group.monthKey}>
+              {/* 월 헤더 */}
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-sm font-semibold">{group.label}</span>
                 <div className="h-px flex-1 bg-border" />
               </div>
 
               {/* 항목 */}
-              <div className="space-y-0">
+              <div className="space-y-4">
                 {group.items.map((m, i) => {
                   const isHighlight = m.isHighlight || HIGHLIGHT_CATEGORIES.has(m.category);
                   const label = CATEGORY_LABEL[m.category] || m.category;
+                  const hasSummary = !!(m.summary || (isHighlight && m.detail));
 
                   return (
-                    <div
+                    <article
                       key={`${group.monthKey}-${i}`}
-                      className={`flex gap-3 py-2.5 ${
-                        i < group.items.length - 1 ? "border-b border-border/30" : ""
-                      }`}
+                      className={isHighlight
+                        ? "border-l-2 border-foreground/30 pl-4 py-1"
+                        : hasSummary ? "pl-4 py-1" : "pl-4"
+                      }
                     >
-                      {/* 날짜 */}
-                      <span className="text-xs tabular-nums text-muted-foreground w-10 shrink-0 pt-0.5 text-right">
-                        {formatDate(m.date)}
-                      </span>
+                      {/* 첫 줄: 날짜 · 카테고리 · 제목 */}
+                      <p className={`text-sm leading-relaxed ${isHighlight ? "font-semibold" : ""}`}>
+                        <span className="text-muted-foreground tabular-nums">{formatDate(m.date)}</span>
+                        <span className="text-muted-foreground mx-1.5">·</span>
+                        <span className={isHighlight ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+                        <span className="text-muted-foreground mx-1.5">·</span>
+                        <span className="text-foreground">{m.title}</span>
+                      </p>
 
-                      {/* 콘텐츠 */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className={`text-xs shrink-0 ${
-                            isHighlight
-                              ? "font-semibold text-foreground"
-                              : "text-muted-foreground"
-                          }`}>
-                            {label}
-                          </span>
-                          {m.source !== "노션" && m.source !== "멘토링" && (
-                            <span className="text-[10px] text-muted-foreground/60">{m.source}</span>
-                          )}
-                        </div>
-                        <p className={`text-sm leading-relaxed ${isHighlight ? "font-medium" : ""}`}>
-                          {m.title}
+                      {/* 본문: 맥락 설명 */}
+                      {m.summary && (
+                        <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed whitespace-pre-line">
+                          {m.summary}
                         </p>
-                        {m.summary && (
-                          <p className="text-sm text-muted-foreground mt-1 leading-relaxed whitespace-pre-line">
-                            {m.summary}
-                          </p>
-                        )}
-                        {isHighlight && m.detail && m.detail !== m.title && !m.summary?.includes(m.detail) && (
-                          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                            {m.detail}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                      )}
+                      {isHighlight && m.detail && m.detail !== m.title && !m.summary?.includes(m.detail) && (
+                        <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                          {m.detail}
+                        </p>
+                      )}
+                    </article>
                   );
                 })}
               </div>
-            </div>
+            </section>
           ))}
 
-          {/* 더 보기 */}
           {!showAll && milestones.length > INITIAL_COUNT && (
             <button
               onClick={() => setShowAll(true)}
