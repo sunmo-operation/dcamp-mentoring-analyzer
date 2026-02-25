@@ -218,7 +218,7 @@ export function ChatPanel({ companyId, companyName, floating = false }: ChatPane
             </svg>
           </div>
           <h2 className="text-lg font-bold">
-            {companyName}에 대해 궁금한 점이 있다면
+            AI에게 {companyName}에 대해 더 물어보기
           </h2>
         </div>
       )}
@@ -229,7 +229,7 @@ export function ChatPanel({ companyId, companyName, floating = false }: ChatPane
         {!hasMessages && (
           <div className="p-5">
             <p className="mb-3 text-sm text-muted-foreground">
-              브리핑 외에 더 알고 싶은 게 있다면 물어보세요
+              브리핑 외에 궁금한 점이 있다면 AI에게 물어보세요
             </p>
             <div className="flex flex-wrap gap-2">
               {SUGGESTED_QUESTIONS.map((q) => (
