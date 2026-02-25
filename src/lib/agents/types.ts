@@ -79,3 +79,75 @@ export interface PulseReport {
   // 탭 요약 (한 줄)
   summary: string;
 }
+
+/**
+ * Analyst 출력 — 데이터 기반 구조화된 분석 (AI 호출 없음)
+ * Narrator 에이전트의 입력으로 사용
+ */
+export interface AnalystReport {
+  // OKR 진척 분석
+  okrAnalysis: {
+    overallRate: number | null;
+    objectives: {
+      name: string;
+      level: string;
+      achievementRate: number | null;
+      achieved: boolean;
+      hasValues: boolean; // 측정값 존재 여부
+      latestValue?: number;
+      targetValue?: number;
+    }[];
+    hasGap: boolean; // 달성율 vs 실제 데이터 괴리
+    gapDetail?: string;
+  };
+
+  // 세션 토픽 분석
+  topicAnalysis: {
+    topKeywords: { keyword: string; count: number; lastSeen: string }[];
+    recurringTopics: { topic: string; sessions: string[]; frequency: number }[];
+    recentFocus: string[]; // 최근 3회 핵심 토픽
+  };
+
+  // 멘토 조언 패턴
+  mentorPatterns: {
+    mentors: { name: string; sessionCount: number; lastDate: string }[];
+    adviceThemes: { theme: string; count: number; examples: string[] }[];
+    followUpRate: number; // 후속조치 기록이 있는 세션 비율 (0~1)
+  };
+
+  // 전문가 리소스 분석
+  expertAnalysis: {
+    total: number;
+    byStatus: { status: string; count: number }[];
+    avgResponseDays: number | null; // 요청~완료 평균 일수
+    demandAreas: string[]; // 요청 분야 패턴
+    pendingUrgent: number; // 긴급 미처리 건
+  };
+
+  // KPT 패턴 분석
+  kptPatterns: {
+    totalReviews: number;
+    recentKeep: string[]; // 최근 3건 Keep
+    recentProblem: string[]; // 최근 3건 Problem
+    recentTry: string[]; // 최근 3건 Try
+    recurringProblems: string[]; // 2회 이상 등장한 Problem 키워드
+  };
+
+  // 데이터 품질/공백
+  dataGaps: {
+    area: string;
+    detail: string;
+    severity: "high" | "medium" | "low";
+  }[];
+
+  // 활동 강도 타임라인 (월별)
+  activityTimeline: {
+    month: string; // "2025-01"
+    sessionCount: number;
+    kptCount: number;
+    expertRequestCount: number;
+  }[];
+
+  // Narrator에게 전달할 컨텍스트 요약 (텍스트)
+  narrativeContext: string;
+}

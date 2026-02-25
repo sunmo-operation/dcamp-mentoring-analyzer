@@ -21,6 +21,11 @@ import {
   transformBriefingResponse,
   nullsToUndefined,
 } from "@/lib/schemas";
+import {
+  collectCompanyData,
+  generateAnalystReport,
+  buildEnhancedPrompts,
+} from "@/lib/agents";
 
 // Vercel Pro 플랜: 최대 300초
 export const maxDuration = 300;
@@ -251,32 +256,21 @@ export async function POST(request: Request) {
           }
         }
 
-        // 1단계: 데이터 수집
+        // 1단계: 데이터 수집 (Agent: Data Collector)
         controller.enqueue(encode({
           type: "status", step: 1, totalSteps: 3,
           message: "Notion에서 데이터를 가져오고 있어요",
           elapsed: 0,
         }));
 
-        // 모든 데이터 수집을 병렬로 (batchData도 Promise.all에 포함)
-        const [allData, kptReviews, okrItems, okrValues] = await Promise.all([
-          getCompanyAllData(companyId),
-          getKptReviews(companyId),
-          getOkrItems(companyId),
-          getOkrValues(companyId),
-        ]);
+        const packet = await collectCompanyData(companyId);
 
-        if (!allData) {
+        if (!packet) {
           controller.enqueue(encode({ type: "error", message: "존재하지 않는 기업입니다" }));
           return;
         }
 
-        const { company, sessions, expertRequests, analyses } = allData;
-        // batchData도 타임아웃 제한 + 실패 시 null (전체 흐름 차단 방지)
-        const batchData = await Promise.race([
-          getCompanyBatchDashboardData(company),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
-        ]).catch(() => null);
+        const { company, sessions, expertRequests, analyses, kptReviews, okrItems } = packet;
 
         // 데이터 수집 결과 요약 — 검토 볼륨을 구체적으로 표시
         const totalTextLength = sessions.reduce((sum, s) => sum + (s.summary?.length || 0), 0);
@@ -291,12 +285,15 @@ export async function POST(request: Request) {
         if (dateRange) detailParts.push(dateRange);
         const collectionDetail = `${detailParts.join(" · ")} 검토 중`;
 
-        // 2단계: AI 분석
+        // 2단계: 분석 + AI 브리핑 (Agent: Analyst → Narrator)
         controller.enqueue(encode({
           type: "status", step: 2, totalSteps: 3,
           message: "AI가 브리핑을 작성하고 있어요",
           detail: collectionDetail,
         }));
+
+        // Analyst Agent: 데이터 기반 사전 분석 (AI 호출 없음, 즉시 반환)
+        const analystReport = generateAnalystReport(packet);
 
         const dataFingerprint: CompanyBriefing["dataFingerprint"] = {
           lastSessionDate: sessions[0]?.date || null,
@@ -307,12 +304,9 @@ export async function POST(request: Request) {
           okrItemCount: okrItems.length,
         };
 
+        // Narrator Agent: Analyst 결과를 반영한 강화 프롬프트 생성
         const claude = getClaudeClient();
-        const systemPrompt = buildBriefingSystemPrompt();
-        const userPrompt = buildBriefingUserPrompt(
-          company, sessions, expertRequests, analyses,
-          kptReviews, okrItems, okrValues, batchData
-        );
+        const { systemPrompt, userPrompt } = buildEnhancedPrompts(packet, analystReport);
 
         // Claude 호출 + 자동 재시도 (최대 2회)
         let rawParsed: unknown;
