@@ -11,7 +11,6 @@ import { PositiveShifts } from "./sections/positive-shifts";
 import { RepeatPatterns } from "./sections/repeat-patterns";
 import { UnspokenSignals } from "./sections/unspoken-signals";
 import { MentorInsights } from "./sections/mentor-insights";
-import { ResourceDiagnosis } from "./sections/resource-diagnosis";
 import { MeetingStrategy } from "./sections/meeting-strategy";
 import { PmActions } from "./sections/pm-actions";
 // industryContext 섹션 제거 — 노션 데이터 기반 핵심 브리핑에 집중
@@ -223,17 +222,9 @@ export function BriefingPanel({
   const safeReportBody = typeof executiveSummary?.reportBody === "string" ? executiveSummary.reportBody : "";
   const safeRepeatedAdvice = typeof mentorInsights?.repeatedAdvice === "string" ? mentorInsights.repeatedAdvice : "";
   const safeIgnoredAdvice = typeof mentorInsights?.ignoredAdvice === "string" ? mentorInsights.ignoredAdvice : "";
-  const safeGapAnalysis = typeof mentorInsights?.gapAnalysis === "string" ? mentorInsights.gapAnalysis : "";
-  const safeExpertRequests = typeof mentorInsights?.currentExpertRequests === "string" ? mentorInsights.currentExpertRequests : "";
-
   const keyNumbers = useMemo(() => parseBulletLines(safeReportBody), [safeReportBody]);
   const repeatedAdviceLines = useMemo(() => parseBulletLines(safeRepeatedAdvice), [safeRepeatedAdvice]);
   const ignoredAdviceLines = useMemo(() => parseBulletLines(safeIgnoredAdvice), [safeIgnoredAdvice]);
-  const dcampCanDoLines = useMemo(() => parseBulletLines(safeGapAnalysis), [safeGapAnalysis]);
-  const { primaryNeed, resourceLines } = useMemo(() => {
-    const parsed = parseBulletLines(safeExpertRequests);
-    return { primaryNeed: parsed[0] || "", resourceLines: parsed.slice(1) };
-  }, [safeExpertRequests]);
 
   // ── 첫 생성 로딩 (토스 스타일 로딩 UX) ────────
   if (loading && !briefing) {
@@ -437,14 +428,7 @@ export function BriefingPanel({
           />
         )}
 
-        {/* ⑥ 리소스 진단 */}
-        {mentorInsights && (primaryNeed || dcampCanDoLines.length > 0) && (
-          <ResourceDiagnosis
-            primaryNeed={primaryNeed}
-            resourceLines={resourceLines}
-            dcampCanDoLines={dcampCanDoLines}
-          />
-        )}
+        {/* ⑥ 리소스 진단 — 제거됨 (전담멘토 혼선 방지) */}
 
         {/* ⑦ 미팅 전략 */}
         {meetingStrategy && (

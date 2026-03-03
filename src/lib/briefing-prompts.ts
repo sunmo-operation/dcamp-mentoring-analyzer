@@ -96,9 +96,9 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
     "vocStrength": "strong | moderate | weak"
   },
   "okrDiagnosis": {
-    "overallRate": "0~100 또는 null",
-    "objectives": [{"name": "(최대 30자)", "achievementRate": 0, "achieved": false}],
-    "trendAnalysis": "(최대 80자. 수치 직접 인용. ~임/~함 종결)",
+    "overallRate": "0~100 또는 null (Objective/KPI 달성율. KR은 관리하지 않으므로 Objective 또는 KPI 기준으로 산출)",
+    "objectives": [{"name": "(최대 30자. Objective 또는 KPI 명칭)", "achievementRate": 0, "achieved": false}],
+    "trendAnalysis": "(최대 80자. Objective/KPI 진행 추이 + KPT 교차 분석. ~임/~함 종결)",
     "metricVsNarrative": "(최대 60자 또는 null. ~임/~함 종결)",
     "kptHighlights": {
       "keep": "(최대 60자. 인사이트 중심. ~임/~함 종결. KPT 없으면 null)",
@@ -126,18 +126,16 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
   ],
   "unspokenSignals": [
     {
-      "signal": "(최대 40자. [임팩트] 구조. ~임/~함 종결)",
+      "signal": "(최대 50자. 사업·전략·시장 관점의 숨겨진 신호. [임팩트] 구조. ~임/~함 종결)",
       "detectedFrom": "(최대 20자)",
-      "hypothesis": "(최대 50자. 단정적 진단. ~임/~함 종결. 전문 용어(뜻풀이) 필수)",
-      "earlyWarning": "(최대 50자. 리스크. ~임/~함 종결)"
+      "hypothesis": "(최대 80자. 데이터 행간을 읽은 단정적 진단. 왜 이것이 문제인지 근거 포함. ~임/~함 종결. 전문 용어(뜻풀이) 필수)",
+      "earlyWarning": "(최대 60자. 이 신호를 방치하면 발생할 구체적 리스크. ~임/~함 종결)"
     }
   ],
   "mentorInsights": {
     "repeatedAdvice": "(줄바꿈\\n 구분 3건 이내. 각 최대 40자. 키워드: 핵심. ~임/~함 종결)",
     "executedAdvice": "(최대 60자. ~임/~함 종결)",
-    "ignoredAdvice": "(줄바꿈\\n 구분 2건 이내. 각 최대 40자. 키워드: 미실행 이유. ~임/~함 종결)",
-    "currentExpertRequests": "(최대 50자. 가장 시급한 니즈. ~임/~함 종결)",
-    "gapAnalysis": "(줄바꿈\\n 구분 2~3건. 각 최대 40자. ~임/~함 종결)"
+    "ignoredAdvice": "(줄바꿈\\n 구분 2건 이내. 각 최대 40자. 키워드: 미실행 이유. ~임/~함 종결)"
   },
   "meetingStrategy": {
     "focus": "(최대 40자. 단 하나의 핵심 주제)",
@@ -159,7 +157,7 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 [수량 제약 — 속도 최적화]
 - positiveShifts: 2~3건만
 - repeatPatterns: 2~3건만
-- unspokenSignals: 1~2건만
+- unspokenSignals: 2~4건 (가장 분석적인 섹션 — 깊이 있게)
 - pmActions: 2~3건만
 - keyQuestions: 3건
 - repeatedAdvice/ignoredAdvice: 각 항목 1줄씩만
@@ -173,12 +171,21 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 [인사이트 분류 — 9개 중 하나]
 전략 / 마케팅 / 영업 / 제품 / 기술 / HR·조직 / 재무 / 운영 / 멘토링
 
-[OKR & KPT 규칙 — ★ KPT는 핵심 데이터]
+[Objective/KPI & KPT 규칙 — ★ KPT는 핵심 데이터]
 - KPT 회고는 팀이 직접 작성한 1차 데이터로 최고 신뢰도. ★ 반드시 깊이 분석할 것.
 - KPT가 있으면 kptHighlights의 keep/problem/try를 반드시 채울 것. 배치 대시보드의 KPT 내용도 함께 참고.
 - KPT Problem 키워드가 멘토링에서도 반복되면 → repeatPatterns로 격상.
-- OKR 정량 데이터 있으면 채우고, 없으면 null. KPT와 OKR을 교차 검증하여 "말 vs 실제" 갭 탐색.
-- OKR+KPT 모두 없으면 okrDiagnosis 전체 null.
+- Objective/KPI 정량 데이터가 있으면 채우고, 없으면 null. KR(Key Result)은 관리하지 않음 — Objective 또는 KPI 기준으로 분석.
+- KPT와 Objective/KPI를 교차 검증하여 "말 vs 실제" 갭 탐색.
+- Objective/KPI + KPT 모두 없으면 okrDiagnosis 전체 null. KPT만 있어도 okrDiagnosis에 kptHighlights를 채울 것.
+
+[말하지 않은 신호(unspokenSignals) — ★★★ 가장 분석적인 섹션]
+- 이 섹션은 브리핑에서 가장 깊은 분석적 사고가 필요한 곳. 표면적 정보가 아닌 데이터 행간에서 추론해야 함.
+- 사업·전략·시장·고객·경쟁 관점의 신호만 작성. 운영·관리적 부재(OKR 미설정, KPT 미작성, 데이터 부족 등)는 신호가 아님 — 절대 포함 금지.
+- 좋은 예: "고객사 확보 없이 기술 개발에만 3개월 투자 중", "매출 목표 대비 파이프라인이 10%에 불과", "핵심 인력 이탈 후 제품 로드맵 공백"
+- 나쁜 예: "OKR 미설정 상태", "KPT 회고 미작성", "데이터 부족으로 분석 불가"
+- 2~4건을 작성하되, 각 신호의 hypothesis에 "왜 이것이 사업적으로 위험한지" 인과관계를 명확히 서술할 것.
+- 멘토링 회의록, KPT, OKR, Slack 등 복수 소스를 교차 분석하여 단일 소스에서 보이지 않는 패턴을 발견할 것.
 
 [전담멘토 vs 전문가 리소스 구분 — ★ 필수]
 - "전담멘토"는 별도의 리소스 요청 없이 멘토 미팅·점검 미팅 형태로 운영됨.
