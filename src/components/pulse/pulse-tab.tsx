@@ -140,133 +140,140 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
     <div>
       <div className="mb-8">
         <h2 className="text-xl font-bold tracking-tight">배치 타임라인</h2>
-        <div className="flex items-center gap-2 mt-1">
-          <p className="text-[13px] text-muted-foreground">
-            {milestones.length > 0
-              ? `총 ${milestones.length}건의 활동 기록`
-              : "기록이 없습니다"}
-          </p>
-          {aiLoading && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 px-2.5 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-              AI 요약 생성 중…
-            </span>
-          )}
-          {aiData && !aiLoading && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              AI 요약 적용됨
-            </span>
-          )}
-        </div>
+        <p className="text-[13px] text-muted-foreground mt-1">
+          {milestones.length > 0
+            ? `총 ${milestones.length}건의 활동 기록`
+            : "기록이 없습니다"}
+        </p>
       </div>
 
       {yearGroups.length > 0 ? (
-        <div>
-          {yearGroups.map((yg, yi) => (
-            <div key={yg.year}>
-              {/* ── 연도 헤더 ── */}
-              {yi > 0 && <div className="h-px bg-border mt-8 mb-6" />}
-              <h3 className="text-[15px] font-bold mb-5">{yg.year}년</h3>
+        <div className="relative">
 
-              {yg.months.map((mg, mi) => (
-                <section key={mg.monthKey} className={mi > 0 ? "mt-6" : ""}>
-                  {/* 월 헤더 */}
-                  <p className="text-[12px] font-medium text-muted-foreground/70 mb-3">{mg.month}</p>
-
-                  {/* 항목 리스트 */}
-                  <div className="space-y-4">
-                    {mg.items.map((m, i) => {
-                      const isHighlight = m.isHighlight || HIGHLIGHT_CATEGORIES.has(m.category);
-                      const label = CATEGORY_LABEL[m.category] || m.category;
-                      const badgeStyle = CATEGORY_BADGE[m.category];
-
-                      // AI 데이터가 있으면 topic(제목 교체) + summary(요약 교체)
-                      const ai = aiData?.[m.globalIndex];
-                      // AI 대상 항목인지 (rawText가 충분히 긴 항목)
-                      const isAiTarget = m.rawText && m.rawText.length > 20;
-                      // AI 로딩 중이고 아직 이 항목의 AI 결과가 없으면 요약 숨김
-                      const waitingForAi = aiLoading && isAiTarget && !ai;
-
-                      const displayTitle = (ai?.topic && ai.topic.length > 3) ? ai.topic : m.title;
-
-                      let mainSummary = "";
-                      let followUp = "";
-
-                      if (ai?.summary) {
-                        // AI 요약에서 "→" 후속 분리
-                        const aiLines = ai.summary.split("\n");
-                        mainSummary = aiLines.filter((l) => !l.startsWith("→")).join(" ").trim();
-                        followUp = aiLines.filter((l) => l.startsWith("→")).join(" ").trim();
-                      } else if (!waitingForAi && m.summary) {
-                        // AI 로딩 대기 중이 아닐 때만 기존 요약 표시
-                        const lines = m.summary.split("\n");
-                        mainSummary = lines.filter((l) => !l.startsWith("→")).join(" ").trim();
-                        followUp = lines.filter((l) => l.startsWith("→")).join(" ").trim();
-                      }
-                      if (!mainSummary && !waitingForAi && isHighlight && m.detail && m.detail !== m.title) {
-                        mainSummary = m.detail;
-                      }
-
-                      return (
-                        <div key={`${mg.monthKey}-${i}`}>
-                          {/* 첫 줄: 날짜 배지 + 카테고리 배지 + 제목 */}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="inline-flex items-center rounded-md border border-border px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground font-medium">
-                              {formatDate(m.date)}
-                            </span>
-                            <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
-                              badgeStyle || "text-muted-foreground bg-muted/50"
-                            }`}>
-                              {label}
-                            </span>
-                            <span className={`text-[13px] leading-snug ${isHighlight ? "font-semibold" : ""}`}>
-                              {displayTitle}
-                            </span>
-                          </div>
-
-                          {/* AI 로딩 중 스켈레톤 */}
-                          {waitingForAi && (
-                            <div className="mt-1.5 pl-3 flex items-center gap-2">
-                              <span className="text-muted-foreground/30 mr-1">•</span>
-                              <div className="h-3 w-2/3 rounded bg-muted/50 animate-pulse" />
-                            </div>
-                          )}
-
-                          {/* 요약 (불릿 형식) — AI 완료 시 페이드인 */}
-                          {mainSummary && (
-                            <p className={`text-[12.5px] text-foreground/70 dark:text-foreground/65 leading-relaxed mt-1.5 pl-3 break-keep transition-all duration-500 ${
-                              ai ? "animate-fade-in" : ""
-                            }`}>
-                              <span className="text-muted-foreground/60 mr-1">•</span>
-                              {mainSummary}
-                            </p>
-                          )}
-
-                          {/* 후속 액션 (불릿 형식) */}
-                          {followUp && (
-                            <p className="text-[12px] text-foreground/50 dark:text-foreground/40 leading-relaxed mt-0.5 pl-3 break-keep">
-                              <span className="text-muted-foreground/40 mr-1">→</span>
-                              {followUp.replace(/^→\s*/, "")}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })}
+          {/* ── AI 로딩 오버레이: 블러 + 배너 ── */}
+          {aiLoading && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center">
+              {/* 상단 배너 */}
+              <div className="sticky top-4 z-20 mb-4">
+                <div className="inline-flex items-center gap-3 rounded-2xl border border-blue-200 bg-white/95 dark:border-blue-800 dark:bg-gray-900/95 px-5 py-3 shadow-lg backdrop-blur-sm">
+                  <div className="relative flex items-center justify-center">
+                    <span className="absolute inline-flex h-5 w-5 rounded-full bg-blue-400/30 animate-ping" />
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-blue-500" />
                   </div>
-                </section>
-              ))}
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">AI 요약 생성 중</p>
+                    <p className="text-xs text-muted-foreground">잠시만 기다리면 더 정제된 타임라인이 표시됩니다</p>
+                  </div>
+                </div>
+              </div>
+              {/* 블러 배경 (클릭 통과 방지) */}
+              <div className="absolute inset-0 rounded-xl bg-background/40 backdrop-blur-[3px]" />
             </div>
-          ))}
-
-          {!showAll && milestones.length > INITIAL_COUNT && (
-            <button
-              onClick={() => setShowAll(true)}
-              className="w-full mt-8 py-3 text-[13px] font-medium text-muted-foreground border border-border rounded-xl transition-colors hover:bg-muted/30"
-            >
-              전체 보기 ({milestones.length - INITIAL_COUNT}건 더)
-            </button>
           )}
+
+          {/* ── AI 완료 배너 ── */}
+          {aiData && !aiLoading && (
+            <div className="mb-6 animate-fade-in">
+              <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2">
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">AI 요약이 적용되었습니다</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── 타임라인 본문 ── */}
+          <div className={aiLoading ? "select-none" : ""}>
+            {yearGroups.map((yg, yi) => (
+              <div key={yg.year}>
+                {/* ── 연도 헤더 ── */}
+                {yi > 0 && <div className="h-px bg-border mt-8 mb-6" />}
+                <h3 className="text-[15px] font-bold mb-5">{yg.year}년</h3>
+
+                {yg.months.map((mg, mi) => (
+                  <section key={mg.monthKey} className={mi > 0 ? "mt-6" : ""}>
+                    {/* 월 헤더 */}
+                    <p className="text-[12px] font-medium text-muted-foreground/70 mb-3">{mg.month}</p>
+
+                    {/* 항목 리스트 */}
+                    <div className="space-y-4">
+                      {mg.items.map((m, i) => {
+                        const isHighlight = m.isHighlight || HIGHLIGHT_CATEGORIES.has(m.category);
+                        const label = CATEGORY_LABEL[m.category] || m.category;
+                        const badgeStyle = CATEGORY_BADGE[m.category];
+
+                        // AI 데이터가 있으면 topic(제목 교체) + summary(요약 교체)
+                        const ai = aiData?.[m.globalIndex];
+                        const displayTitle = (ai?.topic && ai.topic.length > 3) ? ai.topic : m.title;
+
+                        let mainSummary = "";
+                        let followUp = "";
+
+                        if (ai?.summary) {
+                          // AI 요약에서 "→" 후속 분리
+                          const aiLines = ai.summary.split("\n");
+                          mainSummary = aiLines.filter((l) => !l.startsWith("→")).join(" ").trim();
+                          followUp = aiLines.filter((l) => l.startsWith("→")).join(" ").trim();
+                        } else if (m.summary) {
+                          const lines = m.summary.split("\n");
+                          mainSummary = lines.filter((l) => !l.startsWith("→")).join(" ").trim();
+                          followUp = lines.filter((l) => l.startsWith("→")).join(" ").trim();
+                        }
+                        if (!mainSummary && isHighlight && m.detail && m.detail !== m.title) {
+                          mainSummary = m.detail;
+                        }
+
+                        return (
+                          <div key={`${mg.monthKey}-${i}`}>
+                            {/* 첫 줄: 날짜 배지 + 카테고리 배지 + 제목 */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="inline-flex items-center rounded-md border border-border px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground font-medium">
+                                {formatDate(m.date)}
+                              </span>
+                              <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+                                badgeStyle || "text-muted-foreground bg-muted/50"
+                              }`}>
+                                {label}
+                              </span>
+                              <span className={`text-[13px] leading-snug ${isHighlight ? "font-semibold" : ""}`}>
+                                {displayTitle}
+                              </span>
+                            </div>
+
+                            {/* 요약 (불릿 형식) — AI 완료 시 페이드인 */}
+                            {mainSummary && (
+                              <p className={`text-[12.5px] text-foreground/70 dark:text-foreground/65 leading-relaxed mt-1.5 pl-3 break-keep ${
+                                ai ? "animate-fade-in" : ""
+                              }`}>
+                                <span className="text-muted-foreground/60 mr-1">•</span>
+                                {mainSummary}
+                              </p>
+                            )}
+
+                            {/* 후속 액션 (불릿 형식) */}
+                            {followUp && (
+                              <p className="text-[12px] text-foreground/50 dark:text-foreground/40 leading-relaxed mt-0.5 pl-3 break-keep">
+                                <span className="text-muted-foreground/40 mr-1">→</span>
+                                {followUp.replace(/^→\s*/, "")}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ))}
+
+            {!showAll && milestones.length > INITIAL_COUNT && (
+              <button
+                onClick={() => setShowAll(true)}
+                className="w-full mt-8 py-3 text-[13px] font-medium text-muted-foreground border border-border rounded-xl transition-colors hover:bg-muted/30"
+              >
+                전체 보기 ({milestones.length - INITIAL_COUNT}건 더)
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <div className="py-16 text-center">
