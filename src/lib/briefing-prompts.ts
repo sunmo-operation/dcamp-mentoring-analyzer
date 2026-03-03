@@ -56,7 +56,7 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 
 [환각 방지 — ★★ 최우선 절대 엄수]
 - 투자 라운드(Pre-A, Series A, B 등), 투자 금액, 누적 투자액: 제공된 "투자 단계" 필드 값만 인용 가능. 데이터에 없는 라운드·금액·회차 정보 생성 시 심각한 오류로 간주.
-- 정량 지표(매출, MAU, 전환율, 성장률, ARR, MRR 등): 노션 OKR·KPT·멘토링 요약에 명시된 수치만 직접 인용. 추정·보간·외삽 절대 금지.
+- 정량 지표(매출, MAU, 전환율, 성장률, ARR, MRR 등): 노션 Objective·KPT·멘토링 요약에 명시된 수치만 직접 인용. 추정·보간·외삽 절대 금지.
 - 멘토링 회차: 실제 제공된 세션 목록의 건수만 언급. "N회차" 표현 시 데이터와 반드시 일치.
 - 전문가 요청: 제공된 전문가 요청 데이터가 0건이면, 전문가 요청 관련 내용을 절대 생성하지 말 것. "전문가 요청 없음"으로만 처리.
 - 팀 규모·설립일·산업 분야 등 기업 기본 정보: 제공된 값만 사용. 웹 검색·사전 지식으로 보강 금지.
@@ -67,7 +67,7 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 2. 배치 대시보드 KPT 회고: 팀이 직접 작성한 1차 데이터. ★ 팀 자체 평가로서 최고 신뢰도. Keep/Problem/Try를 반드시 깊이 분석할 것.
 3. 전문가 요청/결과보고: 리소스 니즈·실행력 핵심 소스.
 4. 팀 펄스 (Pulse Tracker): 멘토링 정기성, 전담멘토 관계, 전문가 활용도.
-5. OKR·KPI: 정량 진척도. KPT와 교차 검증하여 "말 vs 실제" 갭 탐색.
+5. Objective·KPI: 정량 진척도. KPT와 교차 검증하여 "말 vs 실제" 갭 탐색.
 6. Slack 채널 대화: 실시간 맥락 보완. 다른 소스와 교차 검증 용도.
 - 노션 수치(매출, MAU, 전환율)는 원본 숫자 직접 인용. 추정 금지.
 - KPT Problem + 멘토링 반복 이슈 중복 → 구조적 문제로 격상.
@@ -110,7 +110,7 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
     {
       "shift": "(최대 40자. 최근 긍정적으로 바뀌고 있는 변화. ~임/~함 종결)",
       "evidence": "(최대 60자. 구체적 수치/근거/데이터. ~임/~함 종결. 전문 용어(뜻풀이) 필수)",
-      "detectedFrom": "(최대 20자. 소스: 멘토링/KPT/OKR 등)",
+      "detectedFrom": "(최대 20자. 소스: 멘토링/KPT/Objective 등)",
       "impactArea": "전략|마케팅|영업|제품|기술|HR·조직|재무|운영|멘토링"
     }
   ],
@@ -163,7 +163,7 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 - repeatedAdvice/ignoredAdvice: 각 항목 1줄씩만
 
 [긍정적 변화 분석 원칙 — ★ 필수]
-- KPT Keep, OKR 달성률 향상, 멘토링에서 언급된 개선 성과를 기반으로 도출
+- KPT Keep, Objective 달성률 향상, 멘토링에서 언급된 개선 성과를 기반으로 도출
 - "이전 대비" 비교 관점 필수: 과거 → 현재 변화 방향성
 - 팀이 스스로 만들어낸 성과에 집중 (외부 환경 변화가 아닌 내부 실행력)
 - 데이터 없으면 빈 배열 []. 억지로 긍정적으로 포장 금지.
@@ -185,7 +185,7 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 - 좋은 예: "고객사 확보 없이 기술 개발에만 3개월 투자 중", "매출 목표 대비 파이프라인이 10%에 불과", "핵심 인력 이탈 후 제품 로드맵 공백"
 - 나쁜 예: "OKR 미설정 상태", "KPT 회고 미작성", "데이터 부족으로 분석 불가"
 - 2~4건을 작성하되, 각 신호의 hypothesis에 "왜 이것이 사업적으로 위험한지" 인과관계를 명확히 서술할 것.
-- 멘토링 회의록, KPT, OKR, Slack 등 복수 소스를 교차 분석하여 단일 소스에서 보이지 않는 패턴을 발견할 것.
+- 멘토링 회의록, KPT, Objective, Slack 등 복수 소스를 교차 분석하여 단일 소스에서 보이지 않는 패턴을 발견할 것.
 
 [전담멘토 vs 전문가 리소스 구분 — ★ 필수]
 - "전담멘토"는 별도의 리소스 요청 없이 멘토 미팅·점검 미팅 형태로 운영됨.
@@ -548,7 +548,7 @@ export function buildBriefingUserPrompt(
   if (company.growthStageRaw) companyFields.push(`- 성장 단계: ${company.growthStageRaw}`);
   if (company.marketSize) companyFields.push(`- 시장 규모: ${company.marketSize}`);
   if (company.website) companyFields.push(`- 웹사이트: ${company.website}`);
-  if (company.achievementRate !== undefined) companyFields.push(`- OKR 달성율: ${company.achievementRate}%`);
+  if (company.achievementRate !== undefined) companyFields.push(`- Objective 달성율: ${company.achievementRate}%`);
   // 전담멘토 정보 (AI가 전문가 리소스 요청과 구분할 수 있도록)
   if (company.excel?.dedicatedMentor) companyFields.push(`- 전담멘토: ${company.excel.dedicatedMentor} (★ 전담멘토는 리소스 요청이 아닌 멘토링 세션으로 운영)`);
 
@@ -570,7 +570,7 @@ export function buildBriefingUserPrompt(
 ## 기업 기본 정보 (Notion DB 최신 데이터 — 화면에 이미 표시됨, 브리핑에 반복 금지)
 ${companyFields.join("\n")}
 ${batchSection}
-## OKR 현황
+## Objective / KPI 현황
 ### 성과지표 항목 (${okrItems.length}건)
 ${formatOkrItems(okrItems)}
 
@@ -610,7 +610,7 @@ ${slackMessages
 - 멘토링 세션: 총 ${sorted.length}건${sorted.length > 0 ? ` (최초 ${sorted[sorted.length - 1].date} ~ 최근 ${sorted[0].date})` : ""}
 - 전문가 요청: 총 ${expertRequests.length}건${expertRequests.length === 0 ? " — 전문가 요청 관련 서술 금지" : ""}
 - KPT 회고: 총 ${kptReviews.length}건${kptReviews.length === 0 ? " — KPT 관련 서술 금지" : ""}
-- OKR 항목/측정: ${okrItems.length}건 / ${okrValues.length}건${coachingRecords ? `\n- 코칭 기록: 플랜 ${coachingRecords.coachingPlans.length}건, 세션 ${coachingRecords.sessions.length}건, 전문가 투입 ${coachingRecords.expertDeployments.length}건 (제공된 기록만 인용 가능)` : ""}
+- Objective/KPI 항목/측정: ${okrItems.length}건 / ${okrValues.length}건${coachingRecords ? `\n- 코칭 기록: 플랜 ${coachingRecords.coachingPlans.length}건, 세션 ${coachingRecords.sessions.length}건, 전문가 투입 ${coachingRecords.expertDeployments.length}건 (제공된 기록만 인용 가능)` : ""}
 - 위에 제공되지 않은 정량 수치(매출액, MAU, 전환율 등)를 자체 생성하면 환각(hallucination)으로 간주.
 
 [지시사항]
@@ -627,7 +627,7 @@ ${slackMessages
 - 멘토링 회의록과 KPT 회고가 브리핑의 핵심 축. 이 데이터에서 인사이트를 먼저 도출할 것.
 - KPT 회고(특히 배치 대시보드의 KPT)는 팀이 직접 작성한 1차 데이터로 가장 신뢰도 높음. Keep/Problem/Try를 반드시 깊이 분석하고 kptHighlights에 반영할 것.
 - 팀 펄스 데이터(멘토링 정기성, 전담멘토 관계, 전문가 활용도)가 제공되면 meetingStrategy와 mentorInsights에 반영할 것.
-- OKR 정량 데이터는 KPT와 교차 검증하여 "말 vs 실제" 갭을 탐색. 데이터가 충분할 때만 okrDiagnosis 채우고, 그 외 null.
+- Objective/KPI 정량 데이터는 KPT와 교차 검증하여 "말 vs 실제" 갭을 탐색. 데이터가 충분할 때만 okrDiagnosis 채우고, 그 외 null. "OKR 미설정"이라는 표현 금지 — Objective 또는 KPI 기준으로 서술할 것.
 - 노션 데이터의 정량적 수치(매출, DAU, 전환율 등)는 원본 그대로 인용.
 - 전문가 요청과 멘토링 내용을 교차 분석하여 인사이트 도출. 단, 전담멘토 활동은 리소스 요청이 아닌 멘토링으로 취급.
 - 멘토링 행간에서 unspokenSignals를 추론.

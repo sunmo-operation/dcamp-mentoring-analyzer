@@ -167,7 +167,7 @@ function buildAnalystSection(report: AnalystReport): string {
 
   // 5. OKR 분석
   if (report.okrAnalysis.overallRate != null) {
-    sections.push(`\n### OKR 달성율: ${report.okrAnalysis.overallRate}%`);
+    sections.push(`\n### Objective 달성율: ${report.okrAnalysis.overallRate}%`);
     if (report.okrAnalysis.hasGap) {
       sections.push(`- ⚠ ${report.okrAnalysis.gapDetail}`);
     }

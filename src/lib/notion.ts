@@ -409,6 +409,24 @@ export async function extractPageText(pageId: string): Promise<string> {
           if (text) textBlocks.push(text);
         }
       }
+
+      // table 블록: 자식 table_row 블록에서 셀 텍스트 추출
+      if (type === "table" && b.has_children) {
+        try {
+          const tableRes = await notion.blocks.children.list({ block_id: b.id as string, page_size: 100 });
+          for (const row of (tableRes?.results ?? [])) {
+            const r = row as Props;
+            if (r?.type === "table_row" && r.table_row?.cells) {
+              const cells = (r.table_row.cells as { plain_text: string }[][])
+                .map((cell) => cell.map((t) => t.plain_text).join(""))
+                .filter(Boolean);
+              if (cells.length > 0) textBlocks.push(cells.join(" | "));
+            }
+          }
+        } catch {
+          // 테이블 자식 블록 조회 실패 시 무시
+        }
+      }
     }
 
     cursor = response.has_more

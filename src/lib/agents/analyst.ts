@@ -359,11 +359,11 @@ function assessDataGaps(packet: CompanyDataPacket): AnalystReport["dataGaps"] {
     gaps.push({ area: "KPT 회고", detail: "KPT 회고 기록 없음", severity: "medium" });
   }
 
-  // OKR 없음
+  // Objective/KPI 없음
   if (packet.okrItems.length === 0) {
-    gaps.push({ area: "OKR", detail: "OKR/성과지표 미설정", severity: "medium" });
+    gaps.push({ area: "Objective", detail: "Objective/KPI 미설정", severity: "low" });
   } else if (packet.okrValues.length === 0) {
-    gaps.push({ area: "OKR 측정값", detail: "성과지표는 있으나 측정값 미입력", severity: "medium" });
+    gaps.push({ area: "Objective 측정값", detail: "성과지표는 있으나 측정값 미입력", severity: "low" });
   }
 
   // 전문가 요청 없음 (참고용)
