@@ -41,10 +41,43 @@ export function generateAnalystReport(packet: CompanyDataPacket): AnalystReport 
 // ── OKR 진척 분석 ──────────────────────────────
 
 function analyzeOkr(packet: CompanyDataPacket): AnalystReport["okrAnalysis"] {
-  const { okrItems, okrValues, company } = packet;
+  const { okrItems, okrValues, company, batchData } = packet;
 
+  // 전용 OKR DB에 데이터가 없으면 배치 대시보드 데이터 활용
   if (okrItems.length === 0) {
-    return { overallRate: null, objectives: [], hasGap: false };
+    const batchEntries = batchData?.okrEntries || [];
+    if (batchEntries.length === 0) {
+      return { overallRate: null, objectives: [], hasGap: false };
+    }
+
+    // 배치 대시보드 OKR 엔트리를 objectives로 변환
+    const objectives = batchEntries.map((entry) => {
+      const rate = entry.currentValue != null && entry.targetValue != null && entry.targetValue > 0
+        ? Math.round((entry.currentValue / entry.targetValue) * 100)
+        : null;
+      return {
+        name: entry.objective,
+        level: "오브젝티브",
+        achievementRate: rate,
+        achieved: rate != null && rate >= 100,
+        hasValues: entry.currentValue != null,
+        latestValue: entry.currentValue ?? undefined,
+        targetValue: entry.targetValue ?? undefined,
+      };
+    });
+
+    const overallRate = company.achievementRate ?? (
+      objectives.filter((o) => o.achievementRate != null).length > 0
+        ? Math.round(
+            objectives
+              .filter((o) => o.achievementRate != null)
+              .reduce((sum, o) => sum + (o.achievementRate ?? 0), 0) /
+            objectives.filter((o) => o.achievementRate != null).length
+          )
+        : null
+    );
+
+    return { overallRate, objectives, hasGap: false };
   }
 
   // 각 OKR item에 최신 측정값 매핑
@@ -354,15 +387,18 @@ function assessDataGaps(packet: CompanyDataPacket): AnalystReport["dataGaps"] {
     }
   }
 
-  // KPT 없음
-  if (packet.kptReviews.length === 0) {
+  // KPT 없음 (배치 블록 콘텐츠에 있으면 경미하게 처리)
+  const batchHasKptContent = (packet.batchData?.okrEntries || [])
+    .some((e) => e.blockContent && e.blockContent.length > 50);
+  if (packet.kptReviews.length === 0 && !batchHasKptContent) {
     gaps.push({ area: "KPT 회고", detail: "KPT 회고 기록 없음", severity: "medium" });
   }
 
-  // Objective/KPI 없음
-  if (packet.okrItems.length === 0) {
+  // Objective/KPI 없음 (배치 대시보드에 있으면 gap으로 보고하지 않음)
+  const batchHasOkr = (packet.batchData?.okrEntries || []).length > 0;
+  if (packet.okrItems.length === 0 && !batchHasOkr) {
     gaps.push({ area: "Objective", detail: "Objective/KPI 미설정", severity: "low" });
-  } else if (packet.okrValues.length === 0) {
+  } else if (packet.okrItems.length > 0 && packet.okrValues.length === 0) {
     gaps.push({ area: "Objective 측정값", detail: "성과지표는 있으나 측정값 미입력", severity: "low" });
   }
 
