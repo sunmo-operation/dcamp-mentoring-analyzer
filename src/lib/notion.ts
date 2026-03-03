@@ -1101,7 +1101,10 @@ export async function getBatchOkrData(batchLabel: string): Promise<BatchOkrEntry
             objective = getText(props, key) || "";
           } else if (val.type === "number") {
             const lowerKey = key.toLowerCase();
-            if (lowerKey.includes("현재") || lowerKey.includes("current")) {
+            if (lowerKey.includes("달성")) {
+              // "달성 현황", "달성율" 등 — 별도 처리 (currentValue/targetValue 아님)
+              // 달성율은 formatBatchOkrData에서 계산하므로 skip
+            } else if (lowerKey.includes("현재") || lowerKey.includes("현황") || lowerKey.includes("current")) {
               currentValue = getNumber(props, key) ?? null;
             } else if (lowerKey.includes("목표") || lowerKey.includes("target")) {
               targetValue = getNumber(props, key) ?? null;
