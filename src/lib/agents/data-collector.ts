@@ -13,6 +13,8 @@ import {
   getCompanyBatchDashboardData,
 } from "@/lib/data";
 import { getCoachingRecordsByName } from "@/lib/coaching-data";
+import { getSlackMessages } from "@/lib/slack";
+import type { SlackMessage } from "@/lib/slack";
 
 /**
  * 기업의 모든 데이터를 수집하여 표준 패킷으로 반환
@@ -33,11 +35,20 @@ export async function collectCompanyData(
 
   if (!allData) return null;
 
-  // 배치 대시보드 (타임아웃 8초)
-  const batchData = await Promise.race([
-    getCompanyBatchDashboardData(allData.company),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
-  ]).catch(() => null);
+  // 배치 대시보드 + Slack 메시지를 병렬 수집
+  const [batchData, slackMessages] = await Promise.all([
+    Promise.race([
+      getCompanyBatchDashboardData(allData.company),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+    ]).catch(() => null),
+    // Slack: 채널 ID가 있으면 메시지 수집, 5초 타임아웃
+    allData.company.slackChannelId
+      ? Promise.race([
+          getSlackMessages(allData.company.slackChannelId),
+          new Promise<SlackMessage[]>((resolve) => setTimeout(() => resolve([]), 5000)),
+        ]).catch(() => [] as SlackMessage[])
+      : Promise.resolve([] as SlackMessage[]),
+  ]);
 
   // 엑셀 코칭 기록 (로컬 JSON, 즉시 반환)
   const coachingRecords = getCoachingRecordsByName(allData.company.name);
@@ -52,17 +63,19 @@ export async function collectCompanyData(
     okrValues,
     batchData,
     coachingRecords,
+    slackMessages,
     collectedAt: new Date().toISOString(),
   };
 
   const coachingSummary = coachingRecords
     ? `코칭(플랜${coachingRecords.coachingPlans.length}/세션${coachingRecords.sessions.length}/투입${coachingRecords.expertDeployments.length})`
     : "코칭 없음";
+  const slackSummary = slackMessages.length > 0 ? `Slack ${slackMessages.length}건` : "Slack 없음";
   console.log(
     `[DataCollector] ${allData.company.name}: ` +
     `세션 ${packet.sessions.length}, KPT ${packet.kptReviews.length}, ` +
     `OKR ${packet.okrItems.length}항목/${packet.okrValues.length}값, ` +
-    `전문가요청 ${packet.expertRequests.length}, ${coachingSummary} (${Date.now() - t0}ms)`
+    `전문가요청 ${packet.expertRequests.length}, ${coachingSummary}, ${slackSummary} (${Date.now() - t0}ms)`
   );
 
   return packet;

@@ -15,6 +15,7 @@ import type {
   BatchDashboardData,
 } from "@/types";
 import type { CompanyCoachingRecords } from "@/lib/coaching-data";
+import type { SlackMessage } from "@/lib/slack";
 
 /**
  * Data Collector 출력 — 모든 에이전트의 공통 입력
@@ -30,6 +31,7 @@ export interface CompanyDataPacket {
   okrValues: OkrValue[];
   batchData: BatchDashboardData | null;
   coachingRecords: CompanyCoachingRecords | null;
+  slackMessages: SlackMessage[];
   collectedAt: string;
 }
 

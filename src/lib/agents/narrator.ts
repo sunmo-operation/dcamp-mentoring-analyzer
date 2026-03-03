@@ -51,11 +51,12 @@ function buildEnhancedUserPrompt(
 ): string {
   const { company, sessions, expertRequests, analyses, kptReviews, okrItems, okrValues, batchData } = packet;
 
-  // 기존 프롬프트를 기본으로 생성
+  // 기존 프롬프트를 기본으로 생성 (Slack 메시지 포함)
   const basePrompt = buildBriefingUserPrompt(
     company, sessions, expertRequests, analyses,
     kptReviews, okrItems, okrValues, batchData,
-    packet.coachingRecords
+    packet.coachingRecords,
+    packet.slackMessages
   );
 
   // Analyst 분석 결과 + Pulse 정성 평가를 추가 섹션으로 주입

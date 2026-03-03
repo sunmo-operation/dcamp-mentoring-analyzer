@@ -9,6 +9,7 @@ import type {
   BatchDashboardData,
 } from "@/types";
 import type { CompanyCoachingRecords } from "@/lib/coaching-data";
+import type { SlackMessage } from "@/lib/slack";
 
 // ══════════════════════════════════════════════════
 // 브리핑 v4 — MBB 시니어 파트너 수준 진단 + 토큰 최소화
@@ -176,6 +177,18 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 - KPT 있으면 kptHighlights에 핵심만 요약. OKR+KPT 모두 없으면 okrDiagnosis 전체 null.
 - 멘토링 회의록과 전문가 요청이 브리핑의 주축. OKR/KPT는 보조 근거.
 
+[전담멘토 vs 전문가 리소스 구분 — ★ 필수]
+- "전담멘토"는 별도의 리소스 요청 없이 멘토 미팅·점검 미팅 형태로 운영됨.
+- 전담멘토 관련 활동(전담멘토 미팅, 점검미팅, 멘토미팅)은 "멘토링 세션"으로만 분류할 것.
+- "전문가 리소스 요청"은 전담멘토가 아닌 외부 전문가 투입·코칭 요청만 해당.
+- mentorInsights.currentExpertRequests에 전담멘토를 포함하지 말 것.
+- 전담멘토 이름이 company info에 명시되어 있으면, 해당 인물의 활동을 리소스 요청이 아닌 멘토링 활동으로 처리할 것.
+
+[Slack 컨텍스트 활용]
+- Slack 채널 메시지가 제공되면, 기존 섹션(executiveSummary, repeatPatterns, unspokenSignals, pmActions 등)에 자연스럽게 녹여 분석할 것.
+- Slack 데이터를 별도 섹션으로 분리하지 말 것. 멘토링·KPT 등 다른 소스와 교차 검증하여 인사이트를 강화하는 용도로 사용.
+- Slack에서만 발견되는 새로운 이슈가 있다면 해당 섹션(repeatPatterns, unspokenSignals 등)에 포함.
+
 [디캠프 리소스 주의]
 - dcamp 리소스 상태에 확정적 판단 금지. "데이터 기준 ~로 판단됨", "확인 필요" 사용.`;
 
@@ -250,11 +263,21 @@ export function formatOlderSessionsBrief(sessions: MentoringSession[]): string {
     .join("\n");
 }
 
+// 전담멘토 관련 키워드 — 전문가 리소스 요청에서 제외
+const DEDICATED_MENTOR_KEYWORDS = ["전담멘토", "전담 멘토", "점검미팅", "점검 미팅", "멘토미팅", "멘토 미팅"];
+
+function isDedicatedMentorRequest(request: ExpertRequest): boolean {
+  const searchText = [request.title, request.oneLiner, request.problem].filter(Boolean).join(" ");
+  return DEDICATED_MENTOR_KEYWORDS.some((kw) => searchText.includes(kw));
+}
+
 export function formatExpertRequests(requests: ExpertRequest[]): string {
-  if (requests.length === 0) return "전문가 요청 없음";
+  // 전담멘토 관련 요청은 제외 (멘토링 세션으로 분류)
+  const filtered = requests.filter((r) => !isDedicatedMentorRequest(r));
+  if (filtered.length === 0) return "전문가 요청 없음";
 
   // 최대 5건만 (프롬프트 축소)
-  return requests
+  return filtered
     .slice(0, 5)
     .map((r) => {
       const date = r.requestedAt?.split("T")[0] || "날짜 미상";
@@ -474,7 +497,8 @@ export function buildBriefingUserPrompt(
   okrItems: OkrItem[],
   okrValues: OkrValue[],
   batchData?: BatchDashboardData | null,
-  coachingRecords?: CompanyCoachingRecords | null
+  coachingRecords?: CompanyCoachingRecords | null,
+  slackMessages?: SlackMessage[]
 ): string {
   const batchPeriod =
     company.batchStartDate && company.batchEndDate
@@ -515,6 +539,8 @@ export function buildBriefingUserPrompt(
   if (company.marketSize) companyFields.push(`- 시장 규모: ${company.marketSize}`);
   if (company.website) companyFields.push(`- 웹사이트: ${company.website}`);
   if (company.achievementRate !== undefined) companyFields.push(`- OKR 달성율: ${company.achievementRate}%`);
+  // 전담멘토 정보 (AI가 전문가 리소스 요청과 구분할 수 있도록)
+  if (company.excel?.dedicatedMentor) companyFields.push(`- 전담멘토: ${company.excel.dedicatedMentor} (★ 전담멘토는 리소스 요청이 아닌 멘토링 세션으로 운영)`);
 
   // 배치 대시보드 섹션 (데이터가 있을 때만 포함)
   let batchSection = "";
@@ -558,7 +584,17 @@ ${formatCoachingRecordsSection(coachingRecords)}
 ` : ""}
 ## AI 분석 결과 이력 (${analyses.length}건)
 ${formatAnalyses(analyses)}
-
+${slackMessages && slackMessages.length > 0 ? `
+## Slack 채널 최근 대화 (${slackMessages.length}건) — 기존 섹션에 녹여서 분석
+${slackMessages
+  .sort((a, b) => b.date.localeCompare(a.date))
+  .slice(0, 15)
+  .map((m) => {
+    const text = m.text.length > 200 ? m.text.slice(0, 197) + "..." : m.text;
+    return `- [${m.date}] ${text}`;
+  })
+  .join("\n")}
+` : ""}
 ## 데이터 가용성 선언 (★ 아래 범위 밖의 정보를 절대 생성하지 말 것)
 - 투자 단계: "${company.investmentStage || "정보 없음"}" ← 이 값만 인용 가능. 라운드명·금액·회차 추가 생성 절대 금지.
 - 멘토링 세션: 총 ${sorted.length}건${sorted.length > 0 ? ` (최초 ${sorted[sorted.length - 1].date} ~ 최근 ${sorted[0].date})` : ""}
@@ -582,7 +618,8 @@ ${formatAnalyses(analyses)}
 - 팀 펄스 데이터(멘토링 정기성, 전담멘토 관계, 전문가 활용도)가 제공되면 meetingStrategy와 mentorInsights에 반영할 것.
 - OKR/KPT 데이터는 있으면 보조 근거로 활용하되, 없거나 부실해도 브리핑 품질에 영향 없도록 할 것. okrDiagnosis는 데이터가 충분할 때만 채우고, 그 외 null.
 - 노션 데이터의 정량적 수치(매출, DAU, 전환율 등)는 원본 그대로 인용.
-- 전문가 요청과 멘토링 내용을 교차 분석하여 인사이트 도출.
+- 전문가 요청과 멘토링 내용을 교차 분석하여 인사이트 도출. 단, 전담멘토 활동은 리소스 요청이 아닌 멘토링으로 취급.
 - 멘토링 행간에서 unspokenSignals를 추론.
+- Slack 대화가 있으면 멘토링·KPT 등 다른 소스와 교차 검증하여 인사이트 강화. 별도 섹션으로 분리하지 말 것.
 - 최근 데이터가 부족한 경우, 그 사실을 명시하고 가용 데이터 범위를 언급할 것.`;
 }

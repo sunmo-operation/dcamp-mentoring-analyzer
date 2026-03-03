@@ -265,7 +265,8 @@ export async function POST(request: Request) {
 
         // 데이터 수집 결과 요약 — 검토 볼륨을 구체적으로 표시
         const totalTextLength = sessions.reduce((sum, s) => sum + (s.summary?.length || 0), 0);
-        const totalDocs = sessions.length + kptReviews.length + expertRequests.length + analyses.length + okrItems.length;
+        const slackCount = packet.slackMessages?.length || 0;
+        const totalDocs = sessions.length + kptReviews.length + expertRequests.length + analyses.length + okrItems.length + slackCount;
         const dateRange = sessions.length > 0
           ? `${sessions[sessions.length - 1]?.date?.slice(0, 7) || ""} ~ ${sessions[0]?.date?.slice(0, 7) || ""}`
           : "";
