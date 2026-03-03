@@ -8,14 +8,6 @@ import type { CompanyDataPacket, AnalystReport, PulseReport } from "./types";
 import {
   buildBriefingSystemPrompt,
   buildBriefingUserPrompt,
-  formatRecentSessionsGrouped,
-  formatOlderSessionsBrief,
-  formatExpertRequests,
-  formatAnalyses,
-  formatKptReviews,
-  formatOkrItems,
-  formatOkrValues,
-  truncate,
 } from "@/lib/briefing-prompts";
 
 /**
@@ -49,12 +41,11 @@ function buildEnhancedUserPrompt(
   report: AnalystReport,
   pulse?: PulseReport
 ): string {
-  const { company, sessions, expertRequests, analyses, kptReviews, okrItems, okrValues, batchData } = packet;
+  const { company, sessions, expertRequests, analyses } = packet;
 
   // 기존 프롬프트를 기본으로 생성 (Slack 메시지 포함)
   const basePrompt = buildBriefingUserPrompt(
     company, sessions, expertRequests, analyses,
-    kptReviews, okrItems, okrValues, batchData,
     packet.coachingRecords,
     packet.slackMessages
   );

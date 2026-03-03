@@ -3,10 +3,6 @@ import type {
   MentoringSession,
   ExpertRequest,
   AnalysisResult,
-  KptReview,
-  OkrItem,
-  OkrValue,
-  BatchDashboardData,
 } from "@/types";
 import type { CompanyCoachingRecords } from "@/lib/coaching-data";
 import type { SlackMessage } from "@/lib/slack";
@@ -64,13 +60,10 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 
 [데이터 가치 우선순위]
 1. 멘토링 회의록: PM/멘토 기록 현장 데이터. 맥락 풍부. ★ 브리핑의 핵심 근거.
-2. 배치 대시보드 KPT 회고: 팀이 직접 작성한 1차 데이터. ★ 팀 자체 평가로서 최고 신뢰도. Keep/Problem/Try를 반드시 깊이 분석할 것.
-3. 전문가 요청/결과보고: 리소스 니즈·실행력 핵심 소스.
-4. 팀 펄스 (Pulse Tracker): 멘토링 정기성, 전담멘토 관계, 전문가 활용도.
-5. Objective·KPI: 정량 진척도. KPT와 교차 검증하여 "말 vs 실제" 갭 탐색.
-6. Slack 채널 대화: 실시간 맥락 보완. 다른 소스와 교차 검증 용도.
+2. 전문가 요청/결과보고: 리소스 니즈·실행력 핵심 소스.
+3. 팀 펄스 (Pulse Tracker): 멘토링 정기성, 전담멘토 관계, 전문가 활용도.
+4. Slack 채널 대화: 실시간 맥락 보완. 다른 소스와 교차 검증 용도.
 - 노션 수치(매출, MAU, 전환율)는 원본 숫자 직접 인용. 추정 금지.
-- KPT Problem + 멘토링 반복 이슈 중복 → 구조적 문제로 격상.
 
 [분석 프레임워크]
 ① PMF 렌즈: 고객 데이터 vs 팀 가설 구분. "만들고 싶은 것" vs "돈 내고 살 것" 갭 지적.
@@ -94,17 +87,6 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
     "reportBody": "(줄바꿈\\n 구분 5~7건. 각 항목 최대 50자. ★ 멘토링·KPT·전문가요청에서 도출된 전략 인사이트·진행 현황·핵심 이슈만 기재. 회사 기본정보(투자단계·팀규모·산업 등) 기재 금지. 형식: 키워드: 인사이트. 전문 용어(뜻풀이) 필수)",
     "pmfStage": "pre-pmf | approaching | achieved | scaling",
     "vocStrength": "strong | moderate | weak"
-  },
-  "okrDiagnosis": {
-    "overallRate": "0~100 또는 null (Objective/KPI 달성율. KR은 관리하지 않으므로 Objective 또는 KPI 기준으로 산출)",
-    "objectives": [{"name": "(최대 30자. Objective 또는 KPI 명칭)", "achievementRate": 0, "achieved": false}],
-    "trendAnalysis": "(최대 80자. KPT/회고의 시계열적 변화 + Objective 목표 대비 진행 현황. 최근 이슈 강조. ~임/~함 종결)",
-    "metricVsNarrative": "(최대 60자 또는 null. ~임/~함 종결)",
-    "kptHighlights": {
-      "keep": "(최대 60자. 인사이트 중심. ~임/~함 종결. KPT 없으면 null)",
-      "problem": "(최대 60자. 구조적 원인 중심. ~임/~함 종결. KPT 없으면 null)",
-      "try": "(최대 60자. 전략적 판단. ~임/~함 종결. KPT 없으면 null)"
-    }
   },
   "positiveShifts": [
     {
@@ -163,25 +145,13 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 - repeatedAdvice/ignoredAdvice: 각 항목 1줄씩만
 
 [긍정적 변화 분석 원칙 — ★ 필수]
-- KPT Keep, Objective 달성률 향상, 멘토링에서 언급된 개선 성과를 기반으로 도출
+- 멘토링에서 언급된 개선 성과를 기반으로 도출
 - "이전 대비" 비교 관점 필수: 과거 → 현재 변화 방향성
 - 팀이 스스로 만들어낸 성과에 집중 (외부 환경 변화가 아닌 내부 실행력)
 - 데이터 없으면 빈 배열 []. 억지로 긍정적으로 포장 금지.
 
 [인사이트 분류 — 9개 중 하나]
 전략 / 마케팅 / 영업 / 제품 / 기술 / HR·조직 / 재무 / 운영 / 멘토링
-
-[Objective/KPI & KPT 규칙 — ★ KPT는 핵심 데이터]
-- **Objective**: 배치 목표 대비 달성 현황이 핵심. 목표 수치 대비 현재 어디까지 왔는지를 명확히 제시. 배치 대시보드의 목표/현황 데이터가 있으면 반드시 okrDiagnosis의 objectives, overallRate를 채울 것.
-- **KPT/회고**: 시계열적 변화를 분석할 것. 여러 회차의 KPT/회고를 비교해 어떤 변화가 있었는지 파악하고, 최근 이슈에 더 비중을 두어 분석.
-- trendAnalysis: KPT의 시간적 변화 흐름과 최근 이슈 중심으로 작성. "이전에는 A → 최근에는 B로 전환" 같은 변화 서술.
-- kptHighlights: 가장 최근 KPT에서 가장 임팩트 있는 내용 위주. 이전 KPT 대비 변화가 있으면 반드시 언급.
-- KPT 회고는 팀이 직접 작성한 1차 데이터로 최고 신뢰도. ★ 반드시 깊이 분석할 것.
-- KPT가 있으면 kptHighlights의 keep/problem/try를 반드시 채울 것. 배치 대시보드의 KPT 내용도 함께 참고.
-- KPT Problem 키워드가 멘토링에서도 반복되면 → repeatPatterns로 격상.
-- Objective/KPI 정량 데이터(배치 대시보드 포함)가 있으면 반드시 okrDiagnosis를 채울 것. 없으면 null. KR(Key Result)은 관리하지 않음.
-- KPT와 Objective/KPI를 교차 검증하여 "말 vs 실제" 갭 탐색.
-- Objective/KPI + KPT 모두 없으면 okrDiagnosis 전체 null. KPT만 있어도 okrDiagnosis에 kptHighlights를 채울 것.
 
 [말하지 않은 신호(unspokenSignals) — ★★★ 가장 분석적인 섹션]
 - 이 섹션은 브리핑에서 가장 깊은 분석적 사고가 필요한 곳. 표면적 정보가 아닌 데이터 행간에서 추론해야 함.
@@ -318,58 +288,6 @@ export function formatAnalyses(analyses: AnalysisResult[]): string {
     .join("\n");
 }
 
-export function formatKptReviews(reviews: KptReview[]): string {
-  if (reviews.length === 0) return "데이터 없음";
-
-  // 최대 3건만 (프롬프트 축소)
-  return reviews
-    .slice(0, 3)
-    .map((r) => {
-      const date = r.reviewDate || "날짜 미상";
-      const keep = r.keep ? truncate(r.keep, 200) : "없음";
-      const problem = r.problem ? truncate(r.problem, 200) : "없음";
-      const tryText = r.try ? truncate(r.try, 200) : "없음";
-      return `- [${date}]\n  Keep: ${keep}\n  Problem: ${problem}\n  Try: ${tryText}`;
-    })
-    .join("\n");
-}
-
-export function formatOkrItems(items: OkrItem[]): string {
-  if (items.length === 0) return "데이터 없음";
-
-  const order: Record<string, number> = { "오브젝티브": 0, "마일스톤": 1, "액션아이템": 2 };
-  // 최대 8건만 (프롬프트 축소)
-  const sorted = [...items].sort(
-    (a, b) => (order[a.level] ?? 9) - (order[b.level] ?? 9)
-  ).slice(0, 8);
-
-  return sorted
-    .map((item) => {
-      const rate = item.achievementRate !== undefined ? `${item.achievementRate}%` : "미측정";
-      const achieved = item.achieved ? "달성" : "미달성";
-      const deadline = item.deadline || "기한 없음";
-      const target = item.targetValue !== undefined ? `목표: ${item.targetValue}` : "";
-      return `- [${item.level}] ${item.name} / ${rate} (${achieved}) ${target} / 기한: ${deadline}`;
-    })
-    .join("\n");
-}
-
-export function formatOkrValues(values: OkrValue[]): string {
-  if (values.length === 0) return "데이터 없음";
-
-  // 최대 8건만 (프롬프트 축소)
-  return values
-    .slice(0, 8)
-    .map((v) => {
-      const period = v.periodMonth || v.period || "기간 미상";
-      const current = v.currentValue !== undefined ? v.currentValue : "없음";
-      const target = v.targetValue || "없음";
-      const level = v.level || "";
-      return `- [${period}] ${level ? `[${level}] ` : ""}현재: ${current} / 목표: ${target}`;
-    })
-    .join("\n");
-}
-
 // ── 코칭 기록 데이터 포맷 ────────────────────────────
 
 /**
@@ -468,37 +386,6 @@ export function formatCoachingRecordsSection(records: CompanyCoachingRecords): s
   return sections.join("\n\n");
 }
 
-// ── 배치 대시보드 데이터 포맷 ────────────────────────
-
-function formatBatchOkrData(data: BatchDashboardData): string {
-  if (data.okrEntries.length === 0) return "";
-
-  const lines = data.okrEntries.map((e) => {
-    const current = e.currentValue !== null ? e.currentValue.toLocaleString() : "미측정";
-    const target = e.targetValue !== null ? e.targetValue.toLocaleString() : "미설정";
-    let line = `- ${e.companyName}: ${e.objective} / 현황: ${current} / 목표: ${target}`;
-    // 블록 콘텐츠가 있으면 상세 정보 추가 (500자 제한)
-    if (e.blockContent) {
-      line += `\n  상세: ${truncate(e.blockContent, 500)}`;
-    }
-    return line;
-  });
-  return `### 오브젝티브 달성율\n${lines.join("\n")}`;
-}
-
-function formatBatchGrowthData(data: BatchDashboardData): string {
-  if (data.growthEntries.length === 0) return "";
-
-  const lines = data.growthEntries.map((e) => {
-    const rate = e.growthRate !== null
-      ? (e.growthRate >= 0 ? `+${e.growthRate}%` : `${e.growthRate}%`)
-      : "미측정";
-    const current = e.currentMonth !== null ? e.currentMonth.toLocaleString() : "없음";
-    return `- ${e.companyName}: ${e.metric} / 당월: ${current} / 성장률: ${rate}`;
-  });
-  return `### 전월 대비 성장률\n${lines.join("\n")}`;
-}
-
 /**
  * 사용자 프롬프트: 최근 60일 중심 + 유형별 구분 + 간략 타임라인
  */
@@ -507,10 +394,6 @@ export function buildBriefingUserPrompt(
   sessions: MentoringSession[],
   expertRequests: ExpertRequest[],
   analyses: AnalysisResult[],
-  kptReviews: KptReview[],
-  okrItems: OkrItem[],
-  okrValues: OkrValue[],
-  batchData?: BatchDashboardData | null,
   coachingRecords?: CompanyCoachingRecords | null,
   slackMessages?: SlackMessage[]
 ): string {
@@ -556,79 +439,6 @@ export function buildBriefingUserPrompt(
   // 전담멘토 정보 (AI가 전문가 리소스 요청과 구분할 수 있도록)
   if (company.excel?.dedicatedMentor) companyFields.push(`- 전담멘토: ${company.excel.dedicatedMentor} (★ 전담멘토는 리소스 요청이 아닌 멘토링 세션으로 운영)`);
 
-  // ── 배치 대시보드 데이터 분석 + Objective/KPT 섹션 구성 ──
-  const batchOkrEntries = batchData?.okrEntries || [];
-  const hasDedicatedOkr = okrItems.length > 0 || okrValues.length > 0;
-
-  // 배치 블록 콘텐츠에서 KPT 데이터 존재 여부 확인
-  const batchBlockContents = batchOkrEntries
-    .filter((e) => e.blockContent)
-    .map((e) => e.blockContent!)
-    .join("\n");
-  const hasBatchKpt = batchBlockContents.length > 50;
-
-  // Objective 섹션: 전용 DB 데이터 우선, 없으면 배치 대시보드 데이터 사용
-  let objectiveSection: string;
-  if (hasDedicatedOkr) {
-    objectiveSection = `## Objective / KPI 현황
-### 성과지표 항목 (${okrItems.length}건)
-${formatOkrItems(okrItems)}
-
-### 성과지표 측정값 (${okrValues.length}건)
-${formatOkrValues(okrValues)}`;
-  } else if (batchOkrEntries.length > 0) {
-    objectiveSection = `## Objective / KPI 현황 (배치 대시보드 기준 — ★ 이 데이터로 okrDiagnosis 반드시 작성)
-${formatBatchOkrData(batchData!)}`;
-  } else {
-    objectiveSection = `## Objective / KPI 현황
-데이터 없음`;
-  }
-
-  // KPT 섹션: 전용 DB 우선, 없으면 배치 블록 콘텐츠 참조 안내
-  let kptSection: string;
-  if (kptReviews.length > 0) {
-    kptSection = `## KPT 회고 (${kptReviews.length}건) — ★ 시계열적 변화 분석 필수, 최근 이슈 중점
-${formatKptReviews(kptReviews)}`;
-  } else if (hasBatchKpt) {
-    kptSection = `## KPT 회고 (배치 대시보드 상세 블록에 포함) — ★ 위 Objective 상세 블록 내 KPT 내용을 반드시 분석
-위 Objective 상세 블록 콘텐츠에 KPT/회고 내용이 포함되어 있음. 시계열적 변화를 분석하고 kptHighlights를 반드시 작성할 것.`;
-  } else {
-    kptSection = `## KPT 회고 (0건)
-데이터 없음`;
-  }
-
-  // 배치 대시보드 섹션: Objective가 이미 위로 이동된 경우 성장률만 별도 표시
-  let batchSection = "";
-  if (batchData) {
-    if (hasDedicatedOkr) {
-      // 전용 OKR 데이터 사용 중 → 배치 섹션에 OKR + 성장률 모두 포함 (참고용)
-      const okrSec = formatBatchOkrData(batchData);
-      const growthSec = formatBatchGrowthData(batchData);
-      if (okrSec || growthSec) {
-        batchSection = `\n## ${batchData.batchLabel} 배치 대시보드 현황\n${[okrSec, growthSec].filter(Boolean).join("\n\n")}\n`;
-      }
-    } else {
-      // 배치 OKR이 Objective 섹션으로 이동됨 → 성장률만 별도 섹션
-      const growthSec = formatBatchGrowthData(batchData);
-      if (growthSec) {
-        batchSection = `\n## ${batchData.batchLabel} 배치 대시보드 성장률\n${growthSec}\n`;
-      }
-    }
-  }
-
-  // 데이터 가용성 선언용
-  const effectiveOkrDesc = hasDedicatedOkr
-    ? `Objective/KPI 항목/측정: ${okrItems.length}건 / ${okrValues.length}건`
-    : batchOkrEntries.length > 0
-      ? `Objective/KPI: 배치 대시보드 기준 ${batchOkrEntries.length}건 (목표 대비 현황 데이터 있음 — okrDiagnosis 반드시 작성)`
-      : `Objective/KPI 항목/측정: 0건 / 0건`;
-
-  const effectiveKptDesc = kptReviews.length > 0
-    ? `KPT 회고: 총 ${kptReviews.length}건`
-    : hasBatchKpt
-      ? `KPT 회고: 전용 DB 0건, 배치 대시보드 블록 콘텐츠에 KPT/회고 포함 — 반드시 kptHighlights 작성`
-      : `KPT 회고: 총 0건 — KPT 관련 서술 금지`;
-
   const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
   return `## 오늘 날짜: ${today}
@@ -636,10 +446,6 @@ ${formatKptReviews(kptReviews)}`;
 
 ## 기업 기본 정보 (Notion DB 최신 데이터 — 화면에 이미 표시됨, 브리핑에 반복 금지)
 ${companyFields.join("\n")}
-${batchSection}
-${objectiveSection}
-
-${kptSection}
 
 ## 주요 멘토링 세션 (${recentSessions.length}건, 최근 3개월 우선) — 분석 핵심 근거
 ${formatRecentSessionsGrouped(recentSessions)}
@@ -669,9 +475,7 @@ ${slackMessages
 ## 데이터 가용성 선언 (★ 아래 범위 밖의 정보를 절대 생성하지 말 것)
 - 투자 단계: "${company.investmentStage || "정보 없음"}" ← 이 값만 인용 가능. 라운드명·금액·회차 추가 생성 절대 금지.
 - 멘토링 세션: 총 ${sorted.length}건${sorted.length > 0 ? ` (최초 ${sorted[sorted.length - 1].date} ~ 최근 ${sorted[0].date})` : ""}
-- 전문가 요청: 총 ${expertRequests.length}건${expertRequests.length === 0 ? " — 전문가 요청 관련 서술 금지" : ""}
-- ${effectiveKptDesc}
-- ${effectiveOkrDesc}${coachingRecords ? `\n- 코칭 기록: 플랜 ${coachingRecords.coachingPlans.length}건, 세션 ${coachingRecords.sessions.length}건, 전문가 투입 ${coachingRecords.expertDeployments.length}건 (제공된 기록만 인용 가능)` : ""}
+- 전문가 요청: 총 ${expertRequests.length}건${expertRequests.length === 0 ? " — 전문가 요청 관련 서술 금지" : ""}${coachingRecords ? `\n- 코칭 기록: 플랜 ${coachingRecords.coachingPlans.length}건, 세션 ${coachingRecords.sessions.length}건, 전문가 투입 ${coachingRecords.expertDeployments.length}건 (제공된 기록만 인용 가능)` : ""}
 - 위에 제공되지 않은 정량 수치(매출액, MAU, 전환율 등)를 자체 생성하면 환각(hallucination)으로 간주.
 
 [지시사항]
@@ -679,20 +483,17 @@ ${slackMessages
 
 ★ Executive Summary 핵심 규칙:
 - oneLiner: 멘토링/회의록에서 드러난 가장 임팩트 있는 현재 이슈를 한 문장으로. 회사 소개 금지.
-- reportBody: 멘토링·KPT·전문가요청에서 발견된 전략 인사이트, 핵심 진행 현황, 해결해야 할 이슈만. 기업 기본 정보(투자단계, 팀규모, 산업분야, 설립일 등) 절대 금지.
+- reportBody: 멘토링·전문가요청에서 발견된 전략 인사이트, 핵심 진행 현황, 해결해야 할 이슈만. 기업 기본 정보(투자단계, 팀규모, 산업분야, 설립일 등) 절대 금지.
 - 오늘(${today}) 기준 3개월 이상 지난 마일스톤은 "완료됨" 또는 "결과 추적 필요"로 처리. 과거 이벤트를 현재/미래처럼 서술 금지.
 
 일반 규칙:
 - 가장 최근 3회 미팅(세션)에 가장 높은 가중치를 두고 분석할 것. 그 외 세션은 맥락/추세 파악용.
 - 모든 날짜에 반드시 연도를 포함할 것 (예: 2025년 3월, 2026년 1월).
-- 멘토링 회의록과 KPT 회고가 브리핑의 핵심 축. 이 데이터에서 인사이트를 먼저 도출할 것.
-- KPT 회고(특히 배치 대시보드의 KPT)는 팀이 직접 작성한 1차 데이터로 가장 신뢰도 높음. Keep/Problem/Try를 반드시 깊이 분석하고 kptHighlights에 반영할 것.
+- 멘토링 회의록이 브리핑의 핵심 축. 이 데이터에서 인사이트를 먼저 도출할 것.
 - 팀 펄스 데이터(멘토링 정기성, 전담멘토 관계, 전문가 활용도)가 제공되면 meetingStrategy와 mentorInsights에 반영할 것.
-- Objective/KPI 정량 데이터(배치 대시보드 포함)가 있으면 okrDiagnosis를 반드시 작성. 배치 대시보드의 목표/현황이 있으면 이것이 곧 Objective 데이터임. "OKR 미설정"이라는 표현 금지 — Objective 또는 KPI 기준으로 서술할 것.
-- KPT/회고는 시계열적 변화를 분석: 과거 → 현재 어떻게 변했는지, 최근 이슈에 더 비중을 둘 것.
 - 노션 데이터의 정량적 수치(매출, DAU, 전환율 등)는 원본 그대로 인용.
 - 전문가 요청과 멘토링 내용을 교차 분석하여 인사이트 도출. 단, 전담멘토 활동은 리소스 요청이 아닌 멘토링으로 취급.
 - 멘토링 행간에서 unspokenSignals를 추론.
-- Slack 대화가 있으면 멘토링·KPT 등 다른 소스와 교차 검증하여 인사이트 강화. 별도 섹션으로 분리하지 말 것.
+- Slack 대화가 있으면 멘토링 등 다른 소스와 교차 검증하여 인사이트 강화. 별도 섹션으로 분리하지 말 것.
 - 최근 데이터가 부족한 경우, 그 사실을 명시하고 가용 데이터 범위를 언급할 것.`;
 }

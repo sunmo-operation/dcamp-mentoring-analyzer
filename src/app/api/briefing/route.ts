@@ -251,8 +251,6 @@ export async function POST(request: Request) {
             sessions: packet.sessions,
             expertRequests: packet.expertRequests,
             analyses: packet.analyses,
-            kptCount: packet.kptReviews.length,
-            okrItemCount: packet.okrItems.length,
             lastEditedTime: lastEdited ?? undefined,
           });
           if (!stale) {
@@ -261,12 +259,12 @@ export async function POST(request: Request) {
           }
         }
 
-        const { company, sessions, expertRequests, analyses, kptReviews, okrItems } = packet;
+        const { company, sessions, expertRequests, analyses } = packet;
 
         // 데이터 수집 결과 요약 — 검토 볼륨을 구체적으로 표시
         const totalTextLength = sessions.reduce((sum, s) => sum + (s.summary?.length || 0), 0);
         const slackCount = packet.slackMessages?.length || 0;
-        const totalDocs = sessions.length + kptReviews.length + expertRequests.length + analyses.length + okrItems.length + slackCount;
+        const totalDocs = sessions.length + expertRequests.length + analyses.length + slackCount;
         const dateRange = sessions.length > 0
           ? `${sessions[sessions.length - 1]?.date?.slice(0, 7) || ""} ~ ${sessions[0]?.date?.slice(0, 7) || ""}`
           : "";
@@ -298,8 +296,8 @@ export async function POST(request: Request) {
           sessionCount: sessions.length,
           expertRequestCount: expertRequests.length,
           analysisCount: analyses.length,
-          kptCount: kptReviews.length,
-          okrItemCount: okrItems.length,
+          kptCount: 0,
+          okrItemCount: 0,
           lastEditedTime: lastEdited ?? undefined,
         };
 
