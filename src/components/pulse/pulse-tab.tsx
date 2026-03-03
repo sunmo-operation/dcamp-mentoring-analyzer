@@ -147,14 +147,14 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
               : "기록이 없습니다"}
           </p>
           {aiLoading && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/60">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-              AI 요약 적용 중
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 px-2.5 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+              AI 요약 생성 중…
             </span>
           )}
           {aiData && !aiLoading && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/40">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
               AI 요약 적용됨
             </span>
           )}
@@ -183,6 +183,11 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
 
                       // AI 데이터가 있으면 topic(제목 교체) + summary(요약 교체)
                       const ai = aiData?.[m.globalIndex];
+                      // AI 대상 항목인지 (rawText가 충분히 긴 항목)
+                      const isAiTarget = m.rawText && m.rawText.length > 20;
+                      // AI 로딩 중이고 아직 이 항목의 AI 결과가 없으면 요약 숨김
+                      const waitingForAi = aiLoading && isAiTarget && !ai;
+
                       const displayTitle = (ai?.topic && ai.topic.length > 3) ? ai.topic : m.title;
 
                       let mainSummary = "";
@@ -193,12 +198,13 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
                         const aiLines = ai.summary.split("\n");
                         mainSummary = aiLines.filter((l) => !l.startsWith("→")).join(" ").trim();
                         followUp = aiLines.filter((l) => l.startsWith("→")).join(" ").trim();
-                      } else if (m.summary) {
+                      } else if (!waitingForAi && m.summary) {
+                        // AI 로딩 대기 중이 아닐 때만 기존 요약 표시
                         const lines = m.summary.split("\n");
                         mainSummary = lines.filter((l) => !l.startsWith("→")).join(" ").trim();
                         followUp = lines.filter((l) => l.startsWith("→")).join(" ").trim();
                       }
-                      if (!mainSummary && isHighlight && m.detail && m.detail !== m.title) {
+                      if (!mainSummary && !waitingForAi && isHighlight && m.detail && m.detail !== m.title) {
                         mainSummary = m.detail;
                       }
 
@@ -219,10 +225,18 @@ export function PulseTab({ pulse, companyName }: PulseTabProps) {
                             </span>
                           </div>
 
-                          {/* 요약 (불릿 형식) */}
+                          {/* AI 로딩 중 스켈레톤 */}
+                          {waitingForAi && (
+                            <div className="mt-1.5 pl-3 flex items-center gap-2">
+                              <span className="text-muted-foreground/30 mr-1">•</span>
+                              <div className="h-3 w-2/3 rounded bg-muted/50 animate-pulse" />
+                            </div>
+                          )}
+
+                          {/* 요약 (불릿 형식) — AI 완료 시 페이드인 */}
                           {mainSummary && (
-                            <p className={`text-[12.5px] text-foreground/70 dark:text-foreground/65 leading-relaxed mt-1.5 pl-3 break-keep transition-opacity duration-300 ${
-                              aiLoading && !ai ? "opacity-50" : "opacity-100"
+                            <p className={`text-[12.5px] text-foreground/70 dark:text-foreground/65 leading-relaxed mt-1.5 pl-3 break-keep transition-all duration-500 ${
+                              ai ? "animate-fade-in" : ""
                             }`}>
                               <span className="text-muted-foreground/60 mr-1">•</span>
                               {mainSummary}
