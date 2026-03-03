@@ -144,6 +144,7 @@ const DB_IDS = {
   // 배치 대시보드 DB IDs
   batch3Okr: process.env.NOTION_BATCH3_OKR_DB_ID,
   batch3Growth: process.env.NOTION_BATCH3_GROWTH_DB_ID,
+  batch3Status: process.env.NOTION_BATCH3_STATUS_DB_ID,
   batch4Kpi: process.env.NOTION_BATCH4_KPI_DB_ID,
   batch5Gallery: process.env.NOTION_BATCH5_GALLERY_DB_ID,
 };
@@ -964,6 +965,105 @@ export async function getKptReviews(
       return [];
     }
   });
+}
+
+// ══════════════════════════════════════════════════
+// 배치 기업별 대시보드에서 KPT 회고 조회
+// "4. 오브젝티브 & 마일스톤 회고" DB (구분/상태/Keep/Problem/Try)
+// ══════════════════════════════════════════════════
+
+function getBatchStatusDbId(batchLabel: string): string | undefined {
+  const match = batchLabel.match(/(\d+)/);
+  if (!match) return undefined;
+  if (match[1] === "3") return DB_IDS.batch3Status;
+  return undefined;
+}
+
+/**
+ * 배치 기업별 대시보드에서 KPT 회고 데이터를 가져온다.
+ * 흐름: 배치현황DB → 기업 페이지 → "4. 오브젝티브 & 마일스톤 회고" child_database → 행 쿼리
+ */
+export async function getBatchKptReviews(
+  companyName: string,
+  batchLabel: string
+): Promise<KptReview[]> {
+  const statusDbId = getBatchStatusDbId(batchLabel);
+  if (!statusDbId) return [];
+
+  const cacheKey = `batch-kpt:${batchLabel}:${companyName}`;
+  return cached(cacheKey, async () => {
+    try {
+      // 1. 배치 현황 DB에서 기업 페이지 찾기 (title로 검색)
+      const pages = await queryAllPages(statusDbId);
+      const companyPage = pages.find((p) => {
+        const props = (p?.properties ?? {}) as Props;
+        for (const [, val] of Object.entries(props)) {
+          if (val?.type === "title") {
+            const title = val.title?.map((t: { plain_text: string }) => t.plain_text).join("") ?? "";
+            if (title.includes(companyName)) return true;
+          }
+        }
+        return false;
+      });
+
+      if (!companyPage?.id) {
+        console.log(`[notion] 배치 KPT: "${companyName}" 기업 페이지를 찾을 수 없음`);
+        return [];
+      }
+
+      // 2. 기업 페이지의 자식 블록에서 "회고" child_database 찾기
+      const blocks = await withRetry(
+        () => notion.blocks.children.list({ block_id: companyPage.id as string, page_size: 50 }),
+        { label: "배치KPT-블록조회" }
+      );
+
+      let kptDbId: string | undefined;
+      for (const block of blocks.results) {
+        const b = block as Props;
+        if (b.type === "child_database") {
+          const title = b.child_database?.title || "";
+          if (title.includes("회고") || title.includes("KPT")) {
+            kptDbId = b.id;
+            break;
+          }
+        }
+      }
+
+      if (!kptDbId) {
+        console.log(`[notion] 배치 KPT: "${companyName}" 회고 DB를 찾을 수 없음`);
+        return [];
+      }
+
+      // 3. 회고 DB에서 모든 행 쿼리
+      const kptPages = await queryAllPages(kptDbId);
+
+      return safeMap(kptPages, (page) => {
+        const props = (page?.properties ?? {}) as Props;
+        const title = getTitle(props, "구분"); // e.g., "1월 넥스트그라운드"
+
+        // "구분"에서 월 정보 추출 → reviewDate로 변환 (e.g., "1월" → "2026-01")
+        let reviewDate: string | undefined;
+        const monthMatch = title.match(/(\d{1,2})월/);
+        if (monthMatch) {
+          const month = parseInt(monthMatch[1], 10);
+          // 7~12월은 2025년, 1~6월은 2026년 (배치 기간 기준)
+          const year = month >= 7 ? 2025 : 2026;
+          reviewDate = `${year}-${String(month).padStart(2, "0")}`;
+        }
+
+        return {
+          notionPageId: (page?.id ?? "") as string,
+          reviewDate,
+          keep: getText(props, "Keep"),
+          problem: getText(props, "Problem"),
+          try: getText(props, "Try"),
+        } satisfies KptReview;
+      }, "배치KPT").filter((r) => r.keep || r.problem || r.try); // 빈 행 제외
+    } catch (error) {
+      console.warn(`[notion] 배치 KPT 조회 실패 (${companyName}):`, error);
+      return [];
+    }
+  }, 600_000); // 10분 캐시
 }
 
 // ══════════════════════════════════════════════════

@@ -45,6 +45,7 @@ import {
   getKptReviews as notionGetKptReviews,
   getOkrItems as notionGetOkrItems,
   getOkrValues as notionGetOkrValues,
+  getBatchKptReviews as notionGetBatchKptReviews,
   getBatchOkrData as notionGetBatchOkrData,
   getBatchGrowthData as notionGetBatchGrowthData,
   getCompanySurveyData as notionGetCompanySurveyData,
@@ -758,6 +759,7 @@ export const getTimeline = notionGetTimeline;
 export const extractPageText = notionExtractPageText;
 export const clearCache = notionClearCache;
 export const getKptReviews = notionGetKptReviews;
+export const getBatchKptReviews = notionGetBatchKptReviews;
 export const getOkrItems = notionGetOkrItems;
 export const getOkrValues = notionGetOkrValues;
 

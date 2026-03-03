@@ -8,6 +8,7 @@ import type { CompanyDataPacket } from "./types";
 import {
   getCompanyAllData,
   getKptReviews,
+  getBatchKptReviews,
   getOkrItems,
   getOkrValues,
   getCompanyBatchDashboardData,
@@ -35,8 +36,8 @@ export async function collectCompanyData(
 
   if (!allData) return null;
 
-  // 배치 대시보드 + Slack 메시지를 병렬 수집
-  const [batchData, slackMessages] = await Promise.all([
+  // 배치 대시보드 + Slack 메시지 + 배치 KPT를 병렬 수집
+  const [batchData, slackMessages, batchKptReviews] = await Promise.all([
     Promise.race([
       getCompanyBatchDashboardData(allData.company),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
@@ -48,7 +49,19 @@ export async function collectCompanyData(
           new Promise<SlackMessage[]>((resolve) => setTimeout(() => resolve([]), 5000)),
         ]).catch(() => [] as SlackMessage[])
       : Promise.resolve([] as SlackMessage[]),
+    // 배치 기업별 대시보드에서 KPT 데이터 수집
+    allData.company.batchLabel
+      ? Promise.race([
+          getBatchKptReviews(allData.company.name, allData.company.batchLabel),
+          new Promise<never[]>((resolve) => setTimeout(() => resolve([]), 8000)),
+        ]).catch(() => [])
+      : Promise.resolve([]),
   ]);
+
+  // KPT 병합: 전용 DB 데이터가 있으면 그대로, 없으면 배치 KPT로 대체
+  const mergedKptReviews = kptReviews.length > 0
+    ? kptReviews
+    : batchKptReviews;
 
   // 엑셀 코칭 기록 (로컬 JSON, 즉시 반환)
   const coachingRecords = getCoachingRecordsByName(allData.company.name);
@@ -58,7 +71,7 @@ export async function collectCompanyData(
     sessions: allData.sessions,
     expertRequests: allData.expertRequests,
     analyses: allData.analyses,
-    kptReviews,
+    kptReviews: mergedKptReviews,
     okrItems,
     okrValues,
     batchData,
@@ -67,13 +80,14 @@ export async function collectCompanyData(
     collectedAt: new Date().toISOString(),
   };
 
+  const kptSource = kptReviews.length > 0 ? "전용DB" : batchKptReviews.length > 0 ? "배치" : "없음";
   const coachingSummary = coachingRecords
     ? `코칭(플랜${coachingRecords.coachingPlans.length}/세션${coachingRecords.sessions.length}/투입${coachingRecords.expertDeployments.length})`
     : "코칭 없음";
   const slackSummary = slackMessages.length > 0 ? `Slack ${slackMessages.length}건` : "Slack 없음";
   console.log(
     `[DataCollector] ${allData.company.name}: ` +
-    `세션 ${packet.sessions.length}, KPT ${packet.kptReviews.length}, ` +
+    `세션 ${packet.sessions.length}, KPT ${packet.kptReviews.length}건(${kptSource}), ` +
     `OKR ${packet.okrItems.length}항목/${packet.okrValues.length}값, ` +
     `전문가요청 ${packet.expertRequests.length}, ${coachingSummary}, ${slackSummary} (${Date.now() - t0}ms)`
   );
