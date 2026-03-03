@@ -97,6 +97,7 @@ export default function AboutPage() {
               <DataRow data="OKR / KPI" source="노션 DB" cycle="월간" />
               <DataRow data="전문가 요청" source="노션 DB" cycle="요청 등록 시" />
               <DataRow data="배치 대시보드" source="노션 DB" cycle="격주" />
+              <DataRow data="Slack 채널 대화" source="Slack API" cycle="실시간" />
             </tbody>
           </table>
         </div>
