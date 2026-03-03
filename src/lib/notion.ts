@@ -427,6 +427,40 @@ export async function extractPageText(pageId: string): Promise<string> {
           // 테이블 자식 블록 조회 실패 시 무시
         }
       }
+
+      // child_database 블록: 인라인 DB의 모든 행에서 텍스트 추출 (4기 KPT 등)
+      if (type === "child_database") {
+        try {
+          const dbRes = await notion.databases.query({
+            database_id: b.id as string,
+            page_size: 50,
+          });
+          for (const page of (dbRes?.results ?? [])) {
+            const p = page as Props;
+            if (!p?.properties) continue;
+            const rowTexts: string[] = [];
+            for (const [, val] of Object.entries(p.properties as Record<string, Props>)) {
+              if (!val || !val.type) continue;
+              if (val.type === "title") {
+                const t = (val.title as { plain_text: string }[])?.map((x) => x.plain_text).join("") || "";
+                if (t) rowTexts.push(t);
+              } else if (val.type === "rich_text") {
+                const t = (val.rich_text as { plain_text: string }[])?.map((x) => x.plain_text).join("") || "";
+                if (t) rowTexts.push(t);
+              } else if (val.type === "number" && val.number != null) {
+                rowTexts.push(String(val.number));
+              } else if (val.type === "select" && val.select?.name) {
+                rowTexts.push(val.select.name as string);
+              } else if (val.type === "date" && val.date?.start) {
+                rowTexts.push(val.date.start as string);
+              }
+            }
+            if (rowTexts.length > 0) textBlocks.push(rowTexts.join(" | "));
+          }
+        } catch {
+          // 인라인 DB 조회 실패 시 무시
+        }
+      }
     }
 
     cursor = response.has_more
