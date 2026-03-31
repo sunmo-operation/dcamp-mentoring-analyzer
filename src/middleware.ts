@@ -55,6 +55,16 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── 디버그: Edge Runtime에서 환경변수 확인 (임시) ──
+  if (pathname === "/api/middleware-debug") {
+    return NextResponse.json({
+      hasAuthSecret: !!process.env.AUTH_SECRET,
+      authSecretLen: process.env.AUTH_SECRET?.length ?? 0,
+      hasSitePassword: !!process.env.SITE_PASSWORD,
+      authUrl: process.env.AUTH_URL ?? "(not set)",
+    });
+  }
+
   // ── 1) NextAuth JWT 토큰 확인 ──────────────────
   const token = await getToken({
     req,
