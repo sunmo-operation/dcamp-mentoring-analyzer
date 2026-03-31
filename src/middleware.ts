@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "@/auth";
+import { getToken } from "next-auth/jwt";
 import { verifyAuthToken, AUTH_COOKIE_NAME } from "@/lib/auth";
 
 // ── Rate Limiting (in-memory sliding window) ──────────
@@ -37,14 +37,17 @@ function isPublicPath(pathname: string): boolean {
 }
 
 /**
- * 미들웨어 — next-auth v5 auth() 래퍼 사용
+ * 미들웨어 — getToken() 방식 (Edge Runtime 안정)
+ *
+ * auth() 래퍼 방식은 Edge에서 NextAuth Provider 초기화 실패 가능.
+ * getToken()은 JWT만 검증하므로 Edge 호환성 보장.
  *
  * 인증 우선순위:
- * 1. NextAuth 세션 (Google OAuth @dcamp.kr) — req.auth로 확인
+ * 1. NextAuth JWT 토큰 (Google OAuth @dcamp.kr)
  * 2. SITE_PASSWORD 쿠키 (폴백)
  * 둘 중 하나라도 유효하면 통과
  */
-export default auth(async (req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // ── 공개 경로는 인증 건너뜀 ─────────────────────
@@ -52,8 +55,13 @@ export default auth(async (req) => {
     return NextResponse.next();
   }
 
-  // ── 1) NextAuth 세션 확인 (req.auth) ──────────────
-  if (req.auth) {
+  // ── 1) NextAuth JWT 토큰 확인 ──────────────────
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET,
+  });
+
+  if (token) {
     return handleApiProtection(req, pathname);
   }
 
@@ -61,8 +69,8 @@ export default auth(async (req) => {
   const sitePassword = process.env.SITE_PASSWORD;
 
   if (sitePassword) {
-    const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
-    const isValid = token ? await verifyAuthToken(token, sitePassword) : false;
+    const authCookie = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+    const isValid = authCookie ? await verifyAuthToken(authCookie, sitePassword) : false;
 
     if (isValid) {
       return handleApiProtection(req, pathname);
@@ -85,7 +93,7 @@ export default auth(async (req) => {
   const loginUrl = new URL("/login", req.url);
   loginUrl.searchParams.set("from", pathname);
   return NextResponse.redirect(loginUrl);
-});
+}
 
 /** API 전용 보호 (Rate Limiting + API_SECRET) */
 function handleApiProtection(request: NextRequest, pathname: string) {
