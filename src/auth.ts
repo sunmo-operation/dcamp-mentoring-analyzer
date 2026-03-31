@@ -1,16 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
-// 런타임 디버그: 환경변수 존재 여부 확인
-console.log("[Auth] 초기화 시작:", {
-  hasClientId: !!process.env.GOOGLE_CLIENT_ID,
-  hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
-  hasAuthSecret: !!process.env.AUTH_SECRET,
-  authUrl: process.env.AUTH_URL || "(미설정)",
-});
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  debug: process.env.NODE_ENV !== "production", // 개발 시 상세 로그
   trustHost: true, // Vercel 등 리버스 프록시 환경에서 필수
 
   providers: [
