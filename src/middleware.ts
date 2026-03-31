@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { verifyAuthToken, AUTH_COOKIE_NAME } from "@/lib/auth";
 
 // ── Rate Limiting (in-memory sliding window) ──────────
@@ -26,8 +27,8 @@ function isRateLimited(ip: string): boolean {
   return recent.length > RATE_LIMIT_MAX;
 }
 
-// ── 사이트 비밀번호 인증이 필요 없는 경로 ──────────
-const PUBLIC_PATHS = ["/login", "/api/auth/login"];
+// ── 인증이 필요 없는 경로 ──────────
+const PUBLIC_PATHS = ["/login", "/api/auth"];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(
@@ -38,35 +39,61 @@ function isPublicPath(pathname: string): boolean {
 /**
  * 미들웨어
  *
- * 1. SITE_PASSWORD 설정 시: 쿠키 기반 사이트 전체 비밀번호 보호
- * 2. Rate Limiting: IP 기반 분당 20회 제한 (API만)
- * 3. API_SECRET 설정 시: Bearer/x-api-key 인증 (API만)
+ * 인증 우선순위:
+ * 1. NextAuth 세션 (Google OAuth @dcamp.kr)
+ * 2. SITE_PASSWORD 쿠키 (폴백)
+ * 둘 중 하나라도 유효하면 통과
+ *
+ * + Rate Limiting: IP 기반 분당 20회 제한 (API만)
+ * + API_SECRET: Bearer/x-api-key 인증 (API만)
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ── 사이트 비밀번호 보호 ─────────────────────
+  // ── 공개 경로는 인증 건너뜀 ─────────────────────
+  if (isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  // ── 1) NextAuth 세션 확인 ─────────────────────
+  const nextAuthToken = await getToken({ req: request });
+  if (nextAuthToken) {
+    // NextAuth 세션 유효 → API 보호 로직으로 건너뜀
+    return handleApiProtection(request, pathname);
+  }
+
+  // ── 2) SITE_PASSWORD 쿠키 폴백 ─────────────────
   const sitePassword = process.env.SITE_PASSWORD;
 
-  if (sitePassword && !isPublicPath(pathname)) {
+  if (sitePassword) {
     const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
     const isValid = token ? await verifyAuthToken(token, sitePassword) : false;
 
-    if (!isValid) {
-      // API 요청이면 401 JSON, 페이지 요청이면 로그인으로 리다이렉트
-      if (pathname.startsWith("/api/")) {
-        return NextResponse.json(
-          { success: false, error: "인증이 필요합니다" },
-          { status: 401 },
-        );
-      }
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
-      return NextResponse.redirect(loginUrl);
+    if (isValid) {
+      return handleApiProtection(request, pathname);
     }
   }
 
-  // ── 이하 API 전용 보호 로직 ──────────────────
+  // ── 둘 다 실패 → 로그인으로 리다이렉트 ────────────
+  // SITE_PASSWORD가 미설정이면 인증 불필요 (개발 환경)
+  if (!sitePassword) {
+    return handleApiProtection(request, pathname);
+  }
+
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다" },
+      { status: 401 },
+    );
+  }
+
+  const loginUrl = new URL("/login", request.url);
+  loginUrl.searchParams.set("from", pathname);
+  return NextResponse.redirect(loginUrl);
+}
+
+/** API 전용 보호 (Rate Limiting + API_SECRET) */
+function handleApiProtection(request: NextRequest, pathname: string) {
   if (!pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
@@ -90,12 +117,10 @@ export async function middleware(request: NextRequest) {
   // ── API 인증 ───────────────────────────────────
   const apiSecret = process.env.API_SECRET;
 
-  // API_SECRET 미설정 시 인증 건너뜀 (개발 환경)
   if (!apiSecret) {
     return NextResponse.next();
   }
 
-  // Authorization: Bearer <token> 또는 x-api-key 헤더 확인
   const authHeader = request.headers.get("authorization");
   const apiKeyHeader = request.headers.get("x-api-key");
 
