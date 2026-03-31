@@ -59,8 +59,8 @@ export async function analyzeSemanticTopics(
   try {
     const client = getClaudeClient();
     const msg = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 800,
+      model: process.env.TOPIC_ANALYST_MODEL || "claude-sonnet-4-20250514",
+      max_tokens: 1200,
       messages: [{
         role: "user",
         content: `스타트업 액셀러레이터 PM으로서, 아래 ${company.name}의 멘토링 세션 ${target.length}건을 분석하여 의미론적 토픽 클러스터를 추출하세요.

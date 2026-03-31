@@ -23,11 +23,11 @@ export async function collectCompanyData(
   const allData = await getCompanyAllData(companyId);
   if (!allData) return null;
 
-  // Slack 메시지 수집 (5초 타임아웃)
+  // Slack 메시지 수집 (3초 타임아웃으로 단축 + 실패 시 빈 배열)
   const slackMessages = allData.company.slackChannelId
     ? await Promise.race([
         getSlackMessages(allData.company.slackChannelId),
-        new Promise<SlackMessage[]>((resolve) => setTimeout(() => resolve([]), 5000)),
+        new Promise<SlackMessage[]>((resolve) => setTimeout(() => resolve([]), 3000)),
       ]).catch(() => [] as SlackMessage[])
     : [];
 

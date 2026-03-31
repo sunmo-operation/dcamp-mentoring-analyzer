@@ -62,8 +62,8 @@ export function FloatingChat({ companyId, companyName }: FloatingChatProps) {
         aria-label={`${companyName} AI에게 더 물어보기`}
         className={`fixed z-50
           bottom-0 right-0 w-full
-          sm:bottom-6 sm:right-6 sm:w-[420px]
-          h-[85vh] sm:h-auto sm:max-h-[640px]
+          sm:bottom-6 sm:right-6 sm:w-[420px] md:w-[480px]
+          h-[85vh] sm:h-auto sm:max-h-[640px] md:max-h-[700px]
           rounded-t-2xl sm:rounded-2xl
           bg-white dark:bg-gray-950
           shadow-2xl border border-gray-200 dark:border-gray-800

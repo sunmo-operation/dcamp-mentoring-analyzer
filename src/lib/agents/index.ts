@@ -19,7 +19,9 @@ import { generateAnalystReport as _genAnalyst } from "./analyst";
 
 const pulseCache = new Map<string, { data: PulseReport; expires: number }>();
 const analystCache = new Map<string, { data: AnalystReport; expires: number }>();
-const CACHE_TTL = 900_000; // 15분
+// 결정론적 에이전트 캐시 TTL 차등화
+const CACHE_TTL_PULSE = 3_600_000; // 1시간 (데이터 불변 → 길게)
+const CACHE_TTL_ANALYST = 1_800_000; // 30분 (세션 추가 시 재계산)
 
 function cacheKey(packet: CompanyDataPacket): string {
   return `${packet.company.notionPageId}:${packet.collectedAt}`;
@@ -31,7 +33,7 @@ export function generatePulseReport(packet: CompanyDataPacket): PulseReport {
   if (cached && cached.expires > Date.now()) return cached.data;
 
   const result = _genPulse(packet);
-  pulseCache.set(key, { data: result, expires: Date.now() + CACHE_TTL });
+  pulseCache.set(key, { data: result, expires: Date.now() + CACHE_TTL_PULSE });
   return result;
 }
 
@@ -41,6 +43,6 @@ export function generateAnalystReport(packet: CompanyDataPacket): AnalystReport 
   if (cached && cached.expires > Date.now()) return cached.data;
 
   const result = _genAnalyst(packet);
-  analystCache.set(key, { data: result, expires: Date.now() + CACHE_TTL });
+  analystCache.set(key, { data: result, expires: Date.now() + CACHE_TTL_ANALYST });
   return result;
 }

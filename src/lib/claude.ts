@@ -43,7 +43,7 @@ export function classifyClaudeError(error: unknown): string {
     return "AI 응답을 처리하지 못했습니다. 다시 시도해주세요.";
   }
 
-  // 기본값: 원본 에러 메시지 일부 포함
-  const short = msg.length > 80 ? msg.slice(0, 80) + "…" : msg;
-  return `오류가 발생했습니다: ${short}`;
+  // 기본값: 원본 에러는 서버 로그에만 기록, 사용자에게는 일반 메시지
+  console.error("[Claude API] 미분류 에러:", msg);
+  return "요청을 처리하는 중에 오류가 발생했습니다. 다시 시도해주세요.";
 }

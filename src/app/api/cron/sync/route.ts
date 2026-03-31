@@ -21,6 +21,12 @@ export const maxDuration = 300; // 5분 (기업 수가 많을 수 있음)
 export async function GET(request: NextRequest) {
   // CRON_SECRET 검증 (Vercel Cron 또는 수동 호출)
   const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret && process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { error: "CRON_SECRET이 설정되지 않았습니다" },
+      { status: 503 },
+    );
+  }
   if (cronSecret) {
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;

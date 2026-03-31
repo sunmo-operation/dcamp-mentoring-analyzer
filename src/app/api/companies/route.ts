@@ -5,8 +5,8 @@ export async function GET() {
   const companies = await getCompanies();
   return NextResponse.json(companies, {
     headers: {
-      // SWR 연동: 짧은 서버 캐시 (60초) + stale-while-revalidate
-      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+      // SWR 연동: private 캐시 (민감 데이터 CDN 노출 방지)
+      "Cache-Control": "private, s-maxage=60, stale-while-revalidate=120",
     },
   });
 }

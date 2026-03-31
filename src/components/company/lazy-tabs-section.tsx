@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { CompanyTabs } from "./company-tabs";
 import { PulseTab } from "@/components/pulse/pulse-tab";
@@ -47,7 +47,8 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
   const [data, setData] = useState<CompanyDetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(5);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -70,6 +71,22 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
       loadData();
     }
   }, [autoLoad, data, loading, loadData]);
+
+  // IntersectionObserver 기반 무한 스크롤
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el || !data) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((prev) => prev + 10);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [data]);
 
   // ── 초기 상태: 버튼 표시 ────────────────────────
   if (!data && !loading && !error) {
@@ -223,12 +240,14 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
             );
           })}
           {sortedSessions.length > visibleCount && (
-            <button
-              onClick={() => setVisibleCount((prev) => prev + 10)}
-              className="w-full rounded-2xl border border-border bg-muted/30 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60"
-            >
-              더 보기 ({sortedSessions.length - visibleCount}건 남음)
-            </button>
+            <div ref={loadMoreRef}>
+              <button
+                onClick={() => setVisibleCount((prev) => prev + 10)}
+                className="w-full rounded-2xl border border-border bg-muted/30 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60"
+              >
+                더 보기 ({sortedSessions.length - visibleCount}건 남음)
+              </button>
+            </div>
           )}
         </div>
       ) : (

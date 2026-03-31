@@ -40,14 +40,35 @@ export async function GET(
 
   console.log(`[perf] /api/company-detail/${id.slice(0, 8)}: ${Date.now() - t0}ms`);
 
-  return NextResponse.json({
-    companyName: packet.company.name,
-    sessions: packet.sessions,
-    expertRequests: packet.expertRequests,
-    analyses: packet.analyses,
-    expertSummary,
-    kptSummary: kptResult?.summary ?? null,
-    kptCount: kptResult?.count ?? null,
-    pulse,
-  });
+  // 세션 데이터 경량화: 본문(transcript)은 제외, summary/followUp 200자 제한
+  const lightSessions = packet.sessions.map((s) => ({
+    notionPageId: s.notionPageId,
+    title: s.title,
+    date: s.date,
+    sessionTypes: s.sessionTypes,
+    summary: s.summary?.slice(0, 200) ?? null,
+    followUp: s.followUp?.slice(0, 200) ?? null,
+    durationHours: s.durationHours,
+    companyNames: s.companyNames,
+    mentorNames: s.mentorNames,
+    source: s.source,
+  }));
+
+  return NextResponse.json(
+    {
+      companyName: packet.company.name,
+      sessions: lightSessions,
+      expertRequests: packet.expertRequests,
+      analyses: packet.analyses,
+      expertSummary,
+      kptSummary: kptResult?.summary ?? null,
+      kptCount: kptResult?.count ?? null,
+      pulse,
+    },
+    {
+      headers: {
+        "Cache-Control": "private, s-maxage=60, stale-while-revalidate=120",
+      },
+    }
+  );
 }
