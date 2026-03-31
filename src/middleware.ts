@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { auth } from "@/auth";
 import { verifyAuthToken, AUTH_COOKIE_NAME } from "@/lib/auth";
 
 // ── Rate Limiting (in-memory sliding window) ──────────
@@ -37,50 +37,42 @@ function isPublicPath(pathname: string): boolean {
 }
 
 /**
- * 미들웨어
+ * 미들웨어 — next-auth v5 auth() 래퍼 사용
  *
  * 인증 우선순위:
- * 1. NextAuth 세션 (Google OAuth @dcamp.kr)
+ * 1. NextAuth 세션 (Google OAuth @dcamp.kr) — req.auth로 확인
  * 2. SITE_PASSWORD 쿠키 (폴백)
  * 둘 중 하나라도 유효하면 통과
- *
- * + Rate Limiting: IP 기반 분당 20회 제한 (API만)
- * + API_SECRET: Bearer/x-api-key 인증 (API만)
  */
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export default auth(async (req) => {
+  const { pathname } = req.nextUrl;
 
   // ── 공개 경로는 인증 건너뜀 ─────────────────────
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
 
-  // ── 1) NextAuth 세션 확인 ─────────────────────
-  const nextAuthToken = await getToken({
-    req: request,
-    secret: process.env.AUTH_SECRET,
-  });
-  if (nextAuthToken) {
-    // NextAuth 세션 유효 → API 보호 로직으로 건너뜀
-    return handleApiProtection(request, pathname);
+  // ── 1) NextAuth 세션 확인 (req.auth) ──────────────
+  if (req.auth) {
+    return handleApiProtection(req, pathname);
   }
 
   // ── 2) SITE_PASSWORD 쿠키 폴백 ─────────────────
   const sitePassword = process.env.SITE_PASSWORD;
 
   if (sitePassword) {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
     const isValid = token ? await verifyAuthToken(token, sitePassword) : false;
 
     if (isValid) {
-      return handleApiProtection(request, pathname);
+      return handleApiProtection(req, pathname);
     }
   }
 
   // ── 둘 다 실패 → 로그인으로 리다이렉트 ────────────
   // SITE_PASSWORD가 미설정이면 인증 불필요 (개발 환경)
   if (!sitePassword) {
-    return handleApiProtection(request, pathname);
+    return handleApiProtection(req, pathname);
   }
 
   if (pathname.startsWith("/api/")) {
@@ -90,10 +82,10 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  const loginUrl = new URL("/login", request.url);
+  const loginUrl = new URL("/login", req.url);
   loginUrl.searchParams.set("from", pathname);
   return NextResponse.redirect(loginUrl);
-}
+});
 
 /** API 전용 보호 (Rate Limiting + API_SECRET) */
 function handleApiProtection(request: NextRequest, pathname: string) {
