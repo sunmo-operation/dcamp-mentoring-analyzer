@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { verifyAuthToken, AUTH_COOKIE_NAME } from "@/lib/auth";
 
 // ── Rate Limiting (in-memory sliding window) ──────────
@@ -37,15 +36,10 @@ function isPublicPath(pathname: string): boolean {
 }
 
 /**
- * 미들웨어 — getToken() 방식 (Edge Runtime 안정)
+ * 미들웨어 — SITE_PASSWORD 쿠키 인증
  *
- * auth() 래퍼 방식은 Edge에서 NextAuth Provider 초기화 실패 가능.
- * getToken()은 JWT만 검증하므로 Edge 호환성 보장.
- *
- * 인증 우선순위:
- * 1. NextAuth JWT 토큰 (Google OAuth @dcamp.kr)
- * 2. SITE_PASSWORD 쿠키 (폴백)
- * 둘 중 하나라도 유효하면 통과
+ * HMAC-SHA256 토큰 검증, timing-safe 비교
+ * SITE_PASSWORD 미설정 시 인증 없이 통과 (개발 환경)
  */
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -55,36 +49,22 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── 1) NextAuth JWT 토큰 확인 ──────────────────
-  const isSecure = req.nextUrl.protocol === "https:";
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-    secureCookie: isSecure,
-  });
-
-  if (token) {
-    return handleApiProtection(req, pathname);
-  }
-
-  // ── 2) SITE_PASSWORD 쿠키 폴백 ─────────────────
   const sitePassword = process.env.SITE_PASSWORD;
 
-  if (sitePassword) {
-    const authCookie = req.cookies.get(AUTH_COOKIE_NAME)?.value;
-    const isValid = authCookie ? await verifyAuthToken(authCookie, sitePassword) : false;
-
-    if (isValid) {
-      return handleApiProtection(req, pathname);
-    }
-  }
-
-  // ── 둘 다 실패 → 로그인으로 리다이렉트 ────────────
-  // SITE_PASSWORD가 미설정이면 인증 불필요 (개발 환경)
+  // SITE_PASSWORD 미설정 → 인증 불필요 (개발 환경)
   if (!sitePassword) {
     return handleApiProtection(req, pathname);
   }
 
+  // ── 비밀번호 쿠키 검증 ──────────────────────────
+  const authCookie = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const isValid = authCookie ? await verifyAuthToken(authCookie, sitePassword) : false;
+
+  if (isValid) {
+    return handleApiProtection(req, pathname);
+  }
+
+  // ── 인증 실패 → 리다이렉트 ──────────────────────
   if (pathname.startsWith("/api/")) {
     return NextResponse.json(
       { success: false, error: "인증이 필요합니다" },
@@ -97,7 +77,7 @@ export async function middleware(req: NextRequest) {
   return NextResponse.redirect(loginUrl);
 }
 
-/** API 전용 보호 (Rate Limiting + API_SECRET) */
+/** API 전용 보호 (Rate Limiting) */
 function handleApiProtection(request: NextRequest, pathname: string) {
   if (!pathname.startsWith("/api/")) {
     return NextResponse.next();
@@ -116,27 +96,6 @@ function handleApiProtection(request: NextRequest, pathname: string) {
         error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
       },
       { status: 429 },
-    );
-  }
-
-  // ── API 인증 ───────────────────────────────────
-  const apiSecret = process.env.API_SECRET;
-
-  if (!apiSecret) {
-    return NextResponse.next();
-  }
-
-  const authHeader = request.headers.get("authorization");
-  const apiKeyHeader = request.headers.get("x-api-key");
-
-  const apiToken = authHeader?.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : apiKeyHeader;
-
-  if (apiToken !== apiSecret) {
-    return NextResponse.json(
-      { success: false, error: "인증이 필요합니다" },
-      { status: 401 },
     );
   }
 
