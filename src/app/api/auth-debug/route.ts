@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 // Google OIDC 디스커버리 + 환경변수를 직접 테스트하는 엔드포인트
 export async function GET() {
@@ -37,11 +38,11 @@ export async function GET() {
   // 3. NextAuth 초기화 + 실제 signin 시도
   try {
     const { handlers } = await import("@/auth");
-    // signin/google 요청을 시뮬레이션
-    const testUrl = `${process.env.AUTH_URL || `https://${process.env.VERCEL_URL}`}/api/auth/signin/google`;
-    const testReq = new Request(testUrl, {
+    const baseUrl = process.env.AUTH_URL || `https://${process.env.VERCEL_URL}`;
+    const testUrl = `${baseUrl}/api/auth/signin/google`;
+    const testReq = new NextRequest(testUrl, {
       method: "GET",
-      headers: { host: process.env.VERCEL_URL || "localhost" },
+      headers: { host: new URL(baseUrl).host },
     });
 
     try {
@@ -51,7 +52,6 @@ export async function GET() {
         location: response.headers.get("location"),
         contentType: response.headers.get("content-type"),
       };
-      // 에러 응답이면 본문도 읽기
       if (response.status >= 400) {
         try {
           const body = await response.text();
