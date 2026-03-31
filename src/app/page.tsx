@@ -1,4 +1,4 @@
-import { getCompaniesBasic, getAnalyses } from "@/lib/data";
+import { getCompaniesBasic, getAnalyses, getBriefings } from "@/lib/data";
 import { HomeClient } from "@/components/home-client";
 
 // ISR: 5분간 캐시된 HTML 반환, 이후 백그라운드 재생성
@@ -8,9 +8,10 @@ export const revalidate = 300;
 export default async function HomePage() {
   // 경량 기업 조회(Notion API 1회) + 로컬 JSON을 병렬 호출
   // 에러 발생 시 빈 배열로 대체하여 빌드 실패 방지
-  const [companies, allAnalyses] = await Promise.all([
+  const [companies, allAnalyses, allBriefings] = await Promise.all([
     getCompaniesBasic().catch(() => []),
     getAnalyses().catch(() => []),
+    getBriefings().catch(() => []),
   ]);
 
   // 최근 분석 5건 (별도 호출 대신 메모리에서 필터링)
@@ -31,11 +32,15 @@ export default async function HomePage() {
     }
   }
 
+  // 완료된 브리핑 수
+  const briefingCount = allBriefings.filter((b) => b.status === "completed").length;
+
   return (
     <HomeClient
       companies={companies}
       recentAnalyses={recentAnalyses}
       analysisCountByCompany={analysisCountByCompany}
+      briefingCount={briefingCount}
     />
   );
 }
