@@ -57,11 +57,20 @@ export async function middleware(req: NextRequest) {
 
   // ── 디버그: Edge Runtime에서 환경변수 확인 (임시) ──
   if (pathname === "/api/middleware-debug") {
+    const allCookies = req.cookies.getAll().map(c => c.name);
+    let tokenResult: string;
+    try {
+      const t = await getToken({ req, secret: process.env.AUTH_SECRET });
+      tokenResult = t ? `valid (email: ${t.email})` : "null";
+    } catch (e) {
+      tokenResult = `error: ${String(e)}`;
+    }
     return NextResponse.json({
       hasAuthSecret: !!process.env.AUTH_SECRET,
       authSecretLen: process.env.AUTH_SECRET?.length ?? 0,
       hasSitePassword: !!process.env.SITE_PASSWORD,
-      authUrl: process.env.AUTH_URL ?? "(not set)",
+      cookies: allCookies,
+      getTokenResult: tokenResult,
     });
   }
 
