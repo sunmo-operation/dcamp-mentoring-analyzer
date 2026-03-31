@@ -118,10 +118,10 @@ export function HomeClient({
   ), [companies]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-4 sm:py-8">
       {/* 헤더 섹션 — 도구 소개 */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
           AI Mentoring Analyzer
         </h1>
         <p className="mt-1 text-muted-foreground">

@@ -1,9 +1,9 @@
 import { getCompaniesBasic, getAnalyses } from "@/lib/data";
 import { HomeClient } from "@/components/home-client";
 
-// ISR: 5분간 캐시된 HTML 반환, 이후 백그라운드 재생성
+// ISR: 10분간 캐시 (기업 목록은 자주 변경되지 않음)
 // SWR이 클라이언트에서 60초마다 갱신하므로 데이터 신선도 보장
-export const revalidate = 300;
+export const revalidate = 600;
 
 export default async function HomePage() {
   // 경량 기업 조회(Notion API 1회) + 로컬 JSON을 병렬 호출

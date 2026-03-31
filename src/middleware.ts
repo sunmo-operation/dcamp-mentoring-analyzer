@@ -72,9 +72,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Rate Limiting ──────────────────────────────
+  // Vercel은 x-real-ip를 신뢰할 수 있게 주입 (x-forwarded-for는 스푸핑 가능)
   const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";
 
   if (isRateLimited(ip)) {
@@ -90,8 +91,19 @@ export async function middleware(request: NextRequest) {
   // ── API 인증 ───────────────────────────────────
   const apiSecret = process.env.API_SECRET;
 
-  // API_SECRET 미설정 시 인증 건너뜀 (개발 환경)
+  // API_SECRET 미설정 시: SITE_PASSWORD가 이미 보호 중이면 통과, 아니면 차단
   if (!apiSecret) {
+    if (sitePassword) {
+      // SITE_PASSWORD 인증을 이미 통과했으므로 추가 인증 불필요
+      return NextResponse.next();
+    }
+    // 둘 다 미설정 → 프로덕션에서는 차단
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "인증이 설정되지 않았습니다. 관리자에게 문의하세요." },
+        { status: 503 },
+      );
+    }
     return NextResponse.next();
   }
 

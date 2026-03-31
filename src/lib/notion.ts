@@ -373,10 +373,12 @@ async function resolveRelationNames(relationIds: string[]): Promise<string[]> {
   return names.filter((n) => n !== "");
 }
 
-// 페이지 본문 전체 텍스트 추출
+// 페이지 본문 전체 텍스트 추출 (5초 타임아웃)
 export async function extractPageText(pageId: string): Promise<string> {
   const textBlocks: string[] = [];
   let cursor: string | undefined;
+  const startTime = Date.now();
+  const MAX_EXTRACT_TIME = 5000; // 5초 타임아웃
 
   const supportedTypes = new Set([
     "paragraph",
@@ -390,6 +392,12 @@ export async function extractPageText(pageId: string): Promise<string> {
   ]);
 
   do {
+    // 타임아웃 체크
+    if (Date.now() - startTime > MAX_EXTRACT_TIME) {
+      console.warn(`[extractPageText] ${pageId.slice(0, 8)}: 5초 타임아웃, 부분 텍스트 반환`);
+      break;
+    }
+
     const response = await notion.blocks.children.list({
       block_id: pageId,
       start_cursor: cursor,
@@ -606,31 +614,29 @@ export async function getCompaniesBasic(): Promise<Company[]> {
       const pages = await queryAllPages(DB_IDS.companies);
       const bases = safeMap(pages, mapCompanyBase, "기업(경량)");
 
-      // 대표자 이름 + 배치 이름을 배치 resolve (홈 카드 + 기수별 그룹핑)
+      // 대표자 이름 + 배치 이름을 배치 resolve (N+1 → Map 사전 캐싱)
       const allRepIds = [
         ...new Set(bases.map((b) => b._representativeId).filter(Boolean)),
       ] as string[];
       const allBatchIds = [
         ...new Set(bases.map((b) => b.batchId).filter(Boolean)),
       ] as string[];
-      await Promise.all([
-        ...allRepIds.map((id) => resolveRelationNames([id])),
-        ...allBatchIds.map((id) => resolveRelationNames([id])),
-      ]);
 
-      // 대표자 이름 + 배치 이름 매핑 후 내부 필드 제거
-      const companies = await Promise.all(
-        bases.map(async (base) => {
-          const ceoName = base._representativeId
-            ? (await resolveRelationNames([base._representativeId]))[0] || undefined
-            : undefined;
-          const batchName = base.batchId
-            ? (await resolveRelationNames([base.batchId]))[0] || undefined
-            : undefined;
-          const { _industryRelationIds, _representativeId, ...rest } = base;
-          return { ...rest, ceoName, batchName } as Company;
-        })
-      );
+      // 한번에 병렬 조회 후 Map에 저장 (재호출 제거)
+      const [repResults, batchResults] = await Promise.all([
+        Promise.all(allRepIds.map(async (id) => [id, (await resolveRelationNames([id]))[0] || ""] as const)),
+        Promise.all(allBatchIds.map(async (id) => [id, (await resolveRelationNames([id]))[0] || ""] as const)),
+      ]);
+      const repMap = new Map(repResults);
+      const batchMap = new Map(batchResults);
+
+      // Map에서 즉시 조회 (추가 API 호출 없음)
+      const companies = bases.map((base) => {
+        const ceoName = base._representativeId ? repMap.get(base._representativeId) || undefined : undefined;
+        const batchName = base.batchId ? batchMap.get(base.batchId) || undefined : undefined;
+        const { _industryRelationIds, _representativeId, ...rest } = base;
+        return { ...rest, ceoName, batchName } as Company;
+      });
       return companies.sort((a, b) => a.id - b.id);
     },
     60_000 // 1분 캐시 (SWR이 클라이언트에서 프레시니스 관리)

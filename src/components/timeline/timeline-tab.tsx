@@ -55,7 +55,7 @@ export function TimelineTab({
               key={tab.key}
               onClick={() => setFilter(tab.key)}
               aria-pressed={filter === tab.key}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                 filter === tab.key
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
