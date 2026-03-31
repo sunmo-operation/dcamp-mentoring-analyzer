@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -26,19 +27,20 @@ export default function LoginPage() {
         });
 
         if (res.ok) {
-          router.push(from);
-          router.refresh();
+          setSuccess(true);
+          // 풀 페이지 리로드로 쿠키가 미들웨어에 반영되도록
+          window.location.href = from;
         } else {
           const data = await res.json().catch(() => null);
-          setError(data?.error || "로그인에 실패했습니다");
+          setError(data?.error || "비밀번호가 올바르지 않습니다");
+          setLoading(false);
         }
       } catch {
         setError("서버에 연결할 수 없습니다");
-      } finally {
         setLoading(false);
       }
     },
-    [password, from, router],
+    [password, from],
   );
 
   return (
@@ -52,29 +54,38 @@ export default function LoginPage() {
             디캠프 내부 도구입니다. 비밀번호를 입력해주세요.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="비밀번호"
-              required
-              autoFocus
-              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-            />
+          {success ? (
+            <div className="flex items-center gap-2 rounded-xl bg-green-50 dark:bg-green-950/30 px-4 py-3 text-sm text-green-700 dark:text-green-300">
+              <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              로그인 성공! 이동 중...
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호"
+                required
+                autoFocus
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              />
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+              {error && (
+                <p className="text-sm text-destructive">{error}</p>
+              )}
 
-            <button
-              type="submit"
-              disabled={loading || !password}
-              className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "확인 중..." : "로그인"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading || !password}
+                className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "확인 중..." : "로그인"}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>
