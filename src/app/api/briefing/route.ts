@@ -20,7 +20,9 @@ import {
   buildEnhancedPrompts,
   analyzeSemanticTopics,
   mergeSemanticTopics,
+  criticizeBriefing,
 } from "@/lib/agents";
+import type { BriefingResponse } from "@/lib/schemas";
 
 // Vercel Pro 플랜: 최대 300초
 export const maxDuration = 300;
@@ -229,7 +231,7 @@ export async function POST(request: Request) {
         // 1단계: 데이터 수집 (Agent: Data Collector)
         // stale 체크와 브리핑 생성 모두 같은 packet을 재사용
         controller.enqueue(encode({
-          type: "status", step: 1, totalSteps: 3,
+          type: "status", step: 1, totalSteps: 4,
           message: "Notion에서 데이터를 가져오고 있어요",
           elapsed: 0,
         }));
@@ -277,7 +279,7 @@ export async function POST(request: Request) {
 
         // 2단계: 분석 + AI 브리핑 (Agent: Analyst → Narrator)
         controller.enqueue(encode({
-          type: "status", step: 2, totalSteps: 3,
+          type: "status", step: 2, totalSteps: 4,
           message: "AI가 브리핑을 작성하고 있어요",
           detail: collectionDetail,
         }));
@@ -318,7 +320,7 @@ export async function POST(request: Request) {
             if (attempt > 1) {
               console.log(`[브리핑] 재시도 ${attempt}/${MAX_ATTEMPTS}...`);
               controller.enqueue(encode({
-                type: "status", step: 2, totalSteps: 3,
+                type: "status", step: 2, totalSteps: 4,
                 message: `AI 응답 재시도 중 (${attempt}/${MAX_ATTEMPTS})`,
                 elapsed: Math.round((Date.now() - startTime) / 1000),
               }));
@@ -334,7 +336,7 @@ export async function POST(request: Request) {
                   const pct = Math.min(Math.round((text.length / 5000) * 90), 90);
                   try {
                     controller.enqueue(encode({
-                      type: "progress", step: 2, totalSteps: 3,
+                      type: "progress", step: 2, totalSteps: 4,
                       message: "AI가 브리핑을 작성하고 있어요",
                       pct,
                       elapsed: Math.round((Date.now() - startTime) / 1000),
@@ -360,10 +362,59 @@ export async function POST(request: Request) {
           throw lastError || new Error("AI 응답 파싱 실패");
         }
 
-        // 3단계: 결과 처리
+        // ── Critic Agent: 브리핑 품질 검증 ──────────────
+        controller.enqueue(encode({
+          type: "status", step: 3, totalSteps: 4,
+          message: "브리핑 품질을 검증하고 있어요",
+          elapsed: Math.round((Date.now() - startTime) / 1000),
+        }));
+
+        // 1차 브리핑을 Zod로 사전 파싱 (Critic에 타입 안전한 데이터 전달)
+        const preValidated = briefingResponseSchema.safeParse(nullsToUndefined(rawParsed));
+        if (preValidated.success) {
+          try {
+            const criticResult = await criticizeBriefing(preValidated.data, packet);
+            console.log(`[Critic] 검증 완료: severity=${criticResult.severity}, issues=${criticResult.issues.length}건`);
+
+            if (criticResult.severity === "critical" && criticResult.improvementPrompt) {
+              // 2차 Claude 호출: 문제 섹션만 재생성
+              controller.enqueue(encode({
+                type: "status", step: 3, totalSteps: 4,
+                message: "일부 섹션을 보강하고 있어요",
+                elapsed: Math.round((Date.now() - startTime) / 1000),
+              }));
+
+              try {
+                const patchPrompt = `기존 브리핑:\n${JSON.stringify(rawParsed, null, 2)}\n\n${criticResult.improvementPrompt}`;
+                const { parsed: patchParsed } = await callClaudeAndParse(
+                  claude, systemPrompt, patchPrompt, () => {} // 2차는 진행률 불필요
+                );
+
+                // 2차 결과를 1차에 머지
+                if (patchParsed && typeof patchParsed === "object") {
+                  rawParsed = { ...(rawParsed as Record<string, unknown>), ...(patchParsed as Record<string, unknown>) };
+                  console.log("[Critic] 2차 재생성 결과 머지 완료");
+                }
+              } catch (e) {
+                console.warn("[Critic] 2차 재생성 실패 (1차 결과 유지):", e);
+              }
+            }
+
+            // warning 이슈를 metadata로 기록 (나중에 확인 가능)
+            if (criticResult.issues.length > 0) {
+              (rawParsed as Record<string, unknown>)._criticIssues = criticResult.issues.map((i) =>
+                `[${i.type}] ${i.field}: ${i.message}`
+              );
+            }
+          } catch (e) {
+            console.warn("[Critic] 검증 실패 (무시, 1차 결과 진행):", e);
+          }
+        }
+
+        // 4단계: 결과 처리
         const elapsed4 = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({
-          type: "status", step: 3, totalSteps: 3,
+          type: "status", step: 4, totalSteps: 4,
           message: "거의 다 됐어요!",
           elapsed: elapsed4,
         }));

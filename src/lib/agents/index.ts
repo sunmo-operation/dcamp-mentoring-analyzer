@@ -5,9 +5,11 @@
 export type { CompanyDataPacket, PulseReport, AnalystReport } from "./types";
 export type { NarratorPrompts } from "./narrator";
 export type { SemanticTopicResult } from "./topic-analyst";
+export type { CriticAssessment, CriticIssue } from "./critic";
 export { collectCompanyData } from "./data-collector";
 export { buildEnhancedPrompts } from "./narrator";
 export { analyzeSemanticTopics, mergeSemanticTopics } from "./topic-analyst";
+export { criticizeBriefing } from "./critic";
 
 // ── 캐시 적용 래퍼 (PulseReport / AnalystReport) ──
 // 동일 데이터(collectedAt 기준)에 대해 결정론적 결과를 반환하므로
