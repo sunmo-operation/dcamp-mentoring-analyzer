@@ -1,25 +1,36 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const checks = {
-    GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
-    AUTH_SECRET: !!process.env.AUTH_SECRET,
-    NEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
-    AUTH_URL: process.env.AUTH_URL ?? "(not set)",
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL ?? "(not set)",
-    AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST ?? "(not set)",
-    NODE_ENV: process.env.NODE_ENV,
-  };
+  const envKeys = [
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "AUTH_SECRET",
+    "NEXTAUTH_SECRET",
+    "AUTH_URL",
+    "NEXTAUTH_URL",
+    "AUTH_TRUST_HOST",
+    "SITE_PASSWORD",
+    "ANTHROPIC_API_KEY",
+    "NOTION_API_KEY",
+    "NOTION_COMPANIES_DB_ID",
+    "BRIEFING_MODEL",
+    "NEXT_PUBLIC_HAS_SITE_PASSWORD",
+    "NODE_ENV",
+    "VERCEL",
+    "VERCEL_ENV",
+  ];
 
-  // NextAuth 초기화 테스트
-  let authError: string | null = null;
-  try {
-    const { auth } = await import("@/auth");
-    await auth();
-  } catch (e) {
-    authError = e instanceof Error ? e.message : String(e);
+  const checks: Record<string, string> = {};
+  for (const key of envKeys) {
+    const val = process.env[key];
+    if (!val) {
+      checks[key] = "(not set)";
+    } else if (key.includes("SECRET") || key.includes("PASSWORD") || key.includes("API_KEY")) {
+      checks[key] = val.slice(0, 4) + "...";
+    } else {
+      checks[key] = val;
+    }
   }
 
-  return NextResponse.json({ checks, authError });
+  return NextResponse.json({ checks });
 }
