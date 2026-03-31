@@ -2,6 +2,8 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true, // Vercel 등 리버스 프록시 환경에서 필수
+
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
