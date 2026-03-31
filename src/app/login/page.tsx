@@ -1,13 +1,21 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get("from") || "/";
+  const { data: session } = useSession();
+
+  // 이미 로그인 상태면 홈으로 리다이렉트
+  useEffect(() => {
+    if (session?.user) {
+      router.replace(from);
+    }
+  }, [session, from, router]);
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
