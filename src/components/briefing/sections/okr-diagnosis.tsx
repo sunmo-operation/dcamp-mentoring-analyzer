@@ -21,7 +21,7 @@ interface OkrDiagnosisProps {
   kptHighlights?: KptHighlights | null;
 }
 
-// ── ② OKR & KPT 진단 ──────────────────────────────────
+// ── ② Objective & KPT ──────────────────────────────────
 export function OkrDiagnosis({
   overallRate,
   objectives,
@@ -29,16 +29,17 @@ export function OkrDiagnosis({
   metricVsNarrative,
   kptHighlights,
 }: OkrDiagnosisProps) {
-  // objectives가 배열이 아닌 경우 방어
   const safeObjectives = Array.isArray(objectives) ? objectives : [];
   const hasKpt = kptHighlights && (kptHighlights.keep || kptHighlights.problem || kptHighlights.try);
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">핵심목표 & 성과 진단</CardTitle>
+        <CardTitle className="text-base">Objective & KPT</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+
+        {/* OKR 달성율 + 개별 목표 */}
         {overallRate !== null && (
           <div className="flex items-center gap-4">
             <span className="text-3xl font-bold">
@@ -51,7 +52,7 @@ export function OkrDiagnosis({
                   style={{ width: `${Math.min(Number(overallRate) || 0, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">전체 달성율</p>
+              <p className="text-xs text-muted-foreground mt-1">Objective 달성율</p>
             </div>
           </div>
         )}
@@ -89,6 +90,8 @@ export function OkrDiagnosis({
             })}
           </div>
         )}
+
+        {/* 트렌드 분석 + 괴리 */}
         {trendAnalysis && (
           <div className="space-y-2">
             <p className="text-sm leading-relaxed">{safeStr(trendAnalysis)}</p>
@@ -105,32 +108,27 @@ export function OkrDiagnosis({
           </div>
         )}
 
-        {/* KPT 회고 하이라이트 */}
+        {/* KPT — 서브 헤더 없이 바로 K/P/T 카드 */}
         {hasKpt && (
-          <div className="space-y-2 pt-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              KPT 회고 인사이트
-            </p>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {kptHighlights.keep && (
-                <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950">
-                  <p className="text-xs font-semibold text-green-800 dark:text-green-200 mb-1">Keep — 강점</p>
-                  <p className="text-xs text-green-700 dark:text-green-300 leading-relaxed">{safeStr(kptHighlights.keep)}</p>
-                </div>
-              )}
-              {kptHighlights.problem && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950">
-                  <p className="text-xs font-semibold text-red-800 dark:text-red-200 mb-1">Problem — 구조적 이슈</p>
-                  <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed">{safeStr(kptHighlights.problem)}</p>
-                </div>
-              )}
-              {kptHighlights.try && (
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950">
-                  <p className="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-1">Try — 실효성 평가</p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">{safeStr(kptHighlights.try)}</p>
-                </div>
-              )}
-            </div>
+          <div className="grid gap-2.5 sm:grid-cols-3">
+            {kptHighlights.keep && (
+              <div className="rounded-xl border border-green-200 bg-green-50 p-3.5 dark:border-green-800 dark:bg-green-950">
+                <p className="text-xs font-bold text-green-800 dark:text-green-200 mb-1.5">Keep</p>
+                <p className="text-sm text-green-700 dark:text-green-300 leading-relaxed">{safeStr(kptHighlights.keep)}</p>
+              </div>
+            )}
+            {kptHighlights.problem && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 dark:border-red-800 dark:bg-red-950">
+                <p className="text-xs font-bold text-red-800 dark:text-red-200 mb-1.5">Problem</p>
+                <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed">{safeStr(kptHighlights.problem)}</p>
+              </div>
+            )}
+            {kptHighlights.try && (
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 dark:border-blue-800 dark:bg-blue-950">
+                <p className="text-xs font-bold text-blue-800 dark:text-blue-200 mb-1.5">Try</p>
+                <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">{safeStr(kptHighlights.try)}</p>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

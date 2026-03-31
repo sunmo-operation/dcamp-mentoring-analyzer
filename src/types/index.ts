@@ -353,6 +353,12 @@ export interface CompanyBriefing {
       try: string;
     } | null;
   } | null;
+  positiveShifts: {
+    shift: string;
+    evidence: string;
+    detectedFrom: string;
+    impactArea: string;
+  }[];
   repeatPatterns: {
     issue: string;
     issueCategory: string;
@@ -419,6 +425,7 @@ export interface CompanyBriefing {
     analysisCount: number;
     kptCount: number;
     okrItemCount: number;
+    lastEditedTime?: string; // Notion DB 최신 수정 시간 (기존 데이터 수정 감지용)
   };
   errorMessage?: string;
 }

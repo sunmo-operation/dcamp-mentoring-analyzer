@@ -45,6 +45,7 @@ import {
   getKptReviews as notionGetKptReviews,
   getOkrItems as notionGetOkrItems,
   getOkrValues as notionGetOkrValues,
+  getBatchKptReviews as notionGetBatchKptReviews,
   getBatchOkrData as notionGetBatchOkrData,
   getBatchGrowthData as notionGetBatchGrowthData,
   getCompanySurveyData as notionGetCompanySurveyData,
@@ -528,6 +529,10 @@ export async function getCompanyAllData(
   ]);
   console.log(`[perf] getCompanyAllData > Notion 병렬호출: ${Date.now() - t1}ms (company + sessions ${sessions.length}건 + expertRequests ${expertRequests.length}건 + survey)`);
 
+  if (expertRequests.length === 0) {
+    console.warn(`[data] ⚠ 전문가 요청 0건 (companyId=${companyNotionPageId.slice(0, 8)}..., DB=${process.env.NOTION_EXPERT_REQUESTS_DB_ID?.slice(0, 8)}...). DB ID가 올바른지 확인 필요.`);
+  }
+
   if (!company) return null;
 
   // 엑셀 마스터 시트 데이터 병합 (PM, 투자현황, 사전설문 등)
@@ -692,6 +697,7 @@ export function isBriefingStale(
     analyses: AnalysisResult[];
     kptCount?: number;
     okrItemCount?: number;
+    lastEditedTime?: string; // Notion DB 최신 수정 시간
   }
 ): { stale: boolean; reason?: string } {
   // 24시간 경과 체크
@@ -732,6 +738,13 @@ export function isBriefingStale(
     return { stale: true, reason: "최신 멘토링 세션 날짜가 변경됨" };
   }
 
+  // Notion 데이터 수정 감지 (기존 세션/요청 내용이 변경된 경우)
+  if (currentData.lastEditedTime && fp.lastEditedTime) {
+    if (currentData.lastEditedTime > fp.lastEditedTime) {
+      return { stale: true, reason: "Notion 데이터가 브리핑 이후 수정됨" };
+    }
+  }
+
   return { stale: false };
 }
 
@@ -746,6 +759,7 @@ export const getTimeline = notionGetTimeline;
 export const extractPageText = notionExtractPageText;
 export const clearCache = notionClearCache;
 export const getKptReviews = notionGetKptReviews;
+export const getBatchKptReviews = notionGetBatchKptReviews;
 export const getOkrItems = notionGetOkrItems;
 export const getOkrValues = notionGetOkrValues;
 

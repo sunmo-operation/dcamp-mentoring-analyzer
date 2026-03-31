@@ -3,16 +3,15 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { CompanyTabs } from "./company-tabs";
-import { AnalysisCard } from "@/components/analysis/analysis-card";
-import { TimelineTab } from "@/components/timeline/timeline-tab";
+import { PulseTab } from "@/components/pulse/pulse-tab";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
   MentoringSession,
   ExpertRequest,
-  TimelineEvent,
   AnalysisResult,
 } from "@/types";
+import type { PulseReport } from "@/lib/agents/types";
 
 // 세션 유형별 아이콘
 const SESSION_TYPE_ICON: Record<string, string> = {
@@ -24,13 +23,14 @@ const SESSION_TYPE_ICON: Record<string, string> = {
 };
 
 interface CompanyDetailData {
+  companyName?: string;
   sessions: MentoringSession[];
   expertRequests: ExpertRequest[];
-  timeline: TimelineEvent[];
   analyses: AnalysisResult[];
   expertSummary: { total: number; inProgress: number; completed: number };
   kptSummary?: string | null;
   kptCount?: number | null;
+  pulse: PulseReport;
 }
 
 interface LazyTabsSectionProps {
@@ -47,6 +47,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
   const [data, setData] = useState<CompanyDetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -73,31 +74,19 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
   // ── 초기 상태: 버튼 표시 ────────────────────────
   if (!data && !loading && !error) {
     return (
-      <div className="flex flex-col items-center gap-4 py-16">
-        <div className="rounded-2xl bg-muted/50 px-6 py-3 text-center">
-          <p className="text-sm text-muted-foreground">
-            멘토링 기록, 타임라인, AI 분석 이력
-          </p>
-        </div>
+      <div className="flex flex-col items-center gap-3 py-6">
         <button
           onClick={loadData}
           className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-lg"
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19 9l-7 7-7-7"
-            />
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
           </svg>
-          상세 기록 불러오기
+          AI 상세 기록 보기
         </button>
+        <p className="text-xs text-muted-foreground">
+          멘토링 기록 · 배치 타임라인
+        </p>
       </div>
     );
   }
@@ -140,7 +129,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
   }
 
   // ── 데이터 로드 완료: 탭 렌더링 ──────────────
-  const { sessions, expertRequests, timeline, analyses } = data!;
+  const { sessions, pulse } = data!;
 
   // 멘토링 기록 탭
   const sortedSessions = [...sessions].sort(
@@ -157,7 +146,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
       </div>
       {sortedSessions.length > 0 ? (
         <div className="space-y-4">
-          {sortedSessions.map((session) => {
+          {sortedSessions.slice(0, visibleCount).map((session) => {
             const types = Array.isArray(session.sessionTypes)
               ? session.sessionTypes
               : [];
@@ -187,7 +176,7 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
                         {title}
                       </CardTitle>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0 max-w-[45%] sm:max-w-none flex-wrap justify-end">
                       {types.map((type) => (
                         <Badge
                           key={String(type)}
@@ -233,6 +222,14 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
               </Card>
             );
           })}
+          {sortedSessions.length > visibleCount && (
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 10)}
+              className="w-full rounded-2xl border border-border bg-muted/30 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60"
+            >
+              더 보기 ({sortedSessions.length - visibleCount}건 남음)
+            </button>
+          )}
         </div>
       ) : (
         <p className="text-muted-foreground text-center py-8">
@@ -242,51 +239,13 @@ export function LazyTabsSection({ companyId }: LazyTabsSectionProps) {
     </>
   );
 
-  // 타임라인 탭
-  const timelineContent = (
-    <>
-      <div className="mb-6">
-        <h2 className="text-xl font-bold">타임라인</h2>
-        <p className="text-sm text-muted-foreground">
-          회의록 + 전문가 요청 통합 ({timeline.length}건)
-        </p>
-      </div>
-      <TimelineTab
-        events={timeline}
-        expertRequests={expertRequests}
-        initialFilter={filter}
-      />
-    </>
-  );
-
-  // 분석 이력 탭
-  const analysisContent = (
-    <>
-      <div className="mb-6">
-        <h2 className="text-xl font-bold">AI 분석 이력</h2>
-        <p className="text-sm text-muted-foreground">
-          총 {analyses.length}건의 멘토링 분석
-        </p>
-      </div>
-      {analyses.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {analyses.map((analysis) => (
-            <AnalysisCard key={analysis.id} analysis={analysis} />
-          ))}
-        </div>
-      ) : (
-        <p className="text-muted-foreground text-center py-8">
-          아직 분석 결과가 없습니다
-        </p>
-      )}
-    </>
-  );
+  // 팀 펄스 탭
+  const pulseContent = <PulseTab pulse={pulse} companyName={data!.companyName} />;
 
   return (
     <CompanyTabs
       mentoringTab={mentoringContent}
-      timelineTab={timelineContent}
-      analysisTab={analysisContent}
+      pulseTab={pulseContent}
     />
   );
 }

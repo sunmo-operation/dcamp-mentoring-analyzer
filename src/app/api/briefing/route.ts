@@ -1,25 +1,26 @@
 import { nanoid } from "nanoid";
-import { getClaudeClient } from "@/lib/claude";
+import { revalidatePath } from "next/cache";
+import { getClaudeClient, classifyClaudeError } from "@/lib/claude";
 import {
-  buildBriefingSystemPrompt,
-  buildBriefingUserPrompt,
-} from "@/lib/briefing-prompts";
-import {
-  getCompanyAllData,
   getBriefingByCompany,
   saveBriefing,
   isBriefingStale,
-  getKptReviews,
-  getOkrItems,
-  getOkrValues,
-  getCompanyBatchDashboardData,
 } from "@/lib/data";
+import { getLastEditedTime } from "@/lib/notion";
 import type { CompanyBriefing } from "@/types";
 import {
   briefingResponseSchema,
   transformBriefingResponse,
   nullsToUndefined,
 } from "@/lib/schemas";
+import {
+  collectCompanyData,
+  generateAnalystReport,
+  generatePulseReport,
+  buildEnhancedPrompts,
+  analyzeSemanticTopics,
+  mergeSemanticTopics,
+} from "@/lib/agents";
 
 // Vercel Pro 플랜: 최대 300초
 export const maxDuration = 300;
@@ -225,61 +226,45 @@ export async function POST(request: Request) {
       try {
         controller.enqueue(encode({ type: "heartbeat" }));
 
-        // 0단계: 캐시 확인 (데이터 수집 전에 먼저 체크)
-        if (!force) {
-          const existing = await getBriefingByCompany(companyId);
-          if (existing) {
-            const [quickData, quickKpt, quickOkr] = await Promise.all([
-              getCompanyAllData(companyId),
-              getKptReviews(companyId),
-              getOkrItems(companyId),
-            ]);
-            if (quickData) {
-              const { stale } = isBriefingStale(existing, {
-                sessions: quickData.sessions,
-                expertRequests: quickData.expertRequests,
-                analyses: quickData.analyses,
-                kptCount: quickKpt.length,
-                okrItemCount: quickOkr.length,
-              });
-              if (!stale) {
-                controller.enqueue(encode({ type: "complete", briefing: existing, cached: true }));
-                return;
-              }
-            }
-          }
-        }
-
-        // 1단계: 데이터 수집
+        // 1단계: 데이터 수집 (Agent: Data Collector)
+        // stale 체크와 브리핑 생성 모두 같은 packet을 재사용
         controller.enqueue(encode({
           type: "status", step: 1, totalSteps: 3,
           message: "Notion에서 데이터를 가져오고 있어요",
           elapsed: 0,
         }));
 
-        // 모든 데이터 수집을 병렬로 (batchData도 Promise.all에 포함)
-        const [allData, kptReviews, okrItems, okrValues] = await Promise.all([
-          getCompanyAllData(companyId),
-          getKptReviews(companyId),
-          getOkrItems(companyId),
-          getOkrValues(companyId),
+        const [packet, existingBriefing, lastEdited] = await Promise.all([
+          collectCompanyData(companyId),
+          force ? Promise.resolve(undefined) : getBriefingByCompany(companyId),
+          force ? Promise.resolve(null) : getLastEditedTime("company-detail", companyId),
         ]);
 
-        if (!allData) {
+        if (!packet) {
           controller.enqueue(encode({ type: "error", message: "존재하지 않는 기업입니다" }));
           return;
         }
 
-        const { company, sessions, expertRequests, analyses } = allData;
-        // batchData도 타임아웃 제한 + 실패 시 null (전체 흐름 차단 방지)
-        const batchData = await Promise.race([
-          getCompanyBatchDashboardData(company),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
-        ]).catch(() => null);
+        // 0단계: 캐시 확인 (수집된 packet으로 stale 체크 — 별도 fetch 제거)
+        if (!force && existingBriefing) {
+          const { stale } = isBriefingStale(existingBriefing, {
+            sessions: packet.sessions,
+            expertRequests: packet.expertRequests,
+            analyses: packet.analyses,
+            lastEditedTime: lastEdited ?? undefined,
+          });
+          if (!stale) {
+            controller.enqueue(encode({ type: "complete", briefing: existingBriefing, cached: true }));
+            return;
+          }
+        }
+
+        const { company, sessions, expertRequests, analyses } = packet;
 
         // 데이터 수집 결과 요약 — 검토 볼륨을 구체적으로 표시
         const totalTextLength = sessions.reduce((sum, s) => sum + (s.summary?.length || 0), 0);
-        const totalDocs = sessions.length + kptReviews.length + expertRequests.length + analyses.length + okrItems.length;
+        const slackCount = packet.slackMessages?.length || 0;
+        const totalDocs = sessions.length + expertRequests.length + analyses.length + slackCount;
         const dateRange = sessions.length > 0
           ? `${sessions[sessions.length - 1]?.date?.slice(0, 7) || ""} ~ ${sessions[0]?.date?.slice(0, 7) || ""}`
           : "";
@@ -290,28 +275,38 @@ export async function POST(request: Request) {
         if (dateRange) detailParts.push(dateRange);
         const collectionDetail = `${detailParts.join(" · ")} 검토 중`;
 
-        // 2단계: AI 분석
+        // 2단계: 분석 + AI 브리핑 (Agent: Analyst → Narrator)
         controller.enqueue(encode({
           type: "status", step: 2, totalSteps: 3,
           message: "AI가 브리핑을 작성하고 있어요",
           detail: collectionDetail,
         }));
 
+        // Analyst Agent: 데이터 기반 사전 분석 (AI 호출 없음, 즉시 반환)
+        let analystReport = generateAnalystReport(packet);
+
+        // Topic Analyst (2차 에이전트) — getLastEditedTime은 위에서 이미 조회한 lastEdited 재사용
+        const semanticTopics = await analyzeSemanticTopics(packet).catch(() => null);
+        if (semanticTopics) {
+          analystReport = mergeSemanticTopics(analystReport, semanticTopics);
+        }
+
         const dataFingerprint: CompanyBriefing["dataFingerprint"] = {
           lastSessionDate: sessions[0]?.date || null,
           sessionCount: sessions.length,
           expertRequestCount: expertRequests.length,
           analysisCount: analyses.length,
-          kptCount: kptReviews.length,
-          okrItemCount: okrItems.length,
+          kptCount: 0,
+          okrItemCount: 0,
+          lastEditedTime: lastEdited ?? undefined,
         };
 
+        // Pulse Tracker: 정성적 종합 평가 (즉시 반환, AI 호출 없음)
+        const pulseReport = generatePulseReport(packet);
+
+        // Narrator Agent: Analyst + Pulse 결과를 반영한 강화 프롬프트 생성
         const claude = getClaudeClient();
-        const systemPrompt = buildBriefingSystemPrompt();
-        const userPrompt = buildBriefingUserPrompt(
-          company, sessions, expertRequests, analyses,
-          kptReviews, okrItems, okrValues, batchData
-        );
+        const { systemPrompt, userPrompt } = buildEnhancedPrompts(packet, analystReport, pulseReport);
 
         // Claude 호출 + 자동 재시도 (최대 2회)
         let rawParsed: unknown;
@@ -414,19 +409,9 @@ export async function POST(request: Request) {
         const totalElapsed = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({ type: "complete", briefing, cached: false, elapsed: totalElapsed }));
       } catch (error) {
-        const msg = error instanceof Error ? error.message : "알 수 없는 오류";
-        console.error("브리핑 스트리밍 오류:", msg);
+        console.error("브리핑 스트리밍 오류:", error instanceof Error ? error.message : error);
 
-        let userMsg = `브리핑 생성 중 문제가 발생했습니다. 다시 시도해주세요.`;
-        if (msg.includes("API key") || msg.includes("apiKey") || msg.includes("authentication")) {
-          userMsg = "ANTHROPIC_API_KEY가 설정되지 않았거나 유효하지 않습니다.";
-        } else if (msg.includes("JSON") || msg.includes("parse") || msg.includes("PARSE") || msg.includes("FORMAT") || msg.includes("형식")) {
-          userMsg = "AI 응답을 처리하지 못했습니다. '다시 시도' 버튼을 눌러주세요.";
-        } else if (msg.includes("timeout") || msg.includes("ETIMEDOUT")) {
-          userMsg = "AI 서버 응답 시간 초과. 다시 시도해주세요.";
-        } else if (msg.includes("rate") || msg.includes("429")) {
-          userMsg = "AI 서버가 바쁩니다. 잠시 후 다시 시도해주세요.";
-        }
+        const userMsg = classifyClaudeError(error);
 
         try {
           controller.enqueue(encode({ type: "error", message: userMsg }));
@@ -472,6 +457,8 @@ function buildBriefing(
 async function safeSave(briefing: CompanyBriefing) {
   try {
     await saveBriefing(briefing);
+    // ISR 캐시 무효화 — 다음 페이지 방문 시 저장된 브리핑을 즉시 반영
+    revalidatePath(`/companies/${briefing.companyId}`);
   } catch (e) {
     console.warn("브리핑 저장 실패 (무시):", e);
   }

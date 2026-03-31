@@ -7,10 +7,10 @@ import { RefreshBar } from "./refresh-bar";
 import { parseBulletLines } from "./briefing-styles";
 import { ExecutiveSummary } from "./sections/executive-summary";
 import { OkrDiagnosis } from "./sections/okr-diagnosis";
+import { PositiveShifts } from "./sections/positive-shifts";
 import { RepeatPatterns } from "./sections/repeat-patterns";
 import { UnspokenSignals } from "./sections/unspoken-signals";
 import { MentorInsights } from "./sections/mentor-insights";
-import { ResourceDiagnosis } from "./sections/resource-diagnosis";
 import { MeetingStrategy } from "./sections/meeting-strategy";
 import { PmActions } from "./sections/pm-actions";
 // industryContext 섹션 제거 — 노션 데이터 기반 핵심 브리핑에 집중
@@ -27,12 +27,13 @@ interface BriefingPanelProps {
 
 // 로딩 메시지 (5초마다 순환, 심층 분석 톤)
 const FUN_MESSAGES = [
-  "Notion DB 전체 스캔 중 — 멘토링·KPT·OKR·전문가 요청 데이터 수집",
+  "Notion + Slack 데이터 수집 중 — 멘토링·KPT·OKR·전문가 요청·채널 대화",
   "멘토링 회의록 전문 분석 — 핵심 논의와 후속 조치 추출",
   "KPT 회고 × OKR 달성률 교차 검증 — 말과 실행의 갭 탐색",
-  "반복 이슈의 구조적 원인 진단 — 데이터 소스 간 교차 분석",
+  "Notion·Slack 데이터 교차 분석 — 반복 이슈의 구조적 원인 진단",
   "멘토 피드백 이행 여부 검증 — 조언 vs 실행 매칭",
   "전문가 투입 이력 분석 — 리소스 니즈와 실행력 파악",
+  "배치 대시보드 KPT 회고 연계 분석 — 팀 자체 평가 반영",
   "심층 브리핑 보고서 작성 중 — 최종 검토 단계",
 ];
 
@@ -211,6 +212,7 @@ export function BriefingPanel({
     ))
   );
   const okrDiagnosis = hasOkrContent ? rawOkrDiagnosis : null;
+  const positiveShifts = briefing?.positiveShifts;
   const repeatPatterns = briefing?.repeatPatterns;
   const unspokenSignals = briefing?.unspokenSignals;
   const mentorInsights = briefing?.mentorInsights;
@@ -220,17 +222,9 @@ export function BriefingPanel({
   const safeReportBody = typeof executiveSummary?.reportBody === "string" ? executiveSummary.reportBody : "";
   const safeRepeatedAdvice = typeof mentorInsights?.repeatedAdvice === "string" ? mentorInsights.repeatedAdvice : "";
   const safeIgnoredAdvice = typeof mentorInsights?.ignoredAdvice === "string" ? mentorInsights.ignoredAdvice : "";
-  const safeGapAnalysis = typeof mentorInsights?.gapAnalysis === "string" ? mentorInsights.gapAnalysis : "";
-  const safeExpertRequests = typeof mentorInsights?.currentExpertRequests === "string" ? mentorInsights.currentExpertRequests : "";
-
   const keyNumbers = useMemo(() => parseBulletLines(safeReportBody), [safeReportBody]);
   const repeatedAdviceLines = useMemo(() => parseBulletLines(safeRepeatedAdvice), [safeRepeatedAdvice]);
   const ignoredAdviceLines = useMemo(() => parseBulletLines(safeIgnoredAdvice), [safeIgnoredAdvice]);
-  const dcampCanDoLines = useMemo(() => parseBulletLines(safeGapAnalysis), [safeGapAnalysis]);
-  const { primaryNeed, resourceLines } = useMemo(() => {
-    const parsed = parseBulletLines(safeExpertRequests);
-    return { primaryNeed: parsed[0] || "", resourceLines: parsed.slice(1) };
-  }, [safeExpertRequests]);
 
   // ── 첫 생성 로딩 (토스 스타일 로딩 UX) ────────
   if (loading && !briefing) {
@@ -410,6 +404,11 @@ export function BriefingPanel({
           />
         )}
 
+        {/* ② -b 긍정적 변화 */}
+        {positiveShifts && positiveShifts.length > 0 && (
+          <PositiveShifts shifts={positiveShifts} />
+        )}
+
         {/* ③ 심층 인사이트 */}
         {repeatPatterns && repeatPatterns.length > 0 && (
           <RepeatPatterns patterns={repeatPatterns} />
@@ -429,14 +428,7 @@ export function BriefingPanel({
           />
         )}
 
-        {/* ⑥ 리소스 진단 */}
-        {mentorInsights && (primaryNeed || dcampCanDoLines.length > 0) && (
-          <ResourceDiagnosis
-            primaryNeed={primaryNeed}
-            resourceLines={resourceLines}
-            dcampCanDoLines={dcampCanDoLines}
-          />
-        )}
+        {/* ⑥ 리소스 진단 — 제거됨 (전담멘토 혼선 방지) */}
 
         {/* ⑦ 미팅 전략 */}
         {meetingStrategy && (

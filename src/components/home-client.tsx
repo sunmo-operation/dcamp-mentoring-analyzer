@@ -119,13 +119,14 @@ export function HomeClient({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* 헤더 섹션 */}
+      {/* 헤더 섹션 — 도구 소개 */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight">
-          포트폴리오 기업 현황
+          AI Mentoring Analyzer
         </h1>
         <p className="mt-1 text-muted-foreground">
-          포트폴리오 기업의 현재 상황과 핵심 아젠다를 한눈에 파악할 수 있습니다
+          배치 프로그램 참여 팀의 멘토링 기록과 진행 상황을 AI가 종합 분석해,
+          지금 어떤 상황이고 어디에 집중해야 하는지 빠르게 파악할 수 있는 dcamp 내부 도구입니다.
         </p>
       </div>
 
@@ -137,7 +138,7 @@ export function HomeClient({
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <span className="text-sm font-bold text-foreground">어떻게 작동하나요?</span>
+          <span className="text-base font-bold text-foreground">어떻게 작동하나요?</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Step 1 */}
@@ -179,6 +180,12 @@ export function HomeClient({
       </div>
 
       {/* 검색 */}
+      <div className="mb-1">
+        <h2 className="text-lg font-semibold tracking-tight">어떤 기업이 궁금하세요?</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          아래 목록에서 직접 찾거나, 검색창에 기업명·산업·배치를 입력해보세요
+        </p>
+      </div>
       <CompanySearch onSearch={handleSearch} initialQuery={searchQuery} />
 
       {/* 기업 목록 — 기수별 그룹 */}

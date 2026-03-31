@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { getClaudeClient } from "@/lib/claude";
+import { getClaudeClient, classifyClaudeError } from "@/lib/claude";
 import { buildSystemPrompt, buildUserPrompt } from "@/lib/prompts";
 import {
   getCompany,
@@ -147,28 +147,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // 사용자에게는 내부 정보를 노출하지 않음
-    const isDev = process.env.NODE_ENV === "development";
-
-    if (errorMessage.includes("ANTHROPIC_API_KEY")) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: isDev
-            ? "API 키가 설정되지 않았습니다. .env.local 파일에 ANTHROPIC_API_KEY를 추가하세요."
-            : "서버 설정 오류가 발생했습니다. 관리자에게 문의하세요.",
-        },
-        { status: 500 }
-      );
-    }
+    const userMsg = classifyClaudeError(error);
 
     return NextResponse.json(
-      {
-        success: false,
-        error: isDev
-          ? `분석 실패: ${errorMessage}`
-          : "분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-      },
+      { success: false, error: userMsg },
       { status: 500 }
     );
   }

@@ -2,19 +2,15 @@ import type {
   Company,
   MentoringSession,
   ExpertRequest,
-  KptReview,
-  OkrItem,
-  OkrValue,
   CompanyBriefing,
 } from "@/types";
+import type { CompanyCoachingRecords } from "@/lib/coaching-data";
 import {
   truncate,
   formatRecentSessionsGrouped,
   formatOlderSessionsBrief,
   formatExpertRequests,
-  formatKptReviews,
-  formatOkrItems,
-  formatOkrValues,
+  formatCoachingRecordsSection,
 } from "@/lib/briefing-prompts";
 
 // ══════════════════════════════════════════════════
@@ -31,7 +27,7 @@ export function buildChatSystemPrompt(companyName: string): string {
 
   return `[역할]
 당신은 dcamp(은행권청년창업재단) PM 전용 AI 어시스턴트입니다.
-"${companyName}"의 전체 데이터(멘토링 회의록, KPT 회고, OKR, 전문가 요청, AI 브리핑)를 컨텍스트로 보유하고 있습니다.
+"${companyName}"의 전체 데이터(멘토링 회의록, 전문가 요청, AI 브리핑)를 컨텍스트로 보유하고 있습니다.
 PM이 이 기업에 대해 궁금한 점을 자유롭게 질문하면, 데이터에 기반하여 정확하고 실용적인 답변을 제공합니다.
 
 [오늘 날짜] ${today}
@@ -60,10 +56,8 @@ export function buildChatContext(
   company: Company,
   sessions: MentoringSession[],
   expertRequests: ExpertRequest[],
-  kptReviews: KptReview[],
-  okrItems: OkrItem[],
-  okrValues: OkrValue[],
   briefing?: CompanyBriefing | null,
+  coachingRecords?: CompanyCoachingRecords | null,
 ): string {
   // 세션 정렬 및 분리 (최근 3개월 기준)
   const cutoffDate = new Date();
@@ -103,16 +97,6 @@ ${es.reportBody ? `- 주요 현황:\n${es.reportBody}` : ""}`;
 ${companyInfo}
 ${briefingSection}
 
-## OKR 현황
-### 성과지표 항목 (${okrItems.length}건)
-${formatOkrItems(okrItems)}
-
-### 성과지표 측정값 (${okrValues.length}건)
-${formatOkrValues(okrValues)}
-
-## KPT 회고 (${kptReviews.length}건)
-${formatKptReviews(kptReviews)}
-
 ## 주요 멘토링 세션 (${recentSessions.length}건, 최근 3개월 우선)
 ${formatRecentSessionsGrouped(recentSessions)}
 
@@ -120,5 +104,8 @@ ${formatRecentSessionsGrouped(recentSessions)}
 ${formatOlderSessionsBrief(olderSessions)}
 
 ## 전문가 리소스 요청 (${expertRequests.length}건)
-${formatExpertRequests(expertRequests)}`;
+${formatExpertRequests(expertRequests)}${coachingRecords ? `
+
+## 코칭 기록 (엑셀 원본)
+${formatCoachingRecordsSection(coachingRecords)}` : ""}`;
 }

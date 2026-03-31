@@ -49,6 +49,10 @@ export default function AboutPage() {
             분석 결과가 구조화된 브리핑으로 정리됩니다. 이전에 생성된 브리핑은 캐시되어
             빠르게 조회할 수 있고, 데이터가 변경되면 자동으로 갱신이 필요하다고 표시됩니다.
           </Step>
+          <Step n={4} title="AI 챗">
+            브리핑을 읽다가 궁금한 점이 생기면 우하단 챗 버튼으로 바로 질문할 수 있습니다.
+            해당 기업의 전체 데이터를 컨텍스트로 가지고 있어 브리핑에 없는 세부 사항도 답변합니다.
+          </Step>
         </ol>
       </Section>
 
@@ -93,6 +97,7 @@ export default function AboutPage() {
               <DataRow data="OKR / KPI" source="노션 DB" cycle="월간" />
               <DataRow data="전문가 요청" source="노션 DB" cycle="요청 등록 시" />
               <DataRow data="배치 대시보드" source="노션 DB" cycle="격주" />
+              <DataRow data="Slack 채널 대화" source="Slack API" cycle="실시간" />
             </tbody>
           </table>
         </div>
@@ -102,18 +107,23 @@ export default function AboutPage() {
       <Section title="앞으로의 계획">
         <div className="space-y-3">
           <Phase
-            label="현재"
+            label="완료"
+            title="Phase 1 — MVP"
+            desc="정보 구조 + UI 검증, 샘플 기업 데이터 기반 정적 검색·조회"
+          />
+          <Phase
+            label="완료"
             title="Phase 2 — 데이터 연동 + AI 분석"
             desc="노션 API 실시간 연동, AI 브리핑 자동 생성, 검색·조회 기능"
+          />
+          <Phase
+            label="현재"
+            title="Phase 3 — AI 고도화"
+            desc="자연어 챗 인터페이스, 멘토링 녹취 기반 인사이트, 유사 기업 추천"
             active
           />
           <Phase
             label="다음"
-            title="Phase 3 — AI 고도화"
-            desc="자연어 챗 인터페이스, 멘토링 녹취 기반 인사이트, 유사 기업 추천"
-          />
-          <Phase
-            label="이후"
             title="Phase 4 — 외부 데이터 통합"
             desc="슬랙·지메일·구글 드라이브 연동으로 커뮤니케이션 맥락까지 반영, 점점 더 똑똑해지는 분석"
           />

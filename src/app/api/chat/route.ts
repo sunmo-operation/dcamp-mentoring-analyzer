@@ -1,12 +1,11 @@
-import { getClaudeClient } from "@/lib/claude";
+import { getClaudeClient, classifyClaudeError } from "@/lib/claude";
 import { buildChatSystemPrompt, buildChatContext } from "@/lib/chat-prompts";
+import { getBriefingByCompany } from "@/lib/data";
 import {
-  getCompanyAllData,
-  getBriefingByCompany,
-  getKptReviews,
-  getOkrItems,
-  getOkrValues,
-} from "@/lib/data";
+  collectCompanyData,
+  generatePulseReport,
+  generateAnalystReport,
+} from "@/lib/agents";
 
 // Vercel Pro 플랜: 최대 300초
 export const maxDuration = 300;
@@ -52,38 +51,42 @@ export async function POST(request: Request) {
       try {
         controller.enqueue(encode({ type: "heartbeat" }));
 
-        // 1. 기업 데이터 수집 (병렬)
-        const [allData, kptReviews, okrItems, okrValues, existingBriefing] =
-          await Promise.all([
-            getCompanyAllData(companyId),
-            getKptReviews(companyId),
-            getOkrItems(companyId),
-            getOkrValues(companyId),
-            getBriefingByCompany(companyId),
-          ]);
+        // 1. 데이터 수집: collectCompanyData 1회로 통합 (기존 3중 fetch 제거)
+        const [packet, existingBriefing] = await Promise.all([
+          collectCompanyData(companyId),
+          getBriefingByCompany(companyId),
+        ]);
 
-        if (!allData) {
+        if (!packet) {
           controller.enqueue(
             encode({ type: "error", message: "존재하지 않는 기업입니다" }),
           );
           return;
         }
 
-        const { company, sessions, expertRequests } = allData;
+        const { company, sessions, expertRequests, coachingRecords } = packet;
 
-        // 2. 시스템 프롬프트 조립
+        // 2. PulseReport + AnalystReport 생성 (즉시 반환, AI 호출 없음)
+        let agentContext = "";
+        try {
+          const pulse = generatePulseReport(packet);
+          const analyst = generateAnalystReport(packet);
+          agentContext = buildAgentContext(pulse, analyst);
+        } catch {
+          // 에이전트 실패 시 기존 컨텍스트만으로 진행
+        }
+
+        // 3. 시스템 프롬프트 조립
         const systemPrompt = buildChatSystemPrompt(company.name);
         const context = buildChatContext(
           company,
           sessions,
           expertRequests,
-          kptReviews,
-          okrItems,
-          okrValues,
           existingBriefing,
+          coachingRecords,
         );
 
-        const fullSystemPrompt = `${systemPrompt}\n\n[기업 컨텍스트 데이터]\n${context}`;
+        const fullSystemPrompt = `${systemPrompt}\n\n[기업 컨텍스트 데이터]\n${context}${agentContext}`;
 
         // 3. Claude API 스트리밍 호출 (Sonnet 4.6 — prefill 없이)
         const claude = getClaudeClient();
@@ -125,17 +128,9 @@ export async function POST(request: Request) {
         // 완료 신호
         controller.enqueue(encode({ type: "done" }));
       } catch (error) {
-        const msg = error instanceof Error ? error.message : "알 수 없는 오류";
-        console.error("[chat] 스트리밍 오류:", msg);
+        console.error("[chat] 스트리밍 오류:", error instanceof Error ? error.message : error);
 
-        let userMsg = "답변 생성 중 문제가 발생했습니다. 다시 시도해주세요.";
-        if (msg.includes("API key") || msg.includes("authentication")) {
-          userMsg = "ANTHROPIC_API_KEY가 설정되지 않았거나 유효하지 않습니다.";
-        } else if (msg.includes("rate") || msg.includes("429")) {
-          userMsg = "AI 서버가 바쁩니다. 잠시 후 다시 시도해주세요.";
-        } else if (msg.includes("timeout")) {
-          userMsg = "AI 서버 응답 시간 초과. 다시 시도해주세요.";
-        }
+        const userMsg = classifyClaudeError(error);
 
         try {
           controller.enqueue(encode({ type: "error", message: userMsg }));
@@ -157,4 +152,61 @@ export async function POST(request: Request) {
       "X-Accel-Buffering": "no",
     },
   });
+}
+
+// ── PulseReport + AnalystReport → 채팅 컨텍스트 ──
+
+import type { PulseReport, AnalystReport } from "@/lib/agents/types";
+
+function buildAgentContext(pulse: PulseReport, analyst: AnalystReport): string {
+  const parts: string[] = ["\n\n## 에이전트 분석 (Pulse + Analyst)"];
+
+  // 정성적 종합 평가 (서술형)
+  const qa = pulse.qualitativeAssessment;
+  parts.push(`\n### 팀 종합 평가`);
+  parts.push(qa.overallNarrative);
+
+  parts.push(`\n### 멘토링 정기성`);
+  parts.push(`- ${qa.mentoringRegularity.assessment}`);
+  for (const m of qa.mentoringRegularity.recentMonthBreakdown) {
+    parts.push(`  - ${m.month}: ${m.count}건`);
+  }
+
+  parts.push(`\n### 전담멘토 관계`);
+  parts.push(`- ${qa.dedicatedMentorEngagement.assessment}`);
+
+  parts.push(`\n### 전문가 리소스 활용`);
+  parts.push(`- ${qa.expertRequestActivity.assessment}`);
+
+  // 미팅 추세 (참고 맥락)
+  parts.push(`\n### 미팅 현황`);
+  parts.push(`- 총 ${pulse.meetingCadence.totalSessions}회 / ${pulse.meetingCadence.periodMonths}개월 / 평균 ${pulse.meetingCadence.avgIntervalDays}일 간격`);
+  parts.push(`- 추세: ${pulse.meetingCadence.trendReason}`);
+
+  if (pulse.healthSignals.length > 0) {
+    parts.push(`\n### 주의 신호`);
+    for (const s of pulse.healthSignals) {
+      if (s.status !== "good") {
+        parts.push(`- ${s.signal}: ${s.detail}`);
+      }
+    }
+  }
+
+  // Analyst 요약
+  if (analyst.narrativeContext) {
+    parts.push(`\n### Analyst 컨텍스트\n${analyst.narrativeContext}`);
+  }
+
+  if (analyst.topicAnalysis.topKeywords.length > 0) {
+    parts.push(`\n### 주요 토픽: ${analyst.topicAnalysis.topKeywords.slice(0, 5).map((k) => `${k.keyword}(${k.count})`).join(", ")}`);
+  }
+
+  if (analyst.dataGaps.length > 0) {
+    parts.push(`\n### 데이터 공백`);
+    for (const g of analyst.dataGaps) {
+      parts.push(`- [${g.severity}] ${g.area}: ${g.detail}`);
+    }
+  }
+
+  return parts.join("\n");
 }

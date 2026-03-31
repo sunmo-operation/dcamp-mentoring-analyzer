@@ -144,6 +144,7 @@ const DB_IDS = {
   // 배치 대시보드 DB IDs
   batch3Okr: process.env.NOTION_BATCH3_OKR_DB_ID,
   batch3Growth: process.env.NOTION_BATCH3_GROWTH_DB_ID,
+  batch3Status: process.env.NOTION_BATCH3_STATUS_DB_ID,
   batch4Kpi: process.env.NOTION_BATCH4_KPI_DB_ID,
   batch5Gallery: process.env.NOTION_BATCH5_GALLERY_DB_ID,
 };
@@ -407,6 +408,58 @@ export async function extractPageText(pageId: string): Promise<string> {
             .map((t: { plain_text: string }) => t.plain_text)
             .join("");
           if (text) textBlocks.push(text);
+        }
+      }
+
+      // table 블록: 자식 table_row 블록에서 셀 텍스트 추출
+      if (type === "table" && b.has_children) {
+        try {
+          const tableRes = await notion.blocks.children.list({ block_id: b.id as string, page_size: 100 });
+          for (const row of (tableRes?.results ?? [])) {
+            const r = row as Props;
+            if (r?.type === "table_row" && r.table_row?.cells) {
+              const cells = (r.table_row.cells as { plain_text: string }[][])
+                .map((cell) => cell.map((t) => t.plain_text).join(""))
+                .filter(Boolean);
+              if (cells.length > 0) textBlocks.push(cells.join(" | "));
+            }
+          }
+        } catch {
+          // 테이블 자식 블록 조회 실패 시 무시
+        }
+      }
+
+      // child_database 블록: 인라인 DB의 모든 행에서 텍스트 추출 (4기 KPT 등)
+      if (type === "child_database") {
+        try {
+          const dbRes = await notion.databases.query({
+            database_id: b.id as string,
+            page_size: 50,
+          });
+          for (const page of (dbRes?.results ?? [])) {
+            const p = page as Props;
+            if (!p?.properties) continue;
+            const rowTexts: string[] = [];
+            for (const [, val] of Object.entries(p.properties as Record<string, Props>)) {
+              if (!val || !val.type) continue;
+              if (val.type === "title") {
+                const t = (val.title as { plain_text: string }[])?.map((x) => x.plain_text).join("") || "";
+                if (t) rowTexts.push(t);
+              } else if (val.type === "rich_text") {
+                const t = (val.rich_text as { plain_text: string }[])?.map((x) => x.plain_text).join("") || "";
+                if (t) rowTexts.push(t);
+              } else if (val.type === "number" && val.number != null) {
+                rowTexts.push(String(val.number));
+              } else if (val.type === "select" && val.select?.name) {
+                rowTexts.push(val.select.name as string);
+              } else if (val.type === "date" && val.date?.start) {
+                rowTexts.push(val.date.start as string);
+              }
+            }
+            if (rowTexts.length > 0) textBlocks.push(rowTexts.join(" | "));
+          }
+        } catch {
+          // 인라인 DB 조회 실패 시 무시
         }
       }
     }
@@ -873,10 +926,6 @@ export async function getTimeline(
 }
 
 // ══════════════════════════════════════════════════
-// 분석 결과 Notion 저장
-// ══════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════
 // KPT 회고 조회
 // ══════════════════════════════════════════════════
 
@@ -916,6 +965,105 @@ export async function getKptReviews(
       return [];
     }
   });
+}
+
+// ══════════════════════════════════════════════════
+// 배치 기업별 대시보드에서 KPT 회고 조회
+// "4. 오브젝티브 & 마일스톤 회고" DB (구분/상태/Keep/Problem/Try)
+// ══════════════════════════════════════════════════
+
+function getBatchStatusDbId(batchLabel: string): string | undefined {
+  const match = batchLabel.match(/(\d+)/);
+  if (!match) return undefined;
+  if (match[1] === "3") return DB_IDS.batch3Status;
+  return undefined;
+}
+
+/**
+ * 배치 기업별 대시보드에서 KPT 회고 데이터를 가져온다.
+ * 흐름: 배치현황DB → 기업 페이지 → "4. 오브젝티브 & 마일스톤 회고" child_database → 행 쿼리
+ */
+export async function getBatchKptReviews(
+  companyName: string,
+  batchLabel: string
+): Promise<KptReview[]> {
+  const statusDbId = getBatchStatusDbId(batchLabel);
+  if (!statusDbId) return [];
+
+  const cacheKey = `batch-kpt:${batchLabel}:${companyName}`;
+  return cached(cacheKey, async () => {
+    try {
+      // 1. 배치 현황 DB에서 기업 페이지 찾기 (title로 검색)
+      const pages = await queryAllPages(statusDbId);
+      const companyPage = pages.find((p) => {
+        const props = (p?.properties ?? {}) as Props;
+        for (const [, val] of Object.entries(props)) {
+          if (val?.type === "title") {
+            const title = val.title?.map((t: { plain_text: string }) => t.plain_text).join("") ?? "";
+            if (title.includes(companyName)) return true;
+          }
+        }
+        return false;
+      });
+
+      if (!companyPage?.id) {
+        console.log(`[notion] 배치 KPT: "${companyName}" 기업 페이지를 찾을 수 없음`);
+        return [];
+      }
+
+      // 2. 기업 페이지의 자식 블록에서 "회고" child_database 찾기
+      const blocks = await withRetry(
+        () => notion.blocks.children.list({ block_id: companyPage.id as string, page_size: 50 }),
+        { label: "배치KPT-블록조회" }
+      );
+
+      let kptDbId: string | undefined;
+      for (const block of blocks.results) {
+        const b = block as Props;
+        if (b.type === "child_database") {
+          const title = b.child_database?.title || "";
+          if (title.includes("회고") || title.includes("KPT")) {
+            kptDbId = b.id;
+            break;
+          }
+        }
+      }
+
+      if (!kptDbId) {
+        console.log(`[notion] 배치 KPT: "${companyName}" 회고 DB를 찾을 수 없음`);
+        return [];
+      }
+
+      // 3. 회고 DB에서 모든 행 쿼리
+      const kptPages = await queryAllPages(kptDbId);
+
+      return safeMap(kptPages, (page) => {
+        const props = (page?.properties ?? {}) as Props;
+        const title = getTitle(props, "구분"); // e.g., "1월 넥스트그라운드"
+
+        // "구분"에서 월 정보 추출 → reviewDate로 변환 (e.g., "1월" → "2026-01")
+        let reviewDate: string | undefined;
+        const monthMatch = title.match(/(\d{1,2})월/);
+        if (monthMatch) {
+          const month = parseInt(monthMatch[1], 10);
+          // 7~12월은 2025년, 1~6월은 2026년 (배치 기간 기준)
+          const year = month >= 7 ? 2025 : 2026;
+          reviewDate = `${year}-${String(month).padStart(2, "0")}`;
+        }
+
+        return {
+          notionPageId: (page?.id ?? "") as string,
+          reviewDate,
+          keep: getText(props, "Keep"),
+          problem: getText(props, "Problem"),
+          try: getText(props, "Try"),
+        } satisfies KptReview;
+      }, "배치KPT").filter((r) => r.keep || r.problem || r.try); // 빈 행 제외
+    } catch (error) {
+      console.warn(`[notion] 배치 KPT 조회 실패 (${companyName}):`, error);
+      return [];
+    }
+  }, 600_000); // 10분 캐시
 }
 
 // ══════════════════════════════════════════════════
@@ -1000,10 +1148,6 @@ export async function getOkrValues(
 }
 
 // ══════════════════════════════════════════════════
-// 분석 결과 Notion 저장
-// ══════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════
 // 배치 대시보드 조회 (3기/4기/5기)
 // ══════════════════════════════════════════════════
 
@@ -1057,7 +1201,10 @@ export async function getBatchOkrData(batchLabel: string): Promise<BatchOkrEntry
             objective = getText(props, key) || "";
           } else if (val.type === "number") {
             const lowerKey = key.toLowerCase();
-            if (lowerKey.includes("현재") || lowerKey.includes("current")) {
+            if (lowerKey.includes("달성")) {
+              // "달성 현황", "달성율" 등 — 별도 처리 (currentValue/targetValue 아님)
+              // 달성율은 formatBatchOkrData에서 계산하므로 skip
+            } else if (lowerKey.includes("현재") || lowerKey.includes("현황") || lowerKey.includes("current")) {
               currentValue = getNumber(props, key) ?? null;
             } else if (lowerKey.includes("목표") || lowerKey.includes("target")) {
               targetValue = getNumber(props, key) ?? null;
@@ -1188,10 +1335,6 @@ export async function getLastEditedTime(
 }
 
 // ══════════════════════════════════════════════════
-// 분석 결과 Notion 저장
-// ══════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════
 // 사전 설문 데이터 조회
 // ══════════════════════════════════════════════════
 
@@ -1246,46 +1389,3 @@ export async function getCompanySurveyData(
   );
 }
 
-export async function saveAnalysisToNotion(
-  sessionPageId: string,
-  analysis: AnalysisResult
-): Promise<void> {
-  const dateStr = new Date(analysis.createdAt).toISOString().split("T")[0];
-  const sectionsJson = JSON.stringify(analysis.sections, null, 2);
-  // Notion code 블록 최대 2000자 제한 대응
-  const truncated =
-    sectionsJson.length > 2000
-      ? sectionsJson.slice(0, 1997) + "..."
-      : sectionsJson;
-
-  await notion.blocks.children.append({
-    block_id: sessionPageId,
-    children: [
-      {
-        object: "block" as const,
-        type: "heading_2" as const,
-        heading_2: {
-          rich_text: [
-            {
-              type: "text" as const,
-              text: { content: `AI 분석 결과 (${dateStr})` },
-            },
-          ],
-        },
-      },
-      {
-        object: "block" as const,
-        type: "code" as const,
-        code: {
-          rich_text: [
-            {
-              type: "text" as const,
-              text: { content: truncated },
-            },
-          ],
-          language: "json" as const,
-        },
-      },
-    ],
-  });
-}

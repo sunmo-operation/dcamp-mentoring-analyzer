@@ -3,11 +3,9 @@ import type {
   MentoringSession,
   ExpertRequest,
   AnalysisResult,
-  KptReview,
-  OkrItem,
-  OkrValue,
-  BatchDashboardData,
 } from "@/types";
+import type { CompanyCoachingRecords } from "@/lib/coaching-data";
+import type { SlackMessage } from "@/lib/slack";
 
 // ══════════════════════════════════════════════════
 // 브리핑 v4 — MBB 시니어 파트너 수준 진단 + 토큰 최소화
@@ -52,13 +50,20 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 - 배열([]) 타입은 반드시 배열로. 빈 경우 [].
 - 모든 텍스트는 한국어.
 
+[환각 방지 — ★★ 최우선 절대 엄수]
+- 투자 라운드(Pre-A, Series A, B 등), 투자 금액, 누적 투자액: 제공된 "투자 단계" 필드 값만 인용 가능. 데이터에 없는 라운드·금액·회차 정보 생성 시 심각한 오류로 간주.
+- 정량 지표(매출, MAU, 전환율, 성장률, ARR, MRR 등): 노션 Objective·KPT·멘토링 요약에 명시된 수치만 직접 인용. 추정·보간·외삽 절대 금지.
+- 멘토링 회차: 실제 제공된 세션 목록의 건수만 언급. "N회차" 표현 시 데이터와 반드시 일치.
+- 전문가 요청: 제공된 전문가 요청 데이터가 0건이면, 전문가 요청 관련 내용을 절대 생성하지 말 것. "전문가 요청 없음"으로만 처리.
+- 팀 규모·설립일·산업 분야 등 기업 기본 정보: 제공된 값만 사용. 웹 검색·사전 지식으로 보강 금지.
+- 확인 불가한 사실(고객사명, 계약 금액, 파트너사 등)을 멘토링 요약에서 명시적으로 언급되지 않았다면 생성 금지.
+
 [데이터 가치 우선순위]
-1. KPT 회고·N기 대시보드: 팀 직접 작성 1차 데이터. 최고 신뢰도.
-2. 멘토링 회의록: PM/멘토 기록 현장 데이터. 맥락 풍부.
-3. 전문가 요청/결과보고: 리소스 니즈·실행력 핵심 소스.
-4. OKR·KPI: 정량 진척도. KPT와 교차 검증하여 "말 vs 실제" 갭 탐색.
+1. 멘토링 회의록: PM/멘토 기록 현장 데이터. 맥락 풍부. ★ 브리핑의 핵심 근거.
+2. 전문가 요청/결과보고: 리소스 니즈·실행력 핵심 소스.
+3. 팀 펄스 (Pulse Tracker): 멘토링 정기성, 전담멘토 관계, 전문가 활용도.
+4. Slack 채널 대화: 실시간 맥락 보완. 다른 소스와 교차 검증 용도.
 - 노션 수치(매출, MAU, 전환율)는 원본 숫자 직접 인용. 추정 금지.
-- KPT Problem + 멘토링 반복 이슈 중복 → 구조적 문제로 격상.
 
 [분석 프레임워크]
 ① PMF 렌즈: 고객 데이터 vs 팀 가설 구분. "만들고 싶은 것" vs "돈 내고 살 것" 갭 지적.
@@ -83,17 +88,14 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
     "pmfStage": "pre-pmf | approaching | achieved | scaling",
     "vocStrength": "strong | moderate | weak"
   },
-  "okrDiagnosis": {
-    "overallRate": "0~100 또는 null",
-    "objectives": [{"name": "(최대 30자)", "achievementRate": 0, "achieved": false}],
-    "trendAnalysis": "(최대 80자. 수치 직접 인용. ~임/~함 종결)",
-    "metricVsNarrative": "(최대 60자 또는 null. ~임/~함 종결)",
-    "kptHighlights": {
-      "keep": "(최대 60자. 인사이트 중심. ~임/~함 종결. KPT 없으면 null)",
-      "problem": "(최대 60자. 구조적 원인 중심. ~임/~함 종결. KPT 없으면 null)",
-      "try": "(최대 60자. 전략적 판단. ~임/~함 종결. KPT 없으면 null)"
+  "positiveShifts": [
+    {
+      "shift": "(최대 40자. 최근 긍정적으로 바뀌고 있는 변화. ~임/~함 종결)",
+      "evidence": "(최대 60자. 구체적 수치/근거/데이터. ~임/~함 종결. 전문 용어(뜻풀이) 필수)",
+      "detectedFrom": "(최대 20자. 소스: 멘토링/KPT/Objective 등)",
+      "impactArea": "전략|마케팅|영업|제품|기술|HR·조직|재무|운영|멘토링"
     }
-  },
+  ],
   "repeatPatterns": [
     {
       "issue": "(최대 40자. [임팩트] 현상+결과 구조. 전문 용어(뜻풀이) 필수)",
@@ -106,18 +108,16 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
   ],
   "unspokenSignals": [
     {
-      "signal": "(최대 40자. [임팩트] 구조. ~임/~함 종결)",
+      "signal": "(최대 50자. 사업·전략·시장 관점의 숨겨진 신호. [임팩트] 구조. ~임/~함 종결)",
       "detectedFrom": "(최대 20자)",
-      "hypothesis": "(최대 50자. 단정적 진단. ~임/~함 종결. 전문 용어(뜻풀이) 필수)",
-      "earlyWarning": "(최대 50자. 리스크. ~임/~함 종결)"
+      "hypothesis": "(최대 80자. 데이터 행간을 읽은 단정적 진단. 왜 이것이 문제인지 근거 포함. ~임/~함 종결. 전문 용어(뜻풀이) 필수)",
+      "earlyWarning": "(최대 60자. 이 신호를 방치하면 발생할 구체적 리스크. ~임/~함 종결)"
     }
   ],
   "mentorInsights": {
     "repeatedAdvice": "(줄바꿈\\n 구분 3건 이내. 각 최대 40자. 키워드: 핵심. ~임/~함 종결)",
     "executedAdvice": "(최대 60자. ~임/~함 종결)",
-    "ignoredAdvice": "(줄바꿈\\n 구분 2건 이내. 각 최대 40자. 키워드: 미실행 이유. ~임/~함 종결)",
-    "currentExpertRequests": "(최대 50자. 가장 시급한 니즈. ~임/~함 종결)",
-    "gapAnalysis": "(줄바꿈\\n 구분 2~3건. 각 최대 40자. ~임/~함 종결)"
+    "ignoredAdvice": "(줄바꿈\\n 구분 2건 이내. 각 최대 40자. 키워드: 미실행 이유. ~임/~함 종결)"
   },
   "meetingStrategy": {
     "focus": "(최대 40자. 단 하나의 핵심 주제)",
@@ -137,18 +137,41 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
 }
 
 [수량 제약 — 속도 최적화]
+- positiveShifts: 2~3건만
 - repeatPatterns: 2~3건만
-- unspokenSignals: 1~2건만
+- unspokenSignals: 2~4건 (가장 분석적인 섹션 — 깊이 있게)
 - pmActions: 2~3건만
 - keyQuestions: 3건
 - repeatedAdvice/ignoredAdvice: 각 항목 1줄씩만
 
+[긍정적 변화 분석 원칙 — ★ 필수]
+- 멘토링에서 언급된 개선 성과를 기반으로 도출
+- "이전 대비" 비교 관점 필수: 과거 → 현재 변화 방향성
+- 팀이 스스로 만들어낸 성과에 집중 (외부 환경 변화가 아닌 내부 실행력)
+- 데이터 없으면 빈 배열 []. 억지로 긍정적으로 포장 금지.
+
 [인사이트 분류 — 9개 중 하나]
 전략 / 마케팅 / 영업 / 제품 / 기술 / HR·조직 / 재무 / 운영 / 멘토링
 
-[OKR & KPT 규칙]
-- OKR 정량 데이터 있으면 채우고, 없으면 null.
-- KPT 있으면 kptHighlights 반드시 채울 것. OKR+KPT 모두 없으면 okrDiagnosis 전체 null.
+[말하지 않은 신호(unspokenSignals) — ★★★ 가장 분석적인 섹션]
+- 이 섹션은 브리핑에서 가장 깊은 분석적 사고가 필요한 곳. 표면적 정보가 아닌 데이터 행간에서 추론해야 함.
+- 사업·전략·시장·고객·경쟁 관점의 신호만 작성. 운영·관리적 부재(OKR 미설정, KPT 미작성, 데이터 부족 등)는 신호가 아님 — 절대 포함 금지.
+- 좋은 예: "고객사 확보 없이 기술 개발에만 3개월 투자 중", "매출 목표 대비 파이프라인이 10%에 불과", "핵심 인력 이탈 후 제품 로드맵 공백"
+- 나쁜 예: "OKR 미설정 상태", "KPT 회고 미작성", "데이터 부족으로 분석 불가"
+- 2~4건을 작성하되, 각 신호의 hypothesis에 "왜 이것이 사업적으로 위험한지" 인과관계를 명확히 서술할 것.
+- 멘토링 회의록, KPT, Objective, Slack 등 복수 소스를 교차 분석하여 단일 소스에서 보이지 않는 패턴을 발견할 것.
+
+[전담멘토 vs 전문가 리소스 구분 — ★ 필수]
+- "전담멘토"는 별도의 리소스 요청 없이 멘토 미팅·점검 미팅 형태로 운영됨.
+- 전담멘토 관련 활동(전담멘토 미팅, 점검미팅, 멘토미팅)은 "멘토링 세션"으로만 분류할 것.
+- "전문가 리소스 요청"은 전담멘토가 아닌 외부 전문가 투입·코칭 요청만 해당.
+- mentorInsights.currentExpertRequests에 전담멘토를 포함하지 말 것.
+- 전담멘토 이름이 company info에 명시되어 있으면, 해당 인물의 활동을 리소스 요청이 아닌 멘토링 활동으로 처리할 것.
+
+[Slack 컨텍스트 활용]
+- Slack 채널 메시지가 제공되면, 기존 섹션(executiveSummary, repeatPatterns, unspokenSignals, pmActions 등)에 자연스럽게 녹여 분석할 것.
+- Slack 데이터를 별도 섹션으로 분리하지 말 것. 멘토링·KPT 등 다른 소스와 교차 검증하여 인사이트를 강화하는 용도로 사용.
+- Slack에서만 발견되는 새로운 이슈가 있다면 해당 섹션(repeatPatterns, unspokenSignals 등)에 포함.
 
 [디캠프 리소스 주의]
 - dcamp 리소스 상태에 확정적 판단 금지. "데이터 기준 ~로 판단됨", "확인 필요" 사용.`;
@@ -224,11 +247,21 @@ export function formatOlderSessionsBrief(sessions: MentoringSession[]): string {
     .join("\n");
 }
 
+// 전담멘토 관련 키워드 — 전문가 리소스 요청에서 제외
+const DEDICATED_MENTOR_KEYWORDS = ["전담멘토", "전담 멘토", "점검미팅", "점검 미팅", "멘토미팅", "멘토 미팅"];
+
+function isDedicatedMentorRequest(request: ExpertRequest): boolean {
+  const searchText = [request.title, request.oneLiner, request.problem].filter(Boolean).join(" ");
+  return DEDICATED_MENTOR_KEYWORDS.some((kw) => searchText.includes(kw));
+}
+
 export function formatExpertRequests(requests: ExpertRequest[]): string {
-  if (requests.length === 0) return "전문가 요청 없음";
+  // 전담멘토 관련 요청은 제외 (멘토링 세션으로 분류)
+  const filtered = requests.filter((r) => !isDedicatedMentorRequest(r));
+  if (filtered.length === 0) return "전문가 요청 없음";
 
   // 최대 5건만 (프롬프트 축소)
-  return requests
+  return filtered
     .slice(0, 5)
     .map((r) => {
       const date = r.requestedAt?.split("T")[0] || "날짜 미상";
@@ -255,87 +288,102 @@ export function formatAnalyses(analyses: AnalysisResult[]): string {
     .join("\n");
 }
 
-export function formatKptReviews(reviews: KptReview[]): string {
-  if (reviews.length === 0) return "데이터 없음";
+// ── 코칭 기록 데이터 포맷 ────────────────────────────
 
-  // 최대 3건만 (프롬프트 축소)
-  return reviews
-    .slice(0, 3)
-    .map((r) => {
-      const date = r.reviewDate || "날짜 미상";
-      const keep = r.keep ? truncate(r.keep, 200) : "없음";
-      const problem = r.problem ? truncate(r.problem, 200) : "없음";
-      const tryText = r.try ? truncate(r.try, 200) : "없음";
-      return `- [${date}]\n  Keep: ${keep}\n  Problem: ${problem}\n  Try: ${tryText}`;
-    })
-    .join("\n");
+/**
+ * 코칭 플랜 요약 (전문가 협업 계획서) — 핵심만 축약
+ */
+export function formatCoachingPlans(records: CompanyCoachingRecords): string {
+  if (records.coachingPlans.length === 0) return "";
+
+  return records.coachingPlans.map((p) => {
+    return `- [전문가: ${p.expert}] 기간: ${p.period} / 시간: ${p.timeBudget} / 목표: ${truncate(p.objective, 80)}`;
+  }).join("\n");
 }
 
-export function formatOkrItems(items: OkrItem[]): string {
-  if (items.length === 0) return "데이터 없음";
+/**
+ * 코칭 세션 기록 (멘토 미팅 로그) — 최근 3건만
+ */
+export function formatCoachingSessions(records: CompanyCoachingRecords): string {
+  if (records.sessions.length === 0) return "";
 
-  const order: Record<string, number> = { "오브젝티브": 0, "마일스톤": 1, "액션아이템": 2 };
-  // 최대 8건만 (프롬프트 축소)
-  const sorted = [...items].sort(
-    (a, b) => (order[a.level] ?? 9) - (order[b.level] ?? 9)
-  ).slice(0, 8);
-
-  return sorted
-    .map((item) => {
-      const rate = item.achievementRate !== undefined ? `${item.achievementRate}%` : "미측정";
-      const achieved = item.achieved ? "달성" : "미달성";
-      const deadline = item.deadline || "기한 없음";
-      const target = item.targetValue !== undefined ? `목표: ${item.targetValue}` : "";
-      return `- [${item.level}] ${item.name} / ${rate} (${achieved}) ${target} / 기한: ${deadline}`;
-    })
-    .join("\n");
+  const sorted = [...records.sessions].sort((a, b) => b.date.localeCompare(a.date));
+  return sorted.slice(0, 3).map((s) => {
+    return `- [${s.date}] 멘토: ${s.mentor} / 논의: ${truncate(s.issues, 150)}`;
+  }).join("\n");
 }
 
-export function formatOkrValues(values: OkrValue[]): string {
-  if (values.length === 0) return "데이터 없음";
+/**
+ * 전문가 투입 기록 요약 (전문가별 1줄 요약)
+ */
+export function formatExpertDeployments(records: CompanyCoachingRecords): string {
+  if (records.expertDeployments.length === 0) return "";
 
-  // 최대 8건만 (프롬프트 축소)
-  return values
-    .slice(0, 8)
-    .map((v) => {
-      const period = v.periodMonth || v.period || "기간 미상";
-      const current = v.currentValue !== undefined ? v.currentValue : "없음";
-      const target = v.targetValue || "없음";
-      const level = v.level || "";
-      return `- [${period}] ${level ? `[${level}] ` : ""}현재: ${current} / 목표: ${target}`;
-    })
-    .join("\n");
-}
-
-// ── 배치 대시보드 데이터 포맷 ────────────────────────
-
-function formatBatchOkrData(data: BatchDashboardData): string {
-  if (data.okrEntries.length === 0) return "";
-
-  const lines = data.okrEntries.map((e) => {
-    const current = e.currentValue !== null ? e.currentValue.toLocaleString() : "미측정";
-    const target = e.targetValue !== null ? e.targetValue.toLocaleString() : "미설정";
-    let line = `- ${e.companyName}: ${e.objective} / 현황: ${current} / 목표: ${target}`;
-    // 블록 콘텐츠가 있으면 상세 정보 추가 (500자 제한)
-    if (e.blockContent) {
-      line += `\n  상세: ${truncate(e.blockContent, 500)}`;
+  // 전문가별 그룹핑
+  const byExpert = new Map<string, { count: number; firstDate: string; lastDate: string }>();
+  for (const d of records.expertDeployments) {
+    const existing = byExpert.get(d.expert);
+    if (!existing) {
+      byExpert.set(d.expert, { count: 1, firstDate: d.date, lastDate: d.date });
+    } else {
+      existing.count++;
+      if (d.date < existing.firstDate) existing.firstDate = d.date;
+      if (d.date > existing.lastDate) existing.lastDate = d.date;
     }
-    return line;
-  });
-  return `### 오브젝티브 달성율\n${lines.join("\n")}`;
+  }
+
+  return Array.from(byExpert.entries())
+    .map(([expert, info]) => `- ${expert}: ${info.count}회 (${info.firstDate} ~ ${info.lastDate})`)
+    .join("\n");
 }
 
-function formatBatchGrowthData(data: BatchDashboardData): string {
-  if (data.growthEntries.length === 0) return "";
+/**
+ * 코칭 기록 전체를 하나의 프롬프트 섹션으로 조합
+ */
+export function formatCoachingRecordsSection(records: CompanyCoachingRecords): string {
+  const sections: string[] = [];
 
-  const lines = data.growthEntries.map((e) => {
-    const rate = e.growthRate !== null
-      ? (e.growthRate >= 0 ? `+${e.growthRate}%` : `${e.growthRate}%`)
-      : "미측정";
-    const current = e.currentMonth !== null ? e.currentMonth.toLocaleString() : "없음";
-    return `- ${e.companyName}: ${e.metric} / 당월: ${current} / 성장률: ${rate}`;
-  });
-  return `### 전월 대비 성장률\n${lines.join("\n")}`;
+  const plans = formatCoachingPlans(records);
+  if (plans) sections.push(`### 전문가 협업 계획서\n${plans}`);
+
+  const sessions = formatCoachingSessions(records);
+  if (sessions) sections.push(`### 코칭 세션 기록 (${records.sessions.length}건 중 최근 3건)\n${sessions}`);
+
+  const deployments = formatExpertDeployments(records);
+  if (deployments) sections.push(`### 전문가 투입 현황 (총 ${records.expertDeployments.length}건)\n${deployments}`);
+
+  if (records.feedback.length > 0) {
+    const fb = records.feedback.slice(0, 3).map((f) =>
+      `- [${f.date}] ${f.name} 만족도 ${f.satisfaction}/10 / ${truncate(f.topicReview, 80)}`
+    ).join("\n");
+    sections.push(`### 코칭 피드백 (${records.feedback.length}건)\n${fb}`);
+  }
+
+  // 멘토링 일지 (배치4기) — 1줄 요약
+  if (records.mentoringJournals.length > 0) {
+    const journals = records.mentoringJournals.slice(0, 3).map((j) =>
+      `- [${j.date}] ${truncate(j.title, 60)}${j.postMeeting ? ` → ${truncate(j.postMeeting, 80)}` : ""}`
+    ).join("\n");
+    sections.push(`### 멘토링 일지 (${records.mentoringJournals.length}건 중 최근 3건)\n${journals}`);
+  }
+
+  // 문제 백로그 (배치4기) — 핵심만
+  if (records.problemBacklog.length > 0) {
+    const problems = records.problemBacklog.slice(0, 5).map((p) =>
+      `- [${p.category || "미분류"}] ${truncate(p.problem, 80)}${p.status ? ` (${p.status})` : ""}`
+    ).join("\n");
+    sections.push(`### 문제 백로그 (${records.problemBacklog.length}건)\n${problems}`);
+  }
+
+  // 자원 연결 — 1줄 요약
+  if (records.resourceConnections.length > 0) {
+    const resources = records.resourceConnections.slice(0, 5).map((r) =>
+      `- [${r.category}] ${r.item} (${r.status})`
+    ).join("\n");
+    sections.push(`### 디캠프 자원 연결 (${records.resourceConnections.length}건)\n${resources}`);
+  }
+
+  return sections.join("\n\n");
 }
 
 /**
@@ -346,10 +394,8 @@ export function buildBriefingUserPrompt(
   sessions: MentoringSession[],
   expertRequests: ExpertRequest[],
   analyses: AnalysisResult[],
-  kptReviews: KptReview[],
-  okrItems: OkrItem[],
-  okrValues: OkrValue[],
-  batchData?: BatchDashboardData | null
+  coachingRecords?: CompanyCoachingRecords | null,
+  slackMessages?: SlackMessage[]
 ): string {
   const batchPeriod =
     company.batchStartDate && company.batchEndDate
@@ -389,17 +435,9 @@ export function buildBriefingUserPrompt(
   if (company.growthStageRaw) companyFields.push(`- 성장 단계: ${company.growthStageRaw}`);
   if (company.marketSize) companyFields.push(`- 시장 규모: ${company.marketSize}`);
   if (company.website) companyFields.push(`- 웹사이트: ${company.website}`);
-  if (company.achievementRate !== undefined) companyFields.push(`- OKR 달성율: ${company.achievementRate}%`);
-
-  // 배치 대시보드 섹션 (데이터가 있을 때만 포함)
-  let batchSection = "";
-  if (batchData) {
-    const okrSection = formatBatchOkrData(batchData);
-    const growthSection = formatBatchGrowthData(batchData);
-    if (okrSection || growthSection) {
-      batchSection = `\n## ${batchData.batchLabel} 배치 대시보드 현황\n${[okrSection, growthSection].filter(Boolean).join("\n\n")}\n`;
-    }
-  }
+  if (company.achievementRate !== undefined) companyFields.push(`- Objective 달성율: ${company.achievementRate}%`);
+  // 전담멘토 정보 (AI가 전문가 리소스 요청과 구분할 수 있도록)
+  if (company.excel?.dedicatedMentor) companyFields.push(`- 전담멘토: ${company.excel.dedicatedMentor} (★ 전담멘토는 리소스 요청이 아닌 멘토링 세션으로 운영)`);
 
   const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
@@ -408,16 +446,6 @@ export function buildBriefingUserPrompt(
 
 ## 기업 기본 정보 (Notion DB 최신 데이터 — 화면에 이미 표시됨, 브리핑에 반복 금지)
 ${companyFields.join("\n")}
-${batchSection}
-## OKR 현황
-### 성과지표 항목 (${okrItems.length}건)
-${formatOkrItems(okrItems)}
-
-### 성과지표 측정값 (${okrValues.length}건)
-${formatOkrValues(okrValues)}
-
-## KPT 회고 (${kptReviews.length}건)
-${formatKptReviews(kptReviews)}
 
 ## 주요 멘토링 세션 (${recentSessions.length}건, 최근 3개월 우선) — 분석 핵심 근거
 ${formatRecentSessionsGrouped(recentSessions)}
@@ -427,25 +455,45 @@ ${formatOlderSessionsBrief(olderSessions)}
 
 ## 전문가 리소스 요청 (${expertRequests.length}건)
 ${formatExpertRequests(expertRequests)}
-
+${coachingRecords ? `
+## 코칭 기록 (엑셀 원본 — 멘토링 회의록과 교차 분석 시 활용)
+${formatCoachingRecordsSection(coachingRecords)}
+` : ""}
 ## AI 분석 결과 이력 (${analyses.length}건)
 ${formatAnalyses(analyses)}
+${slackMessages && slackMessages.length > 0 ? `
+## Slack 채널 최근 대화 (${slackMessages.length}건) — 기존 섹션에 녹여서 분석
+${slackMessages
+  .sort((a, b) => b.date.localeCompare(a.date))
+  .slice(0, 15)
+  .map((m) => {
+    const text = m.text.length > 200 ? m.text.slice(0, 197) + "..." : m.text;
+    return `- [${m.date}] ${text}`;
+  })
+  .join("\n")}
+` : ""}
+## 데이터 가용성 선언 (★ 아래 범위 밖의 정보를 절대 생성하지 말 것)
+- 투자 단계: "${company.investmentStage || "정보 없음"}" ← 이 값만 인용 가능. 라운드명·금액·회차 추가 생성 절대 금지.
+- 멘토링 세션: 총 ${sorted.length}건${sorted.length > 0 ? ` (최초 ${sorted[sorted.length - 1].date} ~ 최근 ${sorted[0].date})` : ""}
+- 전문가 요청: 총 ${expertRequests.length}건${expertRequests.length === 0 ? " — 전문가 요청 관련 서술 금지" : ""}${coachingRecords ? `\n- 코칭 기록: 플랜 ${coachingRecords.coachingPlans.length}건, 세션 ${coachingRecords.sessions.length}건, 전문가 투입 ${coachingRecords.expertDeployments.length}건 (제공된 기록만 인용 가능)` : ""}
+- 위에 제공되지 않은 정량 수치(매출액, MAU, 전환율 등)를 자체 생성하면 환각(hallucination)으로 간주.
 
 [지시사항]
 위 데이터를 종합하여 JSON 형식의 심층 브리핑을 생성해주세요.
 
 ★ Executive Summary 핵심 규칙:
 - oneLiner: 멘토링/회의록에서 드러난 가장 임팩트 있는 현재 이슈를 한 문장으로. 회사 소개 금지.
-- reportBody: 멘토링·KPT·전문가요청에서 발견된 전략 인사이트, 핵심 진행 현황, 해결해야 할 이슈만. 기업 기본 정보(투자단계, 팀규모, 산업분야, 설립일 등) 절대 금지.
+- reportBody: 멘토링·전문가요청에서 발견된 전략 인사이트, 핵심 진행 현황, 해결해야 할 이슈만. 기업 기본 정보(투자단계, 팀규모, 산업분야, 설립일 등) 절대 금지.
 - 오늘(${today}) 기준 3개월 이상 지난 마일스톤은 "완료됨" 또는 "결과 추적 필요"로 처리. 과거 이벤트를 현재/미래처럼 서술 금지.
 
 일반 규칙:
 - 가장 최근 3회 미팅(세션)에 가장 높은 가중치를 두고 분석할 것. 그 외 세션은 맥락/추세 파악용.
 - 모든 날짜에 반드시 연도를 포함할 것 (예: 2025년 3월, 2026년 1월).
-- OKR 정량 데이터 또는 KPT 회고 데이터가 하나라도 있으면 okrDiagnosis를 채울 것. 둘 다 없을 때만 null.
-- KPT 회고 데이터가 있으면 kptHighlights의 keep/problem/try를 핵심만 요약하여 반드시 포함할 것.
+- 멘토링 회의록이 브리핑의 핵심 축. 이 데이터에서 인사이트를 먼저 도출할 것.
+- 팀 펄스 데이터(멘토링 정기성, 전담멘토 관계, 전문가 활용도)가 제공되면 meetingStrategy와 mentorInsights에 반영할 것.
 - 노션 데이터의 정량적 수치(매출, DAU, 전환율 등)는 원본 그대로 인용.
-- 전문가 요청과 멘토링 내용을 교차 분석하여 인사이트 도출.
-- KPT Problem과 멘토링 행간에서 unspokenSignals를 추론.
+- 전문가 요청과 멘토링 내용을 교차 분석하여 인사이트 도출. 단, 전담멘토 활동은 리소스 요청이 아닌 멘토링으로 취급.
+- 멘토링 행간에서 unspokenSignals를 추론.
+- Slack 대화가 있으면 멘토링 등 다른 소스와 교차 검증하여 인사이트 강화. 별도 섹션으로 분리하지 말 것.
 - 최근 데이터가 부족한 경우, 그 사실을 명시하고 가용 데이터 범위를 언급할 것.`;
 }

@@ -220,6 +220,13 @@ export const briefingResponseSchema = z.object({
     }).nullable().optional(),
   }).nullable().optional(),
 
+  positiveShifts: z.preprocess(coerceToObjectArray, z.array(z.object({
+    shift: z.string().default(""),
+    evidence: z.string().default(""),
+    detectedFrom: z.string().default(""),
+    impactArea: z.string().default(""),
+  })).default([])),
+
   repeatPatterns: z.preprocess(coerceToObjectArray, z.array(z.object({
     issue: z.string().default(""),
     // 9개 카테고리 + 이전 호환용 (조직, 실행, 시장)
@@ -300,6 +307,7 @@ export function transformBriefingResponse(
   CompanyBriefing,
   | "executiveSummary"
   | "okrDiagnosis"
+  | "positiveShifts"
   | "repeatPatterns"
   | "unspokenSignals"
   | "mentorInsights"
@@ -318,6 +326,7 @@ export function transformBriefingResponse(
           kptHighlights: parsed.okrDiagnosis.kptHighlights ?? null,
         }
       : null,
+    positiveShifts: parsed.positiveShifts,
     repeatPatterns: parsed.repeatPatterns,
     unspokenSignals: parsed.unspokenSignals,
     mentorInsights: parsed.mentorInsights ?? null,
