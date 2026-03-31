@@ -56,7 +56,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── 1) NextAuth 세션 확인 ─────────────────────
-  const nextAuthToken = await getToken({ req: request });
+  const nextAuthToken = await getToken({
+    req: request,
+    secret: process.env.AUTH_SECRET,
+  });
   if (nextAuthToken) {
     // NextAuth 세션 유효 → API 보호 로직으로 건너뜀
     return handleApiProtection(request, pathname);
