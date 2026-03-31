@@ -28,7 +28,7 @@ function isRateLimited(ip: string): boolean {
 }
 
 // ── 인증이 필요 없는 경로 ──────────
-const PUBLIC_PATHS = ["/login", "/api/auth", "/api/auth-debug"];
+const PUBLIC_PATHS = ["/login", "/api/auth"];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(
@@ -55,29 +55,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── 디버그: Edge Runtime에서 환경변수 확인 (임시) ──
-  if (pathname === "/api/middleware-debug") {
-    const allCookies = req.cookies.getAll().map(c => c.name);
-    let tokenResult: string;
-    try {
-      const t = await getToken({ req, secret: process.env.AUTH_SECRET });
-      tokenResult = t ? `valid (email: ${t.email})` : "null";
-    } catch (e) {
-      tokenResult = `error: ${String(e)}`;
-    }
-    return NextResponse.json({
-      hasAuthSecret: !!process.env.AUTH_SECRET,
-      authSecretLen: process.env.AUTH_SECRET?.length ?? 0,
-      hasSitePassword: !!process.env.SITE_PASSWORD,
-      cookies: allCookies,
-      getTokenResult: tokenResult,
-    });
-  }
-
   // ── 1) NextAuth JWT 토큰 확인 ──────────────────
+  const isSecure = req.nextUrl.protocol === "https:";
   const token = await getToken({
     req,
     secret: process.env.AUTH_SECRET,
+    secureCookie: isSecure,
   });
 
   if (token) {

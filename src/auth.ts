@@ -3,16 +3,6 @@ import Google from "next-auth/providers/google";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true, // Vercel 등 리버스 프록시 환경에서 필수
-  debug: true, // 에러 원인 파악용 (임시)
-
-  logger: {
-    error(code, ...message) {
-      console.error("[NextAuth ERROR]", code, JSON.stringify(message, null, 2));
-    },
-    warn(code) {
-      console.warn("[NextAuth WARN]", code);
-    },
-  },
 
   providers: [
     Google({
