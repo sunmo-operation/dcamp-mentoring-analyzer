@@ -59,7 +59,7 @@ export async function analyzeSemanticTopics(
   try {
     const client = getClaudeClient();
     const msg = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: process.env.BRIEFING_LIGHT_MODEL || "claude-haiku-4-5-20251001",
       max_tokens: 800,
       messages: [{
         role: "user",

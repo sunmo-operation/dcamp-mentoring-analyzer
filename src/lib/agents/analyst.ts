@@ -24,6 +24,8 @@ export function generateAnalystReport(packet: CompanyDataPacket): AnalystReport 
   const kptPatterns = analyzeKpt(packet);
   const dataGaps = assessDataGaps(packet);
   const activityTimeline = buildActivityTimeline(packet);
+  const dataRichness = assessDataRichness(packet);
+  const adviceTracking = trackAdviceExecution(packet);
   const narrativeContext = buildNarrativeContext(packet, okrAnalysis, topicAnalysis, mentorPatterns);
 
   return {
@@ -34,6 +36,8 @@ export function generateAnalystReport(packet: CompanyDataPacket): AnalystReport 
     kptPatterns,
     dataGaps,
     activityTimeline,
+    dataRichness,
+    adviceTracking,
     narrativeContext,
   };
 }
@@ -486,6 +490,136 @@ function buildNarrativeContext(
   }
 
   return lines.join("\n");
+}
+
+// ── 데이터 풍부도 평가 ──────────────────────────
+
+function assessDataRichness(packet: CompanyDataPacket): AnalystReport["dataRichness"] {
+  const sessionCount = packet.sessions.length;
+  const hasKpt = packet.kptReviews.length > 0;
+  const hasOkr = packet.okrItems.length > 0 || (packet.batchData?.okrEntries || []).length > 0;
+  const hasExpertRequests = packet.expertRequests.length > 0;
+  const hasSlack = packet.slackMessages.length > 0;
+  const hasCoaching = packet.coachingRecords != null &&
+    (packet.coachingRecords.sessions.length > 0 || packet.coachingRecords.coachingPlans.length > 0);
+
+  // 데이터 소스 카운트로 등급 판정
+  const sourceCount = [hasKpt, hasOkr, hasExpertRequests, hasSlack, hasCoaching].filter(Boolean).length;
+
+  let level: "rich" | "moderate" | "sparse";
+  if (sessionCount >= 5 && sourceCount >= 3) {
+    level = "rich";
+  } else if (sessionCount >= 3 || (sessionCount >= 1 && sourceCount >= 2)) {
+    level = "moderate";
+  } else {
+    level = "sparse";
+  }
+
+  // 보상 전략 생성
+  let compensationStrategy = "";
+  if (level === "sparse") {
+    const strategies: string[] = [];
+    if (sessionCount > 0) {
+      strategies.push("가용 세션의 세부 내용을 최대한 깊이 분석할 것");
+    }
+    if (hasCoaching) {
+      strategies.push("코칭 기록을 주요 근거로 활용할 것");
+    }
+    if (hasSlack) {
+      strategies.push("Slack 대화에서 추가 맥락을 적극 발굴할 것");
+    }
+    strategies.push("기업 기본 정보(사전설문, 사업모델)에서 전략적 가설을 도출할 것");
+    strategies.push("데이터 부족 자체를 이슈로 언급하지 말 것 — 가용 데이터에서 최대한 깊은 인사이트 도출에 집중");
+    compensationStrategy = strategies.join(". ");
+  } else if (level === "moderate") {
+    compensationStrategy = "핵심 세션 위주로 깊이 있는 분석 수행. 보조 데이터(코칭/Slack)로 교차 검증 강화.";
+  }
+
+  return {
+    level,
+    sessionCount,
+    hasKpt,
+    hasOkr,
+    hasExpertRequests,
+    hasSlack,
+    hasCoaching,
+    compensationStrategy,
+  };
+}
+
+// ── 멘토 조언 이행 추적 ──────────────────────────
+
+function trackAdviceExecution(packet: CompanyDataPacket): AnalystReport["adviceTracking"] {
+  const sessions = [...packet.sessions].sort((a, b) => a.date.localeCompare(b.date)); // 오래된 순
+
+  // followUp이 있는 세션에서 키워드 추출
+  const tracked: AnalystReport["adviceTracking"]["tracked"] = [];
+
+  // 조언 키워드 → 이행 증거 매칭
+  const ADVICE_MATCH_KEYWORDS = [
+    "고객 인터뷰", "사용자 테스트", "피벗", "집중", "우선순위",
+    "채용", "팀빌딩", "IR 자료", "투자", "매출", "마케팅",
+    "KPI", "지표", "데이터", "프로세스", "조직",
+    "제품", "기술", "영업", "파트너", "해외", "PoC", "MVP",
+    "계약", "파일럿", "비용 절감", "고객 확보", "레퍼런스",
+  ];
+
+  for (let i = 0; i < sessions.length; i++) {
+    const s = sessions[i];
+    if (!s.followUp || s.followUp.trim().length < 10) continue;
+
+    // followUp에서 매칭되는 키워드 추출
+    const matchedKeywords = ADVICE_MATCH_KEYWORDS.filter((kw) => s.followUp!.includes(kw));
+    if (matchedKeywords.length === 0) continue;
+
+    // 후속 세션(이후 3건)에서 이행 증거 탐색
+    let executed = false;
+    let evidenceDate: string | undefined;
+    let evidenceSnippet: string | undefined;
+
+    for (const laterSession of sessions.slice(i + 1, i + 4)) {
+      const laterText = [laterSession.title, laterSession.summary, laterSession.followUp].filter(Boolean).join(" ");
+      for (const kw of matchedKeywords) {
+        if (laterText.includes(kw)) {
+          executed = true;
+          evidenceDate = laterSession.date;
+          // 키워드 주변 텍스트 스니펫 추출
+          const idx = laterText.indexOf(kw);
+          evidenceSnippet = truncate(laterText.slice(Math.max(0, idx - 20), idx + kw.length + 40), 80);
+          break;
+        }
+      }
+      if (executed) break;
+    }
+
+    tracked.push({
+      advice: truncate(s.followUp, 80),
+      sessionDate: s.date,
+      keywords: matchedKeywords.slice(0, 3),
+      executed,
+      evidenceDate,
+      evidenceSnippet,
+    });
+  }
+
+  // 최근 10건만 유지
+  const recentTracked = tracked.slice(-10);
+  const executedCount = recentTracked.filter((t) => t.executed).length;
+  const executionRate = recentTracked.length > 0 ? Math.round((executedCount / recentTracked.length) * 100) / 100 : 0;
+
+  // 요약 생성
+  let summary = "";
+  if (recentTracked.length === 0) {
+    summary = "후속조치 기록 부족으로 이행 추적 불가";
+  } else {
+    summary = `${recentTracked.length}건 조언 중 ${executedCount}건 이행 확인 (이행율 ${Math.round(executionRate * 100)}%)`;
+    const unexecuted = recentTracked.filter((t) => !t.executed).slice(0, 2);
+    if (unexecuted.length > 0) {
+      summary += `. 미이행: ${unexecuted.map((u) => u.keywords[0] || "").filter(Boolean).join(", ")}`;
+    }
+  }
+
+  return { tracked: recentTracked, executionRate, summary };
 }
 
 // ── 유틸 ──────────────────────────────

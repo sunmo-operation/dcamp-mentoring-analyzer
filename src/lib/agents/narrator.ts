@@ -185,7 +185,37 @@ function buildAnalystSection(report: AnalystReport): string {
     );
   }
 
-  // 8. 컨텍스트 요약
+  // 8. 데이터 풍부도 & 보상 전략
+  if (report.dataRichness.level !== "rich") {
+    sections.push(`\n### ⚡ 데이터 풍부도: ${report.dataRichness.level === "sparse" ? "부족" : "보통"} (세션 ${report.dataRichness.sessionCount}건)`);
+    if (report.dataRichness.compensationStrategy) {
+      sections.push(`보상 전략: ${report.dataRichness.compensationStrategy}`);
+    }
+  }
+
+  // 9. 멘토 조언 이행 추적
+  if (report.adviceTracking.tracked.length > 0) {
+    sections.push(`\n### 멘토 조언 이행 추적 → mentorInsights.executedAdvice / ignoredAdvice 참고`);
+    sections.push(`- ${report.adviceTracking.summary}`);
+
+    const executed = report.adviceTracking.tracked.filter((t) => t.executed).slice(0, 3);
+    if (executed.length > 0) {
+      sections.push("- 이행 확인된 조언:");
+      for (const e of executed) {
+        sections.push(`  · [${e.sessionDate}] "${e.keywords.join(", ")}" → [${e.evidenceDate}] ${e.evidenceSnippet || "이행 확인"}`);
+      }
+    }
+
+    const unexecuted = report.adviceTracking.tracked.filter((t) => !t.executed).slice(0, 3);
+    if (unexecuted.length > 0) {
+      sections.push("- 미이행 조언 (ignoredAdvice 후보):");
+      for (const u of unexecuted) {
+        sections.push(`  · [${u.sessionDate}] "${u.keywords.join(", ")}" — 후속 세션에서 이행 증거 미발견`);
+      }
+    }
+  }
+
+  // 10. 컨텍스트 요약
   sections.push(`\n### Analyst 컨텍스트 요약\n${report.narrativeContext}`);
 
   return sections.join("\n");

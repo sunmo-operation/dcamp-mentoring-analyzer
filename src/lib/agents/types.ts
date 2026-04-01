@@ -189,6 +189,32 @@ export interface AnalystReport {
     expertRequestCount: number;
   }[];
 
+  // 데이터 풍부도 평가
+  dataRichness: {
+    level: "rich" | "moderate" | "sparse";
+    sessionCount: number;
+    hasKpt: boolean;
+    hasOkr: boolean;
+    hasExpertRequests: boolean;
+    hasSlack: boolean;
+    hasCoaching: boolean;
+    compensationStrategy: string; // Narrator에게 전달할 보상 전략
+  };
+
+  // 멘토 조언 이행 추적
+  adviceTracking: {
+    tracked: {
+      advice: string; // 원본 조언 (followUp에서 추출)
+      sessionDate: string; // 조언이 나온 세션 날짜
+      keywords: string[]; // 매칭 키워드
+      executed: boolean; // 후속 세션에서 이행 흔적 발견 여부
+      evidenceDate?: string; // 이행 근거가 발견된 세션 날짜
+      evidenceSnippet?: string; // 이행 근거 텍스트 (80자)
+    }[];
+    executionRate: number; // 이행율 (0~1)
+    summary: string; // Narrator용 요약
+  };
+
   // Narrator에게 전달할 컨텍스트 요약 (텍스트)
   narrativeContext: string;
 }

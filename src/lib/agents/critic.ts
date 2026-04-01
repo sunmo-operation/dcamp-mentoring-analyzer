@@ -338,7 +338,7 @@ async function runHaikuQualityCheck(
   const userPrompt = buildCriticUserPrompt(briefingJson, dataSummary);
 
   const msg = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
+    model: process.env.BRIEFING_LIGHT_MODEL || "claude-haiku-4-5-20251001",
     max_tokens: 1024,
     system: systemPrompt,
     messages: [{ role: "user", content: userPrompt }],

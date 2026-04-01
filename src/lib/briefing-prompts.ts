@@ -149,10 +149,11 @@ dcamp PM이 기업의 현재 상황과 핵심 아젠다를 한눈에 파악하�
   "industryContext": null
 }
 
-[수량 제약 — 속도 최적화]
+[수량 제약 — 최소~최대 범위 엄수]
+- reportBody: 4~7건 (★ 최소 4건 필수. 데이터 부족 시에도 가용 소스에서 도출)
 - positiveShifts: 2~3건만
-- repeatPatterns: 2~3건만
-- unspokenSignals: 2~4건 (가장 분석적인 섹션 — 깊이 있게)
+- repeatPatterns: 2~3건 (★ 최소 2건 필수. 세션이 1건이라도 그 안에서 반복 이슈 추출)
+- unspokenSignals: 2~4건 (★ 최소 2건 필수. 가장 분석적인 섹션 — 깊이 있게)
 - pmActions: 2~3건만
 - keyQuestions: 3건
 - repeatedAdvice/ignoredAdvice: 각 항목 1줄씩만
@@ -237,7 +238,9 @@ export function formatRecentSessionsGrouped(sessions: MentoringSession[]): strin
       const summary = s.summary ? truncate(s.summary, 250) : "요약 없음";
       const followUp = s.followUp ? `\n  후속조치: ${truncate(s.followUp, 150)}` : "";
       const mentors = s.mentorNames?.join(", ") || "멘토 미기재";
-      sections.push(`- [${s.date}] ${s.title} / 멘토: ${mentors}\n  요약: ${summary}${followUp}`);
+      // transcript(페이지 본문)가 있으면 500자까지 포함 — 핵심 맥락 보강
+      const transcript = s.transcript ? `\n  회의 전문(발췌): ${truncate(s.transcript, 500)}` : "";
+      sections.push(`- [${s.date}] ${s.title} / 멘토: ${mentors}\n  요약: ${summary}${followUp}${transcript}`);
     }
   }
 

@@ -22,6 +22,7 @@ import {
   mergeSemanticTopics,
   criticizeBriefing,
 } from "@/lib/agents";
+import type { AnalystReport } from "@/lib/agents";
 import type { BriefingResponse } from "@/lib/schemas";
 
 // Vercel Pro 플랜: 최대 300초
@@ -148,7 +149,7 @@ async function callClaudeAndParse(
   userPrompt: string,
   onProgress: (text: string) => void
 ): Promise<{ parsed: unknown; stopReason: string }> {
-  const model = process.env.BRIEFING_MODEL || "claude-haiku-4-5-20251001";
+  const model = process.env.BRIEFING_MODEL || "claude-sonnet-4-6";
 
   // Sonnet 4.6+ 모델은 assistant prefill 미지원 → prefill 사용 불가
   const supportsPrefill = !model.includes("sonnet-4") && !model.includes("opus-4");
@@ -306,6 +307,9 @@ export async function POST(request: Request) {
         // Pulse Tracker: 정성적 종합 평가 (즉시 반환, AI 호출 없음)
         const pulseReport = generatePulseReport(packet);
 
+        // OKR 진단: Analyst 데이터에서 직접 매핑 (AI 호출 불필요, 환각 0%)
+        const okrDiagnosisFromAnalyst = buildOkrDiagnosisFromAnalyst(analystReport, packet);
+
         // Narrator Agent: Analyst + Pulse 결과를 반영한 강화 프롬프트 생성
         const claude = getClaudeClient();
         const { systemPrompt, userPrompt } = buildEnhancedPrompts(packet, analystReport, pulseReport);
@@ -430,7 +434,7 @@ export async function POST(request: Request) {
           if (lenient.success) {
             console.log("[브리핑] 부분 복구 성공 (일부 필드 기본값 적용)");
             const transformedSections = transformBriefingResponse(lenient.data);
-            const briefing = buildBriefing(companyId, transformedSections, dataFingerprint);
+            const briefing = buildBriefing(companyId, transformedSections, dataFingerprint, okrDiagnosisFromAnalyst);
             await safeSave(briefing);
             const totalElapsed = Math.round((Date.now() - startTime) / 1000);
             controller.enqueue(encode({ type: "complete", briefing, cached: false, elapsed: totalElapsed }));
@@ -443,7 +447,7 @@ export async function POST(request: Request) {
           const fallback = briefingResponseSchema.safeParse({});
           if (fallback.success) {
             const transformedSections = transformBriefingResponse(fallback.data);
-            const briefing = buildBriefing(companyId, transformedSections, dataFingerprint);
+            const briefing = buildBriefing(companyId, transformedSections, dataFingerprint, okrDiagnosisFromAnalyst);
             briefing.errorMessage = "AI 응답 일부가 올바르지 않아 기본값으로 대체되었습니다. 다시 생성해주세요.";
             await safeSave(briefing);
             const totalElapsed = Math.round((Date.now() - startTime) / 1000);
@@ -454,7 +458,7 @@ export async function POST(request: Request) {
         }
 
         const transformedSections = transformBriefingResponse(validated.data);
-        const briefing = buildBriefing(companyId, transformedSections, dataFingerprint);
+        const briefing = buildBriefing(companyId, transformedSections, dataFingerprint, okrDiagnosisFromAnalyst);
         await safeSave(briefing);
 
         const totalElapsed = Math.round((Date.now() - startTime) / 1000);
@@ -493,7 +497,8 @@ export async function POST(request: Request) {
 function buildBriefing(
   companyId: string,
   sections: ReturnType<typeof transformBriefingResponse>,
-  dataFingerprint: CompanyBriefing["dataFingerprint"]
+  dataFingerprint: CompanyBriefing["dataFingerprint"],
+  okrDiagnosisOverride?: CompanyBriefing["okrDiagnosis"]
 ): CompanyBriefing {
   return {
     id: `briefing-${nanoid(8)}`,
@@ -501,6 +506,8 @@ function buildBriefing(
     createdAt: new Date().toISOString(),
     status: "completed",
     ...sections,
+    // OKR 진단: AI 생성이 null이면 Analyst 데이터로 대체
+    okrDiagnosis: sections.okrDiagnosis || okrDiagnosisOverride || null,
     dataFingerprint,
   };
 }
@@ -513,6 +520,54 @@ async function safeSave(briefing: CompanyBriefing) {
   } catch (e) {
     console.warn("브리핑 저장 실패 (무시):", e);
   }
+}
+
+/**
+ * Analyst가 계산한 OKR 데이터를 CompanyBriefing.okrDiagnosis에 직접 매핑
+ * AI 호출 없이 환각 0%로 OKR 진단 제공
+ */
+function buildOkrDiagnosisFromAnalyst(
+  analystReport: AnalystReport,
+  packet: { kptReviews: { keep?: string; problem?: string; try?: string }[] }
+): CompanyBriefing["okrDiagnosis"] {
+  const { okrAnalysis } = analystReport;
+
+  // OKR 데이터가 전혀 없으면 null 유지
+  if (okrAnalysis.overallRate == null && okrAnalysis.objectives.length === 0) {
+    return null;
+  }
+
+  // KPT 최근 1건 하이라이트
+  const recentKpt = packet.kptReviews.length > 0
+    ? {
+        keep: packet.kptReviews[0]?.keep || "",
+        problem: packet.kptReviews[0]?.problem || "",
+        try: packet.kptReviews[0]?.try || "",
+      }
+    : null;
+
+  // trendAnalysis: 데이터 기반 간단한 추세 서술
+  let trendAnalysis = "";
+  if (okrAnalysis.objectives.length > 0) {
+    const achieved = okrAnalysis.objectives.filter((o) => o.achieved).length;
+    const total = okrAnalysis.objectives.length;
+    trendAnalysis = `${total}개 목표 중 ${achieved}개 달성`;
+    if (okrAnalysis.hasGap && okrAnalysis.gapDetail) {
+      trendAnalysis += ` (${okrAnalysis.gapDetail})`;
+    }
+  }
+
+  return {
+    overallRate: okrAnalysis.overallRate,
+    objectives: okrAnalysis.objectives.map((o) => ({
+      name: o.name,
+      achievementRate: o.achievementRate ?? 0,
+      achieved: o.achieved,
+    })),
+    trendAnalysis,
+    metricVsNarrative: okrAnalysis.hasGap ? okrAnalysis.gapDetail || null : null,
+    kptHighlights: recentKpt,
+  };
 }
 
 /**
