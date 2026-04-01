@@ -73,6 +73,20 @@ function buildAnalystSection(report: AnalystReport): string {
 
   sections.push("## 📊 사전 분석 결과 (Analyst Agent — 아래 인사이트를 반드시 참고하여 브리핑에 반영)");
 
+  // 반복 등장 토픽 → repeatPatterns 생성에 직접 활용
+  if (report.topicAnalysis.recurringTopics.length > 0) {
+    sections.push("\n### 반복 등장 토픽 → repeatPatterns 후보");
+    sections.push(
+      report.topicAnalysis.recurringTopics
+        .map((t) => `- "${t.topic}" ${t.frequency}회 반복 (세션: ${t.sessions.slice(0, 3).join(", ")})`)
+        .join("\n")
+    );
+  }
+
+  if (report.topicAnalysis.recentFocus.length > 0) {
+    sections.push(`\n### 최근 포커스: ${report.topicAnalysis.recentFocus.join(", ")}`);
+  }
+
   // 의미론적 토픽 클러스터 (Topic Analyst 2차 에이전트 결과)
   if (report.topicAnalysis.semanticClusters?.length) {
     sections.push("\n### 의미론적 토픽 클러스터 (AI 분석)");
@@ -87,6 +101,16 @@ function buildAnalystSection(report: AnalystReport): string {
   }
   if (report.topicAnalysis.topicEvolution) {
     sections.push(`\n### 토픽 변화 흐름: ${report.topicAnalysis.topicEvolution}`);
+  }
+
+  // 반복 조언 테마 → mentorInsights.repeatedAdvice 생성에 활용
+  if (report.mentorPatterns.adviceThemes.length > 0) {
+    sections.push("\n### 반복 조언 테마 → mentorInsights.repeatedAdvice 참고");
+    sections.push(
+      report.mentorPatterns.adviceThemes
+        .map((t) => `- "${t.theme}": ${t.count}회 반복`)
+        .join("\n")
+    );
   }
 
   // 데이터 풍부도 & 보상 전략

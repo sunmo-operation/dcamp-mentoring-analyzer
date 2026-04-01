@@ -22,7 +22,6 @@ import {
   mergeSemanticTopics,
   criticizeBriefing,
 } from "@/lib/agents";
-import { buildFieldRestriction } from "@/lib/briefing-prompts";
 import type { AnalystReport } from "@/lib/agents";
 import type { BriefingResponse } from "@/lib/schemas";
 
@@ -315,68 +314,53 @@ export async function POST(request: Request) {
         const claude = getClaudeClient();
         const { systemPrompt, userPrompt } = buildEnhancedPrompts(packet, analystReport, pulseReport);
 
-        // 병렬 Claude 호출: 진단 코어 (A) + 멘토링 준비 (B)
+        // Claude 호출 + 자동 재시도 (최대 2회)
+        let rawParsed: unknown;
+        let lastError: Error | null = null;
         const MAX_ATTEMPTS = 2;
-        const userPromptA = userPrompt + buildFieldRestriction("diagnosis");
-        const userPromptB = userPrompt + buildFieldRestriction("preparation");
 
-        async function callWithRetry(
-          prompt: string,
-          maxTokens: number,
-          label: string,
-          onProgress: (text: string) => void
-        ): Promise<unknown> {
-          let lastErr: Error | null = null;
-          for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-            try {
-              if (attempt > 1) {
-                console.log(`[브리핑] ${label} 재시도 ${attempt}/${MAX_ATTEMPTS}...`);
-              }
-              const { parsed } = await callClaudeAndParse(
-                claude, systemPrompt, prompt, onProgress, { maxTokens }
-              );
-              return parsed;
-            } catch (e) {
-              lastErr = e instanceof Error ? e : new Error(String(e));
-              console.error(`[브리핑] ${label} 시도 ${attempt} 실패:`, lastErr.message);
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+          try {
+            if (attempt > 1) {
+              console.log(`[브리핑] 재시도 ${attempt}/${MAX_ATTEMPTS}...`);
+              controller.enqueue(encode({
+                type: "status", step: 2, totalSteps: 3,
+                message: `AI 응답 재시도 중 (${attempt}/${MAX_ATTEMPTS})`,
+                elapsed: Math.round((Date.now() - startTime) / 1000),
+              }));
             }
+
+            let lastProgressSent = 0;
+            const { parsed } = await callClaudeAndParse(
+              claude, systemPrompt, userPrompt,
+              (text) => {
+                if (text.length - lastProgressSent > 500) {
+                  lastProgressSent = text.length;
+                  const pct = Math.min(Math.round((text.length / 5000) * 90), 90);
+                  try {
+                    controller.enqueue(encode({
+                      type: "progress", step: 2, totalSteps: 3,
+                      message: "AI가 브리핑을 작성하고 있어요",
+                      pct,
+                      elapsed: Math.round((Date.now() - startTime) / 1000),
+                    }));
+                  } catch { /* stream closed */ }
+                }
+              }
+            );
+
+            rawParsed = parsed;
+            lastError = null;
+            break;
+          } catch (e) {
+            lastError = e instanceof Error ? e : new Error(String(e));
+            console.error(`[브리핑] 시도 ${attempt} 실패:`, lastError.message, lastError.stack);
           }
-          throw lastErr || new Error(`${label} 파싱 실패`);
         }
 
-        let pctA = 0, pctB = 0;
-        let lastProgressSentA = 0, lastProgressSentB = 0;
-        const sendProgress = () => {
-          const pct = Math.max(pctA, pctB);
-          try {
-            controller.enqueue(encode({
-              type: "progress", step: 2, totalSteps: 3,
-              message: "AI가 브리핑을 작성하고 있어요",
-              pct,
-              elapsed: Math.round((Date.now() - startTime) / 1000),
-            }));
-          } catch { /* stream closed */ }
-        };
-
-        const [parsedA, parsedB] = await Promise.all([
-          callWithRetry(userPromptA, 8192, "diagnosis", (text) => {
-            if (text.length - lastProgressSentA > 500) {
-              lastProgressSentA = text.length;
-              pctA = Math.min(Math.round((text.length / 3500) * 90), 90);
-              sendProgress();
-            }
-          }),
-          callWithRetry(userPromptB, 4096, "preparation", (text) => {
-            if (text.length - lastProgressSentB > 500) {
-              lastProgressSentB = text.length;
-              pctB = Math.min(Math.round((text.length / 2000) * 90), 90);
-              sendProgress();
-            }
-          }),
-        ]);
-
-        // 결과 병합: 진단 코어 필드 + 멘토링 준비 필드
-        const rawParsed = { ...(parsedA as object), ...(parsedB as object) };
+        if (lastError || !rawParsed) {
+          throw lastError || new Error("AI 응답 파싱 실패");
+        }
 
         // ── Critic Agent: 규칙 기반 품질 검증 (즉시 반환) ──
         const preValidated = briefingResponseSchema.safeParse(nullsToUndefined(rawParsed));
