@@ -164,11 +164,12 @@ function buildAnalystSection(report: AnalystReport): string {
     }
   }
 
-  // 6. 데이터 공백
-  if (report.dataGaps.length > 0) {
-    sections.push("\n### 데이터 공백 (브리핑 시 명시 필요)");
+  // 6. 데이터 공백 (high/medium만 — low는 운영 에로사항이므로 AI에 노출하지 않음)
+  const significantGaps = report.dataGaps.filter((g) => g.severity !== "low");
+  if (significantGaps.length > 0) {
+    sections.push("\n### 데이터 공백 (브리핑 시 참고)");
     sections.push(
-      report.dataGaps
+      significantGaps
         .map((g) => `- [${g.severity}] ${g.area}: ${g.detail}`)
         .join("\n")
     );
@@ -217,6 +218,43 @@ function buildAnalystSection(report: AnalystReport): string {
 
   // 10. 컨텍스트 요약
   sections.push(`\n### Analyst 컨텍스트 요약\n${report.narrativeContext}`);
+
+  // 11. 분석 방향 유도 (AI가 표면 요약이 아닌 깊은 진단을 하도록 유도)
+  sections.push(`\n### ★ 분석 시 반드시 답해야 할 질문`);
+  const guidingQuestions: string[] = [];
+
+  // 반복 토픽이 있으면 "왜 해결 안 되는가?" 질문
+  if (report.topicAnalysis.recurringTopics.length > 0) {
+    const top = report.topicAnalysis.recurringTopics[0];
+    guidingQuestions.push(
+      `"${top.topic}"이 ${top.frequency}회 반복 등장함. 왜 해결되지 않는가? 팀 역량 문제인가, 우선순위 문제인가, 구조적 문제인가?`
+    );
+  }
+
+  // 조언 이행율이 낮으면 질문
+  if (report.adviceTracking.executionRate < 0.5 && report.adviceTracking.tracked.length >= 3) {
+    guidingQuestions.push(
+      `멘토 조언 이행율이 ${Math.round(report.adviceTracking.executionRate * 100)}%로 낮음. 팀이 조언을 안 듣는 건지, 못 실행하는 건지 구분하여 진단할 것.`
+    );
+  }
+
+  // 최근 포커스 vs 이전 포커스 차이가 있으면 소멸 신호 질문
+  if (report.topicAnalysis.recentFocus.length > 0 && report.topicAnalysis.topKeywords.length > 3) {
+    const pastTopics = report.topicAnalysis.topKeywords
+      .filter((k) => !report.topicAnalysis.recentFocus.includes(k.keyword))
+      .slice(0, 2);
+    if (pastTopics.length > 0) {
+      guidingQuestions.push(
+        `과거 빈출 키워드 "${pastTopics.map((t) => t.keyword).join(", ")}"이 최근 세션에서 사라짐. 해결된 건지 포기된 건지 판단할 것.`
+      );
+    }
+  }
+
+  if (guidingQuestions.length === 0) {
+    guidingQuestions.push("이 팀의 가장 큰 사업적 위험이 무엇인지, 데이터 행간에서 추론할 것.");
+  }
+
+  sections.push(guidingQuestions.map((q) => `- ${q}`).join("\n"));
 
   return sections.join("\n");
 }
