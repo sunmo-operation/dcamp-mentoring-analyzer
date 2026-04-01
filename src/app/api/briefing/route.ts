@@ -22,6 +22,7 @@ import {
   mergeSemanticTopics,
   criticizeBriefing,
 } from "@/lib/agents";
+import { buildFieldRestriction } from "@/lib/briefing-prompts";
 import type { AnalystReport } from "@/lib/agents";
 import type { BriefingResponse } from "@/lib/schemas";
 
@@ -147,7 +148,8 @@ async function callClaudeAndParse(
   claude: ReturnType<typeof getClaudeClient>,
   systemPrompt: string,
   userPrompt: string,
-  onProgress: (text: string) => void
+  onProgress: (text: string) => void,
+  options?: { maxTokens?: number }
 ): Promise<{ parsed: unknown; stopReason: string }> {
   const model = process.env.BRIEFING_MODEL || "claude-sonnet-4-6";
 
@@ -164,8 +166,7 @@ async function callClaudeAndParse(
 
   const response = await claude.messages.stream({
     model,
-    // Sonnet 4.6은 상세한 응답을 생성하므로 넉넉하게 설정. 잘림 방지.
-    max_tokens: 16384,
+    max_tokens: options?.maxTokens || 16384,
     system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
     messages,
   });
@@ -232,7 +233,7 @@ export async function POST(request: Request) {
         // 1단계: 데이터 수집 (Agent: Data Collector)
         // stale 체크와 브리핑 생성 모두 같은 packet을 재사용
         controller.enqueue(encode({
-          type: "status", step: 1, totalSteps: 4,
+          type: "status", step: 1, totalSteps: 3,
           message: "Notion에서 데이터를 가져오고 있어요",
           elapsed: 0,
         }));
@@ -280,7 +281,7 @@ export async function POST(request: Request) {
 
         // 2단계: 분석 + AI 브리핑 (Agent: Analyst → Narrator)
         controller.enqueue(encode({
-          type: "status", step: 2, totalSteps: 4,
+          type: "status", step: 2, totalSteps: 3,
           message: "AI가 브리핑을 작성하고 있어요",
           detail: collectionDetail,
         }));
@@ -314,93 +315,87 @@ export async function POST(request: Request) {
         const claude = getClaudeClient();
         const { systemPrompt, userPrompt } = buildEnhancedPrompts(packet, analystReport, pulseReport);
 
-        // Claude 호출 + 자동 재시도 (최대 2회)
-        let rawParsed: unknown;
-        let lastError: Error | null = null;
+        // 병렬 Claude 호출: 진단 코어 (A) + 멘토링 준비 (B)
         const MAX_ATTEMPTS = 2;
+        const userPromptA = userPrompt + buildFieldRestriction("diagnosis");
+        const userPromptB = userPrompt + buildFieldRestriction("preparation");
 
-        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-          try {
-            if (attempt > 1) {
-              console.log(`[브리핑] 재시도 ${attempt}/${MAX_ATTEMPTS}...`);
-              controller.enqueue(encode({
-                type: "status", step: 2, totalSteps: 4,
-                message: `AI 응답 재시도 중 (${attempt}/${MAX_ATTEMPTS})`,
-                elapsed: Math.round((Date.now() - startTime) / 1000),
-              }));
-            }
-
-            let lastProgressSent = 0;
-            const { parsed } = await callClaudeAndParse(
-              claude, systemPrompt, userPrompt,
-              (text) => {
-                // 500자마다 진행률 업데이트
-                if (text.length - lastProgressSent > 500) {
-                  lastProgressSent = text.length;
-                  const pct = Math.min(Math.round((text.length / 5000) * 90), 90);
-                  try {
-                    controller.enqueue(encode({
-                      type: "progress", step: 2, totalSteps: 4,
-                      message: "AI가 브리핑을 작성하고 있어요",
-                      pct,
-                      elapsed: Math.round((Date.now() - startTime) / 1000),
-                    }));
-                  } catch {
-                    // 스트림 닫힌 경우 무시
-                  }
-                }
+        async function callWithRetry(
+          prompt: string,
+          maxTokens: number,
+          label: string,
+          onProgress: (text: string) => void
+        ): Promise<unknown> {
+          let lastErr: Error | null = null;
+          for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+              if (attempt > 1) {
+                console.log(`[브리핑] ${label} 재시도 ${attempt}/${MAX_ATTEMPTS}...`);
               }
-            );
-
-            rawParsed = parsed;
-            lastError = null;
-            break; // 성공하면 루프 종료
-          } catch (e) {
-            lastError = e instanceof Error ? e : new Error(String(e));
-            console.error(`[브리핑] 시도 ${attempt} 실패:`, lastError.message, lastError.stack);
-            console.error(`[브리핑] 에러 상세:`, JSON.stringify(e, Object.getOwnPropertyNames(e as object), 2));
+              const { parsed } = await callClaudeAndParse(
+                claude, systemPrompt, prompt, onProgress, { maxTokens }
+              );
+              return parsed;
+            } catch (e) {
+              lastErr = e instanceof Error ? e : new Error(String(e));
+              console.error(`[브리핑] ${label} 시도 ${attempt} 실패:`, lastErr.message);
+            }
           }
+          throw lastErr || new Error(`${label} 파싱 실패`);
         }
 
-        if (lastError || !rawParsed) {
-          throw lastError || new Error("AI 응답 파싱 실패");
-        }
+        let pctA = 0, pctB = 0;
+        let lastProgressSentA = 0, lastProgressSentB = 0;
+        const sendProgress = () => {
+          const pct = Math.max(pctA, pctB);
+          try {
+            controller.enqueue(encode({
+              type: "progress", step: 2, totalSteps: 3,
+              message: "AI가 브리핑을 작성하고 있어요",
+              pct,
+              elapsed: Math.round((Date.now() - startTime) / 1000),
+            }));
+          } catch { /* stream closed */ }
+        };
 
-        // ── Critic Agent: 브리핑 품질 검증 ──────────────
-        const elapsedBeforeCritic = Math.round((Date.now() - startTime) / 1000);
-        controller.enqueue(encode({
-          type: "status", step: 3, totalSteps: 4,
-          message: "브리핑 품질을 검증하고 있어요",
-          elapsed: elapsedBeforeCritic,
-        }));
+        const [parsedA, parsedB] = await Promise.all([
+          callWithRetry(userPromptA, 8192, "diagnosis", (text) => {
+            if (text.length - lastProgressSentA > 500) {
+              lastProgressSentA = text.length;
+              pctA = Math.min(Math.round((text.length / 3500) * 90), 90);
+              sendProgress();
+            }
+          }),
+          callWithRetry(userPromptB, 4096, "preparation", (text) => {
+            if (text.length - lastProgressSentB > 500) {
+              lastProgressSentB = text.length;
+              pctB = Math.min(Math.round((text.length / 2000) * 90), 90);
+              sendProgress();
+            }
+          }),
+        ]);
 
-        // 1차 브리핑을 Zod로 사전 파싱 (Critic에 타입 안전한 데이터 전달)
+        // 결과 병합: 진단 코어 필드 + 멘토링 준비 필드
+        const rawParsed = { ...(parsedA as object), ...(parsedB as object) };
+
+        // ── Critic Agent: 규칙 기반 품질 검증 (즉시 반환) ──
         const preValidated = briefingResponseSchema.safeParse(nullsToUndefined(rawParsed));
         if (preValidated.success) {
-          try {
-            // 시간 예산 체크: Main 호출에 120초 이상 걸렸으면 Critic Haiku 호출 건너뛰기
-            const criticResult = elapsedBeforeCritic > 120
-              ? await criticizeBriefing(preValidated.data, packet, { skipHaiku: true })
-              : await criticizeBriefing(preValidated.data, packet);
-            console.log(`[Critic] 검증 완료: severity=${criticResult.severity}, issues=${criticResult.issues.length}건, elapsed=${elapsedBeforeCritic}s`);
-
-            // 이슈를 metadata로 기록 (재생성 없이 로그만 남김)
-            if (criticResult.issues.length > 0) {
-              (rawParsed as Record<string, unknown>)._criticIssues = criticResult.issues.map((i) =>
-                `[${i.type}] ${i.field}: ${i.message}`
-              );
-            }
-          } catch (e) {
-            console.warn("[Critic] 검증 실패 (무시, 1차 결과 진행):", e);
+          const criticResult = criticizeBriefing(preValidated.data, packet);
+          console.log(`[Critic] 검증 완료: severity=${criticResult.severity}, issues=${criticResult.issues.length}건`);
+          if (criticResult.issues.length > 0) {
+            (rawParsed as Record<string, unknown>)._criticIssues = criticResult.issues.map((i) =>
+              `[${i.type}] ${i.field}: ${i.message}`
+            );
           }
         }
 
-        // 4단계: 결과 처리
-        const elapsed4 = Math.round((Date.now() - startTime) / 1000);
+        // 3단계: 결과 처리
+        const elapsed3 = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({
-          type: "status", step: 4, totalSteps: 4,
+          type: "status", step: 3, totalSteps: 3,
           message: "거의 다 됐어요!",
-          elapsed: elapsed4,
+          elapsed: elapsed3,
         }));
 
         const validated = briefingResponseSchema.safeParse(nullsToUndefined(rawParsed));

@@ -1,16 +1,10 @@
 // ══════════════════════════════════════════════════
 // ⑥ Critic Agent
-// 2단계 검증: 규칙 기반 팩트체크 → Claude Haiku 품질 평가
-// 환각/수치 불일치/시의성 등을 검출하여 브리핑 품질 보장
+// 규칙 기반 팩트체크: 환각/수치 불일치/시의성 등을 검출
 // ══════════════════════════════════════════════════
 
-import { getClaudeClient } from "@/lib/claude";
 import type { CompanyDataPacket } from "./types";
 import type { BriefingResponse } from "@/lib/schemas";
-import {
-  buildCriticSystemPrompt,
-  buildCriticUserPrompt,
-} from "./critic-prompts";
 
 // ── 타입 정의 ──────────────────────────────────────
 
@@ -31,37 +25,13 @@ export interface CriticAssessment {
 // ── 메인 함수 ──────────────────────────────────────
 
 /**
- * 브리핑을 2단계로 검증:
- * Phase 1 — 규칙 기반 팩트체크 (즉시, AI 호출 없음)
- * Phase 2 — Claude Haiku 품질 평가 (1회 호출, skipHaiku 시 건너뜀)
+ * 규칙 기반 팩트체크 (AI 호출 없음, 즉시 반환)
  */
-export async function criticizeBriefing(
+export function criticizeBriefing(
   briefing: BriefingResponse,
-  packet: CompanyDataPacket,
-  options?: { skipHaiku?: boolean }
-): Promise<CriticAssessment> {
-  const issues: CriticIssue[] = [];
-
-  // Phase 1: 규칙 기반 팩트체크
-  const ruleIssues = runRuleBasedChecks(briefing, packet);
-  issues.push(...ruleIssues);
-
-  // Phase 1에서 critical 수준의 환각이 발견되면 Phase 2 스킵 (비용 절약)
-  const hallucinationCount = ruleIssues.filter((i) => i.type === "hallucination").length;
-  if (hallucinationCount >= 2 || options?.skipHaiku) {
-    if (options?.skipHaiku) console.log("[Critic] 시간 예산 초과로 Haiku 품질 평가 건너뜀");
-    return buildAssessment(issues);
-  }
-
-  // Phase 2: Claude Haiku 품질 평가
-  try {
-    const haikuIssues = await runHaikuQualityCheck(briefing, packet);
-    issues.push(...haikuIssues);
-  } catch (error) {
-    console.warn("[Critic] Haiku 품질 평가 실패 (무시):", error);
-    // Phase 2 실패 시 Phase 1 결과만으로 판단
-  }
-
+  packet: CompanyDataPacket
+): CriticAssessment {
+  const issues = runRuleBasedChecks(briefing, packet);
   return buildAssessment(issues);
 }
 
@@ -318,110 +288,6 @@ function checkWeakExpressions(
       }
     }
   }
-}
-
-// ── Phase 2: Claude Haiku 품질 평가 ─────────────────
-
-async function runHaikuQualityCheck(
-  briefing: BriefingResponse,
-  packet: CompanyDataPacket
-): Promise<CriticIssue[]> {
-  const client = getClaudeClient();
-
-  // 토큰 절약을 위해 데이터 요약본 생성
-  const dataSummary = buildDataSummary(packet);
-
-  // 브리핑 JSON (industryContext 제외 — 외부 지식 기반이라 팩트체크 불가)
-  const briefingForCheck = { ...briefing };
-  delete (briefingForCheck as Record<string, unknown>).industryContext;
-  const briefingJson = JSON.stringify(briefingForCheck, null, 2);
-
-  const systemPrompt = buildCriticSystemPrompt();
-  const userPrompt = buildCriticUserPrompt(briefingJson, dataSummary);
-
-  const msg = await client.messages.create({
-    model: process.env.BRIEFING_LIGHT_MODEL || "claude-haiku-4-5-20251001",
-    max_tokens: 1024,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userPrompt }],
-  });
-
-  const text = msg.content[0].type === "text" ? msg.content[0].text : "";
-
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return [];
-
-    const result = JSON.parse(jsonMatch[0]) as {
-      severity?: string;
-      issues?: Array<{
-        type?: string;
-        field?: string;
-        message?: string;
-        suggestion?: string;
-      }>;
-    };
-
-    return (result.issues || [])
-      .filter((i) => i.type && i.field && i.message)
-      .map((i) => ({
-        type: (i.type as CriticIssue["type"]) || "quality",
-        field: i.field || "unknown",
-        message: i.message || "",
-        suggestion: i.suggestion,
-      }));
-  } catch {
-    console.warn("[Critic] Haiku 응답 파싱 실패:", text.slice(0, 200));
-    return [];
-  }
-}
-
-/**
- * CompanyDataPacket을 토큰 절약용 요약으로 변환
- * Haiku에게 브리핑 검증에 필요한 핵심 데이터만 전달
- */
-function buildDataSummary(packet: CompanyDataPacket): string {
-  const { company, sessions, expertRequests } = packet;
-  const parts: string[] = [];
-
-  // 기업 기본 정보
-  parts.push(`기업명: ${company.name}`);
-  parts.push(`투자 단계: ${company.investmentStage || "정보 없음"}`);
-  parts.push(`팀 규모: ${company.teamSize || "정보 없음"}명`);
-  parts.push(`배치: ${company.batchLabel || "정보 없음"}`);
-  if (company.excel?.dedicatedMentor) {
-    parts.push(`전담멘토: ${company.excel.dedicatedMentor}`);
-  }
-
-  // 세션 요약
-  parts.push(`\n멘토링 세션: 총 ${sessions.length}건`);
-  if (sessions.length > 0) {
-    const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
-    parts.push(`최근 세션: ${sorted[0].date}`);
-    parts.push(`최초 세션: ${sorted[sorted.length - 1].date}`);
-
-    // 최근 3건 제목
-    for (const s of sorted.slice(0, 3)) {
-      parts.push(`- [${s.date}] ${s.title} (${s.sessionTypes.join("/")})`);
-    }
-  }
-
-  // 전문가 요청
-  parts.push(`\n전문가 요청: 총 ${expertRequests.length}건`);
-  for (const r of expertRequests.slice(0, 3)) {
-    parts.push(`- [${r.requestedAt?.split("T")[0] || "?"}] ${r.status || "접수"} / ${r.oneLiner || ""}`);
-  }
-
-  // OKR 달성율
-  if (company.achievementRate !== undefined) {
-    parts.push(`\nOKR 달성율: ${company.achievementRate}%`);
-  }
-
-  // KPT
-  parts.push(`KPT 리뷰: ${packet.kptReviews.length}건`);
-  parts.push(`OKR 항목: ${packet.okrItems.length}건`);
-
-  return parts.join("\n");
 }
 
 // ── 유틸리티 ──────────────────────────────────────

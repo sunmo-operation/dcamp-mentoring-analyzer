@@ -256,11 +256,11 @@ export function formatRecentSessionsGrouped(sessions: MentoringSession[]): strin
     sections.push(`\n### [${groupName}]`);
     // 그룹별 최대 2건만 (프롬프트 축소 → 응답 속도 개선)
     for (const s of groupSessions.slice(0, 2)) {
-      const summary = s.summary ? truncate(s.summary, 250) : "요약 없음";
+      const summary = s.summary ? truncate(s.summary, 200) : "요약 없음";
       const followUp = s.followUp ? `\n  후속조치: ${truncate(s.followUp, 150)}` : "";
       const mentors = s.mentorNames?.join(", ") || "멘토 미기재";
-      // transcript(페이지 본문)가 있으면 500자까지 포함 — 핵심 맥락 보강
-      const transcript = s.transcript ? `\n  회의 전문(발췌): ${truncate(s.transcript, 500)}` : "";
+      // transcript(페이지 본문)가 있으면 300자까지 포함 — 핵심 맥락 보강
+      const transcript = s.transcript ? `\n  회의 전문(발췌): ${truncate(s.transcript, 300)}` : "";
       sections.push(`- [${s.date}] ${s.title} / 멘토: ${mentors}\n  요약: ${summary}${followUp}${transcript}`);
     }
   }
@@ -274,9 +274,9 @@ export function formatRecentSessionsGrouped(sessions: MentoringSession[]): strin
 export function formatOlderSessionsBrief(sessions: MentoringSession[]): string {
   if (sessions.length === 0) return "이전 기록 없음";
 
-  // 최대 8건만 (프롬프트 축소)
+  // 최대 5건만 (프롬프트 축소)
   return sessions
-    .slice(0, 8)
+    .slice(0, 5)
     .map((s) => {
       const types = s.sessionTypes.join("/");
       return `- [${s.date}] [${types}] ${s.title}`;
@@ -535,4 +535,34 @@ ${slackMessages
 - 노션 데이터의 정량적 수치(매출, DAU, 전환율 등)는 원본 그대로 인용.
 - 전문가 요청과 멘토링 내용을 교차 분석. 전담멘토 활동은 멘토링으로 취급.
 - Slack 대화가 있으면 멘토링 등 다른 소스와 교차 검증. 별도 섹션 분리 금지.`;
+}
+
+/**
+ * 병렬 호출용 필드 제한 지시문
+ * 동일한 시스템 프롬프트를 공유하되, 출력 범위만 제한하여 prompt caching 극대화
+ *
+ * Call A (diagnosis): executiveSummary, positiveShifts, repeatPatterns, unspokenSignals
+ * Call B (preparation): mentorInsights, meetingStrategy, pmActions
+ */
+export function buildFieldRestriction(group: "diagnosis" | "preparation"): string {
+  if (group === "diagnosis") {
+    return `\n\n[출력 범위 제한 — ★★★ 반드시 준수]
+이 호출에서는 아래 4개 섹션만 생성하세요. 나머지 섹션은 null로 설정:
+- executiveSummary (필수)
+- positiveShifts (필수)
+- repeatPatterns (필수)
+- unspokenSignals (필수)
+
+나머지 필드(mentorInsights, meetingStrategy, pmActions, industryContext)는 null로 반환.
+JSON 전체 구조는 유지하되 위 4개 섹션에 모든 분석 역량을 집중할 것.`;
+  }
+
+  return `\n\n[출력 범위 제한 — ★★★ 반드시 준수]
+이 호출에서는 아래 3개 섹션만 생성하세요. 나머지 섹션은 null로 설정:
+- mentorInsights (필수)
+- meetingStrategy (필수)
+- pmActions (필수)
+
+나머지 필드(executiveSummary, positiveShifts, repeatPatterns, unspokenSignals, industryContext)는 null로 반환.
+JSON 전체 구조는 유지하되 위 3개 섹션에 모든 분석 역량을 집중할 것.`;
 }
