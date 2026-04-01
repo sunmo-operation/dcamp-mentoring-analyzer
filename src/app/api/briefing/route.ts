@@ -367,44 +367,24 @@ export async function POST(request: Request) {
         }
 
         // ── Critic Agent: 브리핑 품질 검증 ──────────────
+        const elapsedBeforeCritic = Math.round((Date.now() - startTime) / 1000);
         controller.enqueue(encode({
           type: "status", step: 3, totalSteps: 4,
           message: "브리핑 품질을 검증하고 있어요",
-          elapsed: Math.round((Date.now() - startTime) / 1000),
+          elapsed: elapsedBeforeCritic,
         }));
 
         // 1차 브리핑을 Zod로 사전 파싱 (Critic에 타입 안전한 데이터 전달)
         const preValidated = briefingResponseSchema.safeParse(nullsToUndefined(rawParsed));
         if (preValidated.success) {
           try {
-            const criticResult = await criticizeBriefing(preValidated.data, packet);
-            console.log(`[Critic] 검증 완료: severity=${criticResult.severity}, issues=${criticResult.issues.length}건`);
+            // 시간 예산 체크: Main 호출에 120초 이상 걸렸으면 Critic Haiku 호출 건너뛰기
+            const criticResult = elapsedBeforeCritic > 120
+              ? await criticizeBriefing(preValidated.data, packet, { skipHaiku: true })
+              : await criticizeBriefing(preValidated.data, packet);
+            console.log(`[Critic] 검증 완료: severity=${criticResult.severity}, issues=${criticResult.issues.length}건, elapsed=${elapsedBeforeCritic}s`);
 
-            if (criticResult.severity === "critical" && criticResult.improvementPrompt) {
-              // 2차 Claude 호출: 문제 섹션만 재생성
-              controller.enqueue(encode({
-                type: "status", step: 3, totalSteps: 4,
-                message: "일부 섹션을 보강하고 있어요",
-                elapsed: Math.round((Date.now() - startTime) / 1000),
-              }));
-
-              try {
-                const patchPrompt = `기존 브리핑:\n${JSON.stringify(rawParsed, null, 2)}\n\n${criticResult.improvementPrompt}`;
-                const { parsed: patchParsed } = await callClaudeAndParse(
-                  claude, systemPrompt, patchPrompt, () => {} // 2차는 진행률 불필요
-                );
-
-                // 2차 결과를 1차에 머지
-                if (patchParsed && typeof patchParsed === "object") {
-                  rawParsed = { ...(rawParsed as Record<string, unknown>), ...(patchParsed as Record<string, unknown>) };
-                  console.log("[Critic] 2차 재생성 결과 머지 완료");
-                }
-              } catch (e) {
-                console.warn("[Critic] 2차 재생성 실패 (1차 결과 유지):", e);
-              }
-            }
-
-            // warning 이슈를 metadata로 기록 (나중에 확인 가능)
+            // 이슈를 metadata로 기록 (재생성 없이 로그만 남김)
             if (criticResult.issues.length > 0) {
               (rawParsed as Record<string, unknown>)._criticIssues = criticResult.issues.map((i) =>
                 `[${i.type}] ${i.field}: ${i.message}`

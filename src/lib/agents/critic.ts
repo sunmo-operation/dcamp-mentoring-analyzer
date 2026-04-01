@@ -33,11 +33,12 @@ export interface CriticAssessment {
 /**
  * 브리핑을 2단계로 검증:
  * Phase 1 — 규칙 기반 팩트체크 (즉시, AI 호출 없음)
- * Phase 2 — Claude Haiku 품질 평가 (1회 호출)
+ * Phase 2 — Claude Haiku 품질 평가 (1회 호출, skipHaiku 시 건너뜀)
  */
 export async function criticizeBriefing(
   briefing: BriefingResponse,
-  packet: CompanyDataPacket
+  packet: CompanyDataPacket,
+  options?: { skipHaiku?: boolean }
 ): Promise<CriticAssessment> {
   const issues: CriticIssue[] = [];
 
@@ -47,7 +48,8 @@ export async function criticizeBriefing(
 
   // Phase 1에서 critical 수준의 환각이 발견되면 Phase 2 스킵 (비용 절약)
   const hallucinationCount = ruleIssues.filter((i) => i.type === "hallucination").length;
-  if (hallucinationCount >= 2) {
+  if (hallucinationCount >= 2 || options?.skipHaiku) {
+    if (options?.skipHaiku) console.log("[Critic] 시간 예산 초과로 Haiku 품질 평가 건너뜀");
     return buildAssessment(issues);
   }
 
