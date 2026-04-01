@@ -12,10 +12,25 @@ import type { Company } from "@/types";
 interface CompanyCardProps {
   company: Company;
   analysisCount?: number;
+  lastAnalysisDate?: string;
+  hasBriefing?: boolean;
+}
+
+function getLastAnalysisLabel(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "오늘";
+  if (diffDays === 1) return "어제";
+  if (diffDays < 7) return `${diffDays}일 전`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}주 전`;
+  return `${Math.floor(diffDays / 30)}개월 전`;
 }
 
 // 토스 스타일 기업 카드: 호버 시 살짝 떠오르는 효과 + 넉넉한 여백
-export function CompanyCard({ company, analysisCount = 0 }: CompanyCardProps) {
+export function CompanyCard({ company, analysisCount = 0, lastAnalysisDate, hasBriefing }: CompanyCardProps) {
   return (
     <Link
       href={`/companies/${company.notionPageId}`}
@@ -55,11 +70,26 @@ export function CompanyCard({ company, analysisCount = 0 }: CompanyCardProps) {
               )}
               {company.teamSize && <span>{company.teamSize}명</span>}
             </div>
-            {analysisCount > 0 && (
-              <span className="text-primary font-semibold">
-                분석 {analysisCount}건
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {lastAnalysisDate && (
+                <span className="text-muted-foreground">
+                  분석 {getLastAnalysisLabel(lastAnalysisDate)}
+                </span>
+              )}
+              {hasBriefing && (
+                <span className="flex items-center gap-0.5 text-primary font-medium">
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  브리핑
+                </span>
+              )}
+              {!lastAnalysisDate && analysisCount > 0 && (
+                <span className="text-primary font-semibold">
+                  분석 {analysisCount}건
+                </span>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

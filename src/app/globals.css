@@ -168,3 +168,11 @@
 .animate-fade-in {
   animation: fadeInUp 0.4s ease-out both;
 }
+
+/* Hero 배경 그라디언트 */
+.hero-gradient {
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(49,130,246,0.05) 0%, transparent 70%);
+}
+.dark .hero-gradient {
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(69,147,252,0.08) 0%, transparent 70%);
+}

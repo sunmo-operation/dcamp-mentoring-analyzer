@@ -32,15 +32,32 @@ export default async function HomePage() {
     }
   }
 
-  // 완료된 브리핑 수
-  const briefingCount = allBriefings.filter((b) => b.status === "completed").length;
+  // 기업별 마지막 분석 일자
+  const lastAnalysisByCompany: Record<string, string> = {};
+  for (const a of allAnalyses) {
+    if (a.status === "completed") {
+      const existing = lastAnalysisByCompany[a.companyId];
+      if (!existing || new Date(a.createdAt) > new Date(existing)) {
+        lastAnalysisByCompany[a.companyId] = a.createdAt;
+      }
+    }
+  }
+
+  // 기업별 브리핑 유무
+  const briefingByCompany: Record<string, boolean> = {};
+  for (const b of allBriefings) {
+    if (b.status === "completed") {
+      briefingByCompany[b.companyId] = true;
+    }
+  }
 
   return (
     <HomeClient
       companies={companies}
       recentAnalyses={recentAnalyses}
       analysisCountByCompany={analysisCountByCompany}
-      briefingCount={briefingCount}
+      lastAnalysisByCompany={lastAnalysisByCompany}
+      briefingByCompany={briefingByCompany}
     />
   );
 }

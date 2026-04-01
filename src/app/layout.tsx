@@ -19,7 +19,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <Providers>
           <Header />
-          <main className="min-h-[calc(100vh-64px)]">{children}</main>
+          <main className="min-h-[calc(100vh-56px)]">{children}</main>
         </Providers>
       </body>
     </html>
