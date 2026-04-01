@@ -534,6 +534,20 @@ async function queryAllPages(
 // 기업 조회
 // ══════════════════════════════════════════════════
 
+// Notion DB 템플릿/더미 레코드 필터링
+// "[새 기업 등록]", "[배치6기] 기업정보_템플릿" 등 실제 기업이 아닌 항목 제외
+const TEMPLATE_PATTERNS = [
+  /새.*기업.*등록/,        // 새 기업 등록, [새 기업 등록]
+  /템플릿/,               // [6기] 기업 정보_템플릿
+  /^테스트/,              // 테스트용 항목
+  /^sample/i,             // sample 항목
+];
+
+function isTemplateEntry(name: string): boolean {
+  if (!name || name.trim() === "") return true;
+  return TEMPLATE_PATTERNS.some((pattern) => pattern.test(name.trim()));
+}
+
 function mapCompanyBase(page: Props) {
   const props = (page?.properties ?? {}) as Props;
   const P = PROPS.company;
@@ -604,7 +618,8 @@ export async function getCompaniesBasic(): Promise<Company[]> {
     "companies:basic",
     async () => {
       const pages = await queryAllPages(DB_IDS.companies);
-      const bases = safeMap(pages, mapCompanyBase, "기업(경량)");
+      const bases = safeMap(pages, mapCompanyBase, "기업(경량)")
+        .filter((b) => !isTemplateEntry(b.name));
 
       // 대표자 이름 + 배치 이름을 배치 resolve (홈 카드 + 기수별 그룹핑)
       const allRepIds = [
@@ -643,7 +658,8 @@ export async function getCompanies(): Promise<Company[]> {
     "companies:all",
     async () => {
       const pages = await queryAllPages(DB_IDS.companies);
-      const bases = safeMap(pages, mapCompanyBase, "기업");
+      const bases = safeMap(pages, mapCompanyBase, "기업")
+        .filter((b) => !isTemplateEntry(b.name));
 
       // 모든 고유 relation ID를 수집하여 한번에 pre-fetch (N+1 → 병렬 배치)
       const allBatchIds = [
